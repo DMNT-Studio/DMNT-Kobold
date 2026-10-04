@@ -1,8 +1,8 @@
-"""Einfaches Eigenleben (Platzhalter). Wird in M2 durch Event-Bus und
-Verhaltensmotor ersetzt.
+"""Eigenleben: was der Avatar tut, wenn niemand etwas will (Priorität 0–20).
+Wird vom Verhaltensmotor getickt und nur genutzt, solange kein Wunsch aktiv ist.
 
-Zustände: ruhe (2–6 s), laufen (2–8 s), sitzen (5–15 s, selten).
-Blinzeln alle 3–7 s.
+Zustände: ruhe (2–6 s), laufen (2–8 s), sitzen (5–15 s, selten),
+schlafen (nur bei „Nicht stören“). Blinzeln alle 3–7 s.
 """
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import random
 RUHE = "ruhe"
 LAUFEN = "laufen"
 SITZEN = "sitzen"
+SCHLAFEN = "schlafen"
 
 BLINZEL_DAUER = 0.14
 
@@ -31,18 +32,20 @@ class Eigenleben:
 
     @nicht_stoeren.setter
     def nicht_stoeren(self, wert: bool) -> None:
+        if wert == self._nicht_stoeren:
+            return
         self._nicht_stoeren = wert
         if wert:
-            self.zustand = SITZEN
+            self.zustand = SCHLAFEN
         else:
             self.zuruecksetzen()
 
     @property
-    def augen_zu(self) -> bool:
-        return self.zustand == SITZEN or self._blinzel_rest > 0
+    def blinzelt(self) -> bool:
+        return self._blinzel_rest > 0
 
     def zuruecksetzen(self) -> None:
-        self.zustand = SITZEN if self._nicht_stoeren else RUHE
+        self.zustand = SCHLAFEN if self._nicht_stoeren else RUHE
         self.rest = self.rng.uniform(2, 6)
 
     def tick(self, dt: float) -> None:
@@ -54,7 +57,7 @@ class Eigenleben:
             self._blinzel_rest = max(0.0, self._blinzel_rest - dt)
 
         if self._nicht_stoeren:
-            self.zustand = SITZEN
+            self.zustand = SCHLAFEN
             return
         self.rest -= dt
         if self.rest <= 0:
@@ -72,7 +75,3 @@ class Eigenleben:
             self.richtung = self.rng.choice((-1, 1))
         else:
             self.rest = self.rng.uniform(2, 6)
-
-    def naechster_wechsel_in(self) -> float:
-        """Sekunden bis zum nächsten sichtbaren Ereignis (für den Ruhetakt)."""
-        return min(self.rest, self._blinzel_in, self._blinzel_rest or 99.0)

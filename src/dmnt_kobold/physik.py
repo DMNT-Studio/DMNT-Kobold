@@ -50,6 +50,7 @@ class Koerper:
         self.richtung = 1
         self.halbe_breite = halbe_breite
         self.hoehe = hoehe
+        self.tempo = LAUFTEMPO
 
     # --- Nutzer-Eingriff ---------------------------------------------------
     @property
@@ -166,7 +167,7 @@ class Koerper:
 
         ereignisse: list[str] = []
         r = self.richtung
-        self.x += r * LAUFTEMPO * dt
+        self.x += r * self.tempo * dt
         kante = m.verfuegbar.rechts if r > 0 else m.verfuegbar.links
         boden_nativ = m.nach_nativ_y(m.boden)
         n = None if auf_monitor_bleiben else nachbar(monitore, m, r, boden_nativ)
@@ -195,7 +196,7 @@ class Koerper:
         else:
             # Nachbar-Boden liegt tiefer → herunterfallen
             self.y = y_neu
-            self.vx = r * LAUFTEMPO
+            self.vx = r * self.tempo
             self.vy = 0.0
             self.zustand = FAELLT
             ereignisse.append(GEWECHSELT)

@@ -1,0 +1,194 @@
+"""Verhaltensmotor: sammelt Wünsche mit Priorität und entscheidet, was der
+Avatar gerade tut. Module greifen nie direkt in die Animation ein.
+
+Prioritäten (Richtwerte):
+  100     Nutzer-Eingriff (Ziehen, Rechtsklick) – regelt das Overlay selbst
+  70–90   wichtige Modul-Wünsche (Erinnerungen); kommen auch bei „Nicht stören“ durch
+  30–60   Persönlichkeit, Reaktionen
+  0–20    Eigenleben (läuft, wenn niemand etwas will)
+
+Regeln:
+- Es gewinnt die höchste Priorität. Bei Gleichstand bleibt der laufende Wunsch.
+- Wird ein Wunsch verdrängt, verfällt er – außer ``aufheben=True``: dann
+  wartet er und läuft später mit seiner Restzeit weiter.
+- ``dauer_s=None`` heißt: bis zurückgezogen (z. B. „solange Programm X läuft“).
+- Noch nicht begonnene Wünsche mit Dauer verfallen nach ``MAX_WARTEN_S``,
+  damit keine veralteten Reaktionen nachgeholt werden.
+"""
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass, field
+from typing import Callable
+
+from .eigenleben import LAUFEN, SCHLAFEN, Eigenleben
+
+log = logging.getLogger(__name__)
+
+LEISE_AB = 70          # „Nicht stören“ lässt nur Wünsche ab dieser Priorität durch
+MAX_WARTEN_S = 10.0
+
+
+@dataclass
+class Wunsch:
+    animation: str = "ruhe"
+    text: str | None = None
+    knoepfe: tuple[str, ...] = ()
+    prioritaet: int = 50
+    dauer_s: float | None = 5.0
+    aufheben: bool = False
+    ziel: str | float | None = None      # "rand_rechts", "rand_links", "mitte" oder x
+    ton: str | None = None
+    quelle: str = ""
+    beim_knopf: Callable[[str], None] | None = None
+    id: int = 0
+    rest: float | None = None
+    begonnen: bool = False
+    gewartet: float = 0.0
+
+
+@dataclass
+class Ausgabe:
+    animation: str
+    laufen: bool
+    richtung: int
+    ziel: str | float | None
+    sprechblase: tuple[int, str, tuple[str, ...]] | None
+    toene: list[str] = field(default_factory=list)
+    wunsch_id: int | None = None
+    blinzelt: bool = False
+
+
+class Verhaltensmotor:
+    def __init__(self, bus=None, eigenleben: Eigenleben | None = None) -> None:
+        self.bus = bus
+        self.eigenleben = eigenleben or Eigenleben()
+        self._wuensche: list[Wunsch] = []
+        self._aktiv: Wunsch | None = None
+        self._naechste_id = 1
+        self._nicht_stoeren = False
+        self._toene: list[str] = []
+
+    # --- Steuerung ---------------------------------------------------------
+    @property
+    def nicht_stoeren(self) -> bool:
+        return self._nicht_stoeren
+
+    @nicht_stoeren.setter
+    def nicht_stoeren(self, wert: bool) -> None:
+        self._nicht_stoeren = wert
+        self.eigenleben.nicht_stoeren = wert
+        self._waehlen()
+
+    @property
+    def aktiver_wunsch(self) -> Wunsch | None:
+        return self._aktiv
+
+    def wuensche(self) -> list[Wunsch]:
+        return list(self._wuensche)
+
+    def wunsch(self, wunsch: Wunsch | None = None, **kw) -> int:
+        w = wunsch or Wunsch(**kw)
+        w.knoepfe = tuple(w.knoepfe)[:2]
+        w.id = self._naechste_id
+        self._naechste_id += 1
+        w.rest = w.dauer_s
+        self._wuensche.append(w)
+        self._waehlen()
+        return w.id
+
+    def zurueckziehen(self, wunsch_id: int) -> None:
+        self._wuensche = [w for w in self._wuensche if w.id != wunsch_id]
+        self._nach_entfernen()
+
+    def zurueckziehen_quelle(self, quelle: str) -> None:
+        self._wuensche = [w for w in self._wuensche
+                          if not (w.quelle == quelle or w.quelle.startswith(quelle + ":"))]
+        self._nach_entfernen()
+
+    def knopf(self, wunsch_id: int, knopf: str) -> None:
+        w = self._finden(wunsch_id)
+        if w is None:
+            return
+        self.zurueckziehen(wunsch_id)
+        if w.beim_knopf:
+            try:
+                w.beim_knopf(knopf)
+            except Exception:  # noqa: BLE001
+                log.exception("Knopf-Rückruf von %s fehlgeschlagen", w.quelle)
+        if self.bus is not None:
+            self.bus.senden("sprechblase.knopf", wunsch_id=wunsch_id, knopf=knopf, quelle=w.quelle)
+
+    def sprechblase_geschlossen(self, wunsch_id: int) -> None:
+        """Nutzer hat die Sprechblase weggeklickt."""
+        w = self._finden(wunsch_id)
+        if w is None:
+            return
+        self.zurueckziehen(wunsch_id)
+        if self.bus is not None:
+            self.bus.senden("sprechblase.zu", wunsch_id=wunsch_id, quelle=w.quelle)
+
+    # --- Takt --------------------------------------------------------------
+    def tick(self, dt: float) -> Ausgabe:
+        self.eigenleben.tick(dt)
+
+        for w in list(self._wuensche):
+            if w is self._aktiv or w.begonnen or w.aufheben or w.dauer_s is None:
+                continue
+            w.gewartet += dt
+            if w.gewartet > MAX_WARTEN_S:
+                self._wuensche.remove(w)
+
+        w = self._aktiv
+        if w is not None and w.rest is not None:
+            w.rest -= dt
+            if w.rest <= 0:
+                self._wuensche.remove(w)
+                self._aktiv = None
+                self._waehlen()
+                w = self._aktiv
+
+        toene, self._toene = self._toene, []
+        el = self.eigenleben
+        if w is not None:
+            blase = (w.id, w.text, w.knoepfe) if w.text else None
+            return Ausgabe(w.animation, False, el.richtung, w.ziel, blase, toene, w.id, el.blinzelt)
+        anim = el.zustand
+        return Ausgabe(anim, anim == LAUFEN, el.richtung, None, None, toene, None, el.blinzelt)
+
+    def verdraengt_eigenleben(self) -> bool:
+        return self._aktiv is not None
+
+    # --- intern ------------------------------------------------------------
+    def _finden(self, wunsch_id: int) -> Wunsch | None:
+        for w in self._wuensche:
+            if w.id == wunsch_id:
+                return w
+        return None
+
+    def _zulaessig(self, w: Wunsch) -> bool:
+        return not self._nicht_stoeren or w.prioritaet >= LEISE_AB
+
+    def _nach_entfernen(self) -> None:
+        if self._aktiv is not None and self._aktiv not in self._wuensche:
+            self._aktiv = None
+        self._waehlen()
+
+    def _waehlen(self) -> None:
+        kandidaten = [w for w in self._wuensche if self._zulaessig(w)]
+        bester = max(kandidaten, key=lambda w: (w.prioritaet, w is self._aktiv, w.id), default=None)
+        if bester is self._aktiv:
+            return
+        alt = self._aktiv
+        if alt is not None and alt in self._wuensche and not alt.aufheben and bester is not None:
+            self._wuensche.remove(alt)  # verdrängt → verfällt
+        self._aktiv = bester
+        if bester is not None and not bester.begonnen:
+            bester.begonnen = True
+            if bester.ton:
+                self._toene.append(bester.ton)
+            elif bester.text:
+                self._toene.append("sprechen")
+
+
+__all__ = ["Ausgabe", "LEISE_AB", "SCHLAFEN", "Verhaltensmotor", "Wunsch"]
