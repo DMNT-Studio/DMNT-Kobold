@@ -78,12 +78,14 @@ def weiss_entfernen(rgb: np.ndarray, toleranz: int = 235, nur_groesstes: bool = 
     return rgba
 
 
-def laden(pfad: Path, hintergrund: str | None) -> np.ndarray:
+def laden(pfad: Path, hintergrund: str | None, toleranz: int | None = None) -> np.ndarray:
+    """``hintergrund``: None (Bild hat Transparenz), "schwarz" oder "weiss".
+    Bei "weiss" auch für eingebrannte Karomuster: ``toleranz`` z. B. 220."""
     im = Image.open(pfad)
     if hintergrund == "schwarz":
         return schwarz_entfernen(np.array(im.convert("RGB")))
     if hintergrund == "weiss":
-        return weiss_entfernen(np.array(im.convert("RGB")))
+        return weiss_entfernen(np.array(im.convert("RGB")), toleranz or 235)
     return np.array(im.convert("RGBA"))
 
 
@@ -263,7 +265,8 @@ def bauen(quelle: Path) -> Path:
     # 1) Posen laden
     posen: dict[str, list[np.ndarray]] = {}
     for name, q in plan["quellen"].items():
-        posen[name] = zerlegen(laden(quelle / q["datei"], q.get("hintergrund")), q.get("bilder", 1))
+        posen[name] = zerlegen(laden(quelle / q["datei"], q.get("hintergrund"), q.get("toleranz")),
+                               q.get("bilder", 1))
         print(f"  {name}: {len(posen[name])} Pose(n)")
 
     # 2) Maßstab: Referenzpose auf Zielhöhe, alle anderen über die Augengröße
@@ -387,6 +390,27 @@ def bauen(quelle: Path) -> Path:
     return ziel
 
 
+VORLAGEN_LIESMICH = """{name} – Bildvorlagen aller Posen
+=====================================
+
+Was ist das?
+  Jede Pose, die der Kobold benutzt, als Einzelbild (Originalgröße, transparenter
+  Hintergrund). _uebersicht.png zeigt, welche Pose in welcher Animation steckt.
+
+Varianten machen (z. B. Kopfhörer):
+  1. Pose nehmen, Variante erzeugen lassen. Pose, Blickrichtung und Ausschnitt
+     möglichst gleich lassen – nur das Zubehör dazu.
+  2. Hintergrund: transparent, einfarbig schwarz oder weiß.
+  3. Gleicher Dateiname + Variante, z. B.  gehen_1_kopfhoerer.png
+  4. Alle Bilder einer Variante zusammen an Claude geben.
+
+Das Auge muss rot und sichtbar bleiben (danach richtet das Bau-Werkzeug
+Größe und Position aus).
+
+Bis die Varianten da sind, setzt der Kobold Platzhalter-Zubehör auf.
+"""
+
+
 def vorlagen_exportieren(quelle: Path) -> Path:
     """Exportiert jede verwendete Pose einzeln (Originalauflösung, transparenter
     Hintergrund) plus Übersicht – als Vorlage für Varianten (z. B. mit Kopfhörern)."""
@@ -397,7 +421,8 @@ def vorlagen_exportieren(quelle: Path) -> Path:
     if ziel.exists():
         shutil.rmtree(ziel)
     ziel.mkdir(parents=True)
-    posen = {n: zerlegen(laden(quelle / q["datei"], q.get("hintergrund")), q.get("bilder", 1))
+    posen = {n: zerlegen(laden(quelle / q["datei"], q.get("hintergrund"), q.get("toleranz")),
+                         q.get("bilder", 1))
              for n, q in plan["quellen"].items()}
     benutzt: dict[tuple, list[str]] = {}
     for anim, a in plan["animationen"].items():
@@ -431,6 +456,7 @@ def vorlagen_exportieren(quelle: Path) -> Path:
             zeichnen.text((i * zelle + 10, 30 + z // 3 * 20), ", ".join(anims[z:z + 3]),
                           fill=(160, 200, 185), font=schrift)
     uebersicht.save(ziel / "_uebersicht.png")
+    (ziel / "LIESMICH.txt").write_text(VORLAGEN_LIESMICH.format(name=plan["name"]), encoding="utf-8")
     print(f"  {len(namen)} Vorlagen → {ziel}")
     return ziel
 

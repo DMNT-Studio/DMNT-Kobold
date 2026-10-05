@@ -1,0 +1,18 @@
+DMNT 9000 – Bildvorlagen aller Posen
+=====================================
+
+Was ist das?
+  Jede Pose, die der Kobold benutzt, als Einzelbild (Originalgröße, transparenter
+  Hintergrund). _uebersicht.png zeigt, welche Pose in welcher Animation steckt.
+
+Varianten machen (z. B. Kopfhörer):
+  1. Pose nehmen, Variante erzeugen lassen. Pose, Blickrichtung und Ausschnitt
+     möglichst gleich lassen – nur das Zubehör dazu.
+  2. Hintergrund: transparent, einfarbig schwarz oder weiß.
+  3. Gleicher Dateiname + Variante, z. B.  gehen_1_kopfhoerer.png
+  4. Alle Bilder einer Variante zusammen an Claude geben.
+
+Das Auge muss rot und sichtbar bleiben (danach richtet das Bau-Werkzeug
+Größe und Position aus).
+
+Bis die Varianten da sind, setzt der Kobold Platzhalter-Zubehör auf.

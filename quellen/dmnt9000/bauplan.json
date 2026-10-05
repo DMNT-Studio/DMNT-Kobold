@@ -21,6 +21,12 @@
     "seite": {
       "datei": "seite.png",
       "bilder": 1
+    },
+    "missfallen": {
+      "datei": "missfallen.png",
+      "hintergrund": "weiss",
+      "toleranz": 220,
+      "bilder": 1
     }
   },
   "referenz": [
@@ -32,23 +38,23 @@
       "fps": 1.5,
       "bilder": [
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "normal"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "puls"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "hell"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "puls"
         ]
       ]
@@ -82,13 +88,13 @@
       "fps": 2,
       "bilder": [
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "hell"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "grell"
         ]
       ]
@@ -97,23 +103,23 @@
       "fps": 8,
       "bilder": [
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "hell"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "normal"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "grell"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "puls"
         ]
       ]
@@ -122,13 +128,13 @@
       "fps": 10,
       "bilder": [
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "grell"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "hell"
         ]
       ]
@@ -162,8 +168,8 @@
       "fps": 1,
       "bilder": [
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "dunkel"
         ]
       ]
@@ -172,13 +178,13 @@
       "fps": 0.6,
       "bilder": [
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "aus"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "dunkel"
         ]
       ]
@@ -187,13 +193,13 @@
       "fps": 10,
       "bilder": [
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "grell"
         ],
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "hell"
         ]
       ]
@@ -202,8 +208,8 @@
       "fps": 10,
       "bilder": [
         [
-          "gehen",
-          1,
+          "seite",
+          0,
           "grell"
         ]
       ]
@@ -212,16 +218,14 @@
       "fps": 2,
       "bilder": [
         [
-          "daumen",
-          1,
-          "dunkel",
-          "daumen_runter"
+          "missfallen",
+          0,
+          "dunkel"
         ],
         [
-          "daumen",
-          1,
-          "normal",
-          "daumen_runter"
+          "missfallen",
+          0,
+          "normal"
         ]
       ]
     },
