@@ -40,6 +40,20 @@ Fenstertitel werden nur zur Programmerkennung gelesen und nie gespeichert oder g
 Zum Ausprobieren: `$env:DMNT_KOBOLD_SCHNELLTEST="1"` verkürzt die Wartezeiten,
 `$env:DMNT_KOBOLD_DEBUG="1"` schreibt die Ereignisnamen ins Log.
 
+## Verhalten (für Avatar-Autoren)
+
+Was ein Avatar tut, steht in `quellen/<id>/verhalten.json`: Regeln „Wenn … → Dann …“ und
+Werte (z. B. Einschlafzeit, Laufgeschwindigkeit). Bearbeitet wird das im Avatar-Editor,
+Reiter **Verhalten** (Werte, Regeln, Können). Der Bau prüft alles gegen den Katalog des
+Sockels und bricht bei Fehlern mit Regel und Feld ab.
+
+- Katalog aller Ereignisse, Aktionen und Werte: `python -m dmnt_kobold --katalog`
+- Ohne eigene `verhalten.json` gilt `src/dmnt_kobold/standard_verhalten.json` (auch Vorlage).
+- Sonderlogik, die sich nicht als Regel ausdrücken lässt, kommt in `persoenlichkeit.py`
+  (Klasse `Persoenlichkeit`, ein `Modul` mit `SONDERLOGIK = [(Name, Beschreibung)]`) und läuft
+  zusätzlich. Ein Avatar ohne `persoenlichkeit.py` ist „ohne Code“ – DMNT 9000 ist es.
+- Endnutzer stellen weiterhin nur Name, Tricks und Lautstärke ein.
+
 ## Grenzen
 
 - **Exklusives Vollbild:** Über Spielen im exklusiven Vollbild kann Windows kein Overlay

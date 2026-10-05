@@ -9,8 +9,10 @@ Drei Bereiche:
                Bilder tauschen, umsortieren, Tempo, Vorschau
   Zubehör      Kopfhörer, Hüte & Co.: Bild, Sitz, „immer tragen“ und für jede Pose
                Position/Größe/Drehung per Maus (ziehen, Mausrad, Umschalt+Mausrad)
+  Verhalten    Werte, Regeln (Wenn … → Dann …) und was der Avatar kann – siehe
+               editor_verhalten.py, geprüft gegen den Katalog des Sockels
 
-Grundlage sind die Quellen (quellen/<id>/bauplan.json, zubehoer.json, Bilder).
+Grundlage sind die Quellen (quellen/<id>/bauplan.json, zubehoer.json, verhalten.json, Bilder).
 Nach jeder Änderung baut der Editor den Avatar neu (werkzeuge/avatar_bauen.py),
 danach „Kobold neu starten“, um es live zu sehen.
 """
@@ -35,6 +37,8 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBo
 WURZEL = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WURZEL / "src"))
 from dmnt_kobold import stil  # noqa: E402
+from dmnt_kobold.regeln import standard_verhalten  # noqa: E402
+from editor_verhalten import VerhaltenTab  # noqa: E402
 
 QUELLEN = WURZEL / "quellen"
 VORSCHAU = WURZEL / "build" / "vorschau"
@@ -131,8 +135,10 @@ class Projekt:
         self.ordner = ordner
         self.laden()
 
-    DATEIEN = {"bauplan": "bauplan.json", "zubehoer": "zubehoer.json", "outfits": "outfits.json"}
-    LEER = {"bauplan": {}, "zubehoer": {}, "outfits": {"aktiv": None, "outfits": {}}}
+    DATEIEN = {"bauplan": "bauplan.json", "zubehoer": "zubehoer.json", "outfits": "outfits.json",
+               "verhalten": "verhalten.json"}
+    LEER = {"bauplan": {}, "zubehoer": {}, "outfits": {"aktiv": None, "outfits": {}},
+            "verhalten": {"werte": {}, "regeln": []}}
 
     def laden(self) -> None:
         self._basis: dict[str, dict] = {}
@@ -146,6 +152,10 @@ class Projekt:
     def _platte(self, attr: str) -> dict:
         pfad = self.ordner / self.DATEIEN[attr]
         if not pfad.exists():
+            if attr == "verhalten":                 # ohne eigene Datei gilt das Standard-Verhalten
+                std = standard_verhalten()
+                std.pop("beschreibung", None)
+                return std
             return copy.deepcopy(self.LEER[attr])
         return json.loads(pfad.read_text(encoding="utf-8"))
 
@@ -212,6 +222,9 @@ class Projekt:
 
     def zubehoer_speichern(self) -> None:
         self._speichern("zubehoer")
+
+    def verhalten_speichern(self) -> None:
+        self._speichern("verhalten")
 
     # Posen
     def posen(self) -> list[str]:
@@ -1341,9 +1354,11 @@ class Editor(QMainWindow):
         self.bilder = BilderTab(self)
         self.animationen = AnimationenTab(self)
         self.zubehoer = ZubehoerTab(self)
+        self.verhalten = VerhaltenTab(self)
         self.tabs.addTab(self.bilder, "Bilder")
         self.tabs.addTab(self.animationen, "Animationen")
         self.tabs.addTab(self.zubehoer, "Zubehör")
+        self.tabs.addTab(self.verhalten, "Verhalten")
         mitte = QWidget()
         ml = QVBoxLayout(mitte)
         ml.addWidget(self.tabs, 1)
@@ -1356,6 +1371,7 @@ class Editor(QMainWindow):
         self._prozess: QProcess | None = None
         self._nochmal = False
         self._nach_bau_aufbauen = False
+        self._neustart_nach_bau = False
         self._puffer: list[str] = []
         self._bau_timer = QTimer(self)
         self._bau_timer.setSingleShot(True)
@@ -1376,6 +1392,7 @@ class Editor(QMainWindow):
         self.bilder.aufbauen()
         self.animationen.aufbauen()
         self.zubehoer.aufbauen()
+        self.verhalten.aufbauen()
         self._beobachten()
 
     def _beobachten(self) -> None:
@@ -1407,9 +1424,12 @@ class Editor(QMainWindow):
             self.bilder.aufbauen()
             self.animationen.aufbauen()
             self.zubehoer.aufbauen()
+            self.verhalten.aufbauen()
             self.geaendert()
 
     def _avatar_wechseln(self) -> None:
+        if self.verhalten._timer.isActive():        # noqa: SLF001 – noch nicht gespeicherte Änderung
+            self.verhalten.speichern_jetzt()
         self.projekt = Projekt(self.wahl.currentData())
         self.alles_aufbauen()
 
@@ -1469,6 +1489,7 @@ class Editor(QMainWindow):
                 self.bilder.aufbauen()
                 self.animationen.anzeigen()
                 self.zubehoer.aufbauen()
+                self.verhalten.pruefen()
         else:
             self._status("Bau fehlgeschlagen – siehe Protokoll", False)
             self.log.appendPlainText("\n".join(self._puffer[-15:]))
@@ -1476,8 +1497,26 @@ class Editor(QMainWindow):
         if self._nochmal:
             self._nochmal = False
             self.bauen()
+        if self._neustart_nach_bau and self._prozess is None:
+            self._neustart_nach_bau = False
+            if code == 0:
+                self.kobold_neu_starten()
+
+    def closeEvent(self, e) -> None:  # noqa: N802
+        if self.verhalten._timer.isActive():        # noqa: SLF001 – noch nicht gespeicherte Änderung
+            self.verhalten.speichern_jetzt()
+        super().closeEvent(e)
 
     def kobold_neu_starten(self) -> None:
+        if self.verhalten._timer.isActive():        # noqa: SLF001
+            self.verhalten.speichern_jetzt()
+        if self._bau_timer.isActive() or self._prozess is not None:   # erst fertig bauen
+            self._neustart_nach_bau = True
+            if self._bau_timer.isActive():
+                self._bau_timer.stop()
+                self.bauen()
+            self.meldung("Kobold startet neu, sobald der Bau fertig ist.")
+            return
         if sys.platform != "win32":
             self.meldung("Neustart geht nur unter Windows.")
             return
@@ -1528,7 +1567,7 @@ def main() -> int:
         QMessageBox.information(None, "Avatar-Editor", "Der Avatar-Editor ist schon offen.")
         return 0
     e = Editor()
-    if "--tab" in sys.argv:              # z. B. --tab 2 öffnet direkt „Zubehör“
+    if "--tab" in sys.argv:              # z. B. --tab 2 öffnet „Zubehör“, --tab 3 „Verhalten“
         e.tabs.setCurrentIndex(int(sys.argv[sys.argv.index("--tab") + 1]))
     e.show()
     return app.exec()
