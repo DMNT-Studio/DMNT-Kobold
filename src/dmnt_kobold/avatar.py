@@ -20,6 +20,13 @@ das Kern-Vokabular abgebildet (``laufen`` → ``bewegen``).
 Zubehör (z. B. Kopfhörer): Hat der Avatar eigene Frames ``<animation>@<zubehör>``
 (z. B. ``bewegen@kopfhoerer``), werden diese genommen. Sonst wird das gemeinsame
 Zubehörbild anhand der Kopfdaten je Frame (``koepfe``) aufgesetzt (Platzhalter).
+
+Innenleben: Zubehör mit Sitz ``innen`` liegt im Körper – gezeichnet zwischen Rückwand
+(``hinten`` je Frame, optional) und Körper (mit ``koerper_deckkraft``). Varianten je
+Stimmung (``tnt@froh``) haben eigenen Versatz; fehlt eine, gilt die Grundvariante.
+
+Körper (Aussehen, aus dem Bauplan): ``bewegung`` (gehen, gleiten, huepfen + Form beim
+Stauchen/Strecken), ``partikel`` und Körper-Töne je Moment – siehe katalog.py.
 """
 from __future__ import annotations
 
@@ -34,6 +41,7 @@ from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBitmap, QColor, QImage, QPainter, QPixmap, QRegion, QTransform
 
 from . import blob, katalog
+from .toene import KoerperTon
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +70,9 @@ class Zustand:
     zzz: bool = False
     schatten: bool = True
     zubehoer: frozenset[str] = field(default_factory=frozenset)
+    drehung: float | None = None             # Winkel beim Drehen (Grad), nur mit Frames „drehen“
+    innen: str | None = None                 # Variante des Innenlebens, z. B. "froh"
+    innen_versatz: tuple[float, float] = (0.0, 0.0)   # Nachwackeln (logische Pixel)
 
 
 def _zubehoer_laden() -> dict[str, QPixmap]:
@@ -106,6 +117,13 @@ class Darsteller:
     fuss = QPointF(75, 132)
     blickrichtung = 1
     animiert_sich_selbst = False   # Frames bewegen sich selbst (kein Wippen nötig)
+    bewegung: dict = {"art": "gleiten"}
+    partikel: dict = {}
+    innenleben = False
+
+    def hat(self, animation: str) -> bool:
+        """Hat der Avatar eigene Frames für diese Animation?"""
+        return False
 
     def zeichnen(self, p: QPainter, z: Zustand) -> None:
         raise NotImplementedError
@@ -161,6 +179,7 @@ class Animation:
     # Zubehör-Platzierung je Frame: teil → [[x, y, breite, winkel, hinten, aus], ...]
     # (x/y = Mitte relativ zum Fußpunkt, logische Pixel)
     zubehoer: dict[str, list[list[float]]] = field(default_factory=dict)
+    hinten: list[QPixmap | None] = field(default_factory=list)    # Rückwand je Frame (Innenleben)
 
     def index(self, t: float) -> int:
         n = len(self.bilder)
@@ -183,11 +202,20 @@ class Avatar:
         self.anker = tuple(daten["anker"])
         self.koerper = daten["koerper"]
         self.blickrichtung = int(daten.get("blickrichtung", 1))
-        self.bewegung = daten.get("bewegung", {})
+        self.bewegung = dict(daten.get("bewegung") or {"art": "gehen"})
+        self.bewegung.pop("tempo", None)          # alt: Tempo ist jetzt der Wert „laufgeschwindigkeit“
+        if self.bewegung.get("art") == "huepfen":
+            for k, v in katalog.HUEPF_STANDARD.items():
+                self.bewegung.setdefault(k, v)
+        self.partikel = {m: {**katalog.PARTIKEL_STANDARD, **d} for m, d in daten.get("partikel", {}).items()
+                         if m in katalog.KERN_ANIMATIONEN and isinstance(d, dict)}
+        self.koerper_deckkraft = float(daten.get("koerper_deckkraft", 1.0))
         self.herkunft = ordner / daten["herkunft"] if daten.get("herkunft") else None
         self.portraet = ordner / daten["portraet"] if daten.get("portraet") else None
         self.toene = {n: ordner / rel for n, rel in daten.get("toene", {}).items()
-                      if (ordner / rel).exists()}
+                      if isinstance(rel, str) and (ordner / rel).exists()}
+        self.koerper_toene = {n: KoerperTon.aus_json(ordner, t) for n, t in daten.get("toene", {}).items()
+                              if isinstance(t, dict)}
         self.animationen: dict[str, Animation] = {}
         for name, a in daten["animationen"].items():
             bilder = []
@@ -200,8 +228,14 @@ class Avatar:
             koepfe = [tuple(k) for k in a.get("koepfe", [])] or [(self.anker[0], 0, self.koerper["breite"], 0)]
             while len(koepfe) < len(bilder):
                 koepfe.append(koepfe[-1])
+            hinten: list[QPixmap | None] = []
+            for rel in a.get("hinten", []):
+                pm = QPixmap(str(ordner / rel)) if rel else QPixmap()
+                if not pm.isNull():
+                    pm.setDevicePixelRatio(self.skalierung)
+                hinten.append(None if pm.isNull() else pm)
             self.animationen[name] = Animation(float(a["fps"]), bool(a.get("schleife", True)), bilder, koepfe,
-                                               dict(a.get("zubehoer", {})))
+                                               dict(a.get("zubehoer", {})), hinten)
         if "ruhe" not in self.animationen:
             raise ValueError("Pflicht-Animation 'ruhe' fehlt")
         self.persoenlichkeit_datei = ordner / "persoenlichkeit.py"
@@ -214,12 +248,21 @@ class Avatar:
         # Avatar-eigenes Zubehör (Bild + Platzierung je Frame, im Editor eingestellt)
         self.zubehoer_bilder: dict[str, QPixmap] = {}
         self.zubehoer_immer: list[str] = []
+        self.innen: dict[str, dict[str, tuple[QPixmap, float, float]]] = {}   # teil → variante → (bild, x, y)
         for teil, z in daten.get("zubehoer", {}).items():
             pm = QPixmap(str(ordner / z["bild"]))
-            if not pm.isNull():
-                self.zubehoer_bilder[teil] = pm
-                if z.get("immer"):
-                    self.zubehoer_immer.append(teil)
+            if pm.isNull():
+                continue
+            self.zubehoer_bilder[teil] = pm
+            if z.get("sitz") == "innen":
+                varianten = {}
+                for v, d in z.get("varianten", {}).items():
+                    vpm = QPixmap(str(ordner / d["bild"]))
+                    if not vpm.isNull():
+                        varianten[v] = (vpm, float(d.get("x", 0)), float(d.get("y", 0)))
+                self.innen[teil] = varianten
+            if z.get("immer") or z.get("sitz") == "innen":     # Innenleben gehört zum Körper
+                self.zubehoer_immer.append(teil)
 
     @property
     def ohne_code(self) -> bool:
@@ -232,8 +275,12 @@ class Avatar:
 
     @property
     def lauftempo(self) -> float:
-        """Wert „laufgeschwindigkeit“, sonst bewegung.tempo aus dem Bauplan."""
-        return float(self.werte.get("laufgeschwindigkeit", self.bewegung.get("tempo")))
+        """Wert „laufgeschwindigkeit“ (Standard aus dem Katalog)."""
+        return float(self.werte["laufgeschwindigkeit"])
+
+    @property
+    def innen_varianten(self) -> set[str]:
+        return {v for varianten in self.innen.values() for v in varianten}
 
     def animation(self, name: str) -> Animation:
         name = NAMEN.get(name, name)
@@ -252,9 +299,19 @@ class SpriteDarsteller(Darsteller):
         self.fenster_b = int(math.ceil(rb + 2 * RAND_SEITE))
         self.fenster_h = int(math.ceil(rh + RAND_OBEN + RAND_UNTEN))
         self._links = (self.fenster_b - rb) / 2
+        self.bewegung = avatar.bewegung
+        self.partikel = avatar.partikel
+        self.innenleben = bool(avatar.innen)
+        rand = katalog.PARTIKEL_RAND if avatar.partikel else 0     # Platz für Spritzer
+        self.fenster_b += 2 * rand
+        self.fenster_h += rand
+        self._links = (self.fenster_b - rb) / 2
         self.fuss = QPointF(self._links + avatar.anker[0], RAND_OBEN + avatar.anker[1])
         self.blickrichtung = avatar.blickrichtung
         self._zubehoer = _zubehoer_laden()
+
+    def hat(self, animation: str) -> bool:
+        return NAMEN.get(animation, animation) in self.avatar.animationen
 
     def _frame(self, z: Zustand) -> tuple[int, Animation, frozenset[str]]:
         """Frame-Index, Animation und das noch aufzusetzende Zubehör."""
@@ -269,6 +326,10 @@ class SpriteDarsteller(Darsteller):
                 rest.discard(teil)
                 break
         a = self.avatar.animationen[name]
+        if z.drehung is not None and name == "drehen" and len(a.bilder) > 1:
+            phi = z.drehung % 360           # vorne → … → hinten, zweite Hälfte rückwärts (gespiegelt)
+            halb = phi if phi <= 180 else 360 - phi
+            return round(halb / 180 * (len(a.bilder) - 1)), a, frozenset(rest)
         return a.index(z.t), a, frozenset(rest)
 
     def zeichnen(self, p: QPainter, z: Zustand) -> None:
@@ -288,13 +349,21 @@ class SpriteDarsteller(Darsteller):
         t.scale(z.sx * spiegeln, z.sy)
         t.translate(-self.avatar.anker[0], -self.avatar.anker[1])
         p.setTransform(t, True)
-        if zubehoer:
-            self._eigenes_zubehoer(p, a, i, {t for t in zubehoer if t in a.zubehoer
-                                             and t in self.avatar.zubehoer_bilder}, vorne=False)
+        eigene = {t for t in zubehoer if t in a.zubehoer and t in self.avatar.zubehoer_bilder}
+        innen = {t for t in eigene if t in self.avatar.innen}
+        aussen = eigene - innen
+        if aussen:
+            self._eigenes_zubehoer(p, a, i, aussen, vorne=False)
+        if i < len(a.hinten) and a.hinten[i] is not None:      # Rückwand
+            p.drawPixmap(QPointF(0, 0), a.hinten[i])
+        if innen:
+            self._innenleben(p, a, i, innen, z, z.sx * spiegeln, z.sy)
+        if self.avatar.koerper_deckkraft < 1.0:
+            p.setOpacity(self.avatar.koerper_deckkraft)
         p.drawPixmap(QPointF(0, 0), pm)
+        p.setOpacity(1.0)
         if zubehoer:
-            eigene = {t for t in zubehoer if t in a.zubehoer and t in self.avatar.zubehoer_bilder}
-            self._eigenes_zubehoer(p, a, i, eigene, vorne=True)
+            self._eigenes_zubehoer(p, a, i, aussen, vorne=True)
             rest = frozenset(zubehoer - eigene)
             if rest:
                 kx, _ky, kb, ko = a.koepfe[i]
@@ -321,6 +390,31 @@ class SpriteDarsteller(Darsteller):
             p.drawPixmap(QRectF(-b / 2, -h / 2, b, h), pm, QRectF(pm.rect()))
             p.restore()
 
+    def _innenleben(self, p: QPainter, a: Animation, i: int, teile: set[str], z: Zustand,
+                    sx: float, sy: float) -> None:
+        """Gegenstand im Körper: Variante (sonst Grundvariante), eigener Versatz und
+        Nachwackeln. Macht Stauchen, Strecken und Drehen mit (gleiche Transformation)."""
+        ax, ay = self.avatar.anker
+        dx, dy = z.innen_versatz
+        dx, dy = dx / (sx or 1), dy / (sy or 1)          # Wackeln in Bildschirm-Richtung
+        for teil in sorted(teile):
+            werte = a.zubehoer[teil]
+            x, y, b, winkel, _hinten, aus, hoehe = (list(werte[min(i, len(werte) - 1)]) + [0, 0, 0, 100])[:7]
+            if aus:
+                continue
+            pm = self.avatar.zubehoer_bilder[teil]
+            variante = self.avatar.innen[teil].get(z.innen or "")
+            if variante is not None:
+                pm, vx, vy = variante
+                x, y = x + vx, y + vy
+            h = b * pm.height() / pm.width() * (hoehe or 100) / 100
+            p.save()
+            p.translate(ax + x + dx, ay + y + dy)
+            if winkel:
+                p.rotate(winkel)
+            p.drawPixmap(QRectF(-b / 2, -h / 2, b, h), pm, QRectF(pm.rect()))
+            p.restore()
+
     def varianten(self, animation: str) -> list[str]:
         name = NAMEN.get(animation, animation)
         namen = [n for n in self.avatar.animationen
@@ -329,7 +423,8 @@ class SpriteDarsteller(Darsteller):
 
     def masken_schluessel(self, z: Zustand) -> tuple:
         i, a, _ = self._frame(z)
-        return (id(a), i, round(z.sx, 2), round(z.sy, 2), z.richtung, z.schatten, z.zzz, z.zubehoer)
+        return (id(a), i, round(z.sx, 2), round(z.sy, 2), z.richtung, z.schatten, z.zzz, z.zubehoer,
+                z.innen if self.innenleben else None)
 
 
 def _zzz(p: QPainter, ort: QPointF) -> None:
@@ -351,10 +446,11 @@ def _zzz(p: QPainter, ort: QPointF) -> None:
 # --- Laden ---------------------------------------------------------------------
 
 
-def avatar_laden(avatar_id: str = STANDARD_AVATAR) -> tuple[Darsteller, Avatar | None]:
+def avatar_laden(avatar_id: str = STANDARD_AVATAR, ordner: Path | None = None) -> tuple[Darsteller, Avatar | None]:
     """Lädt einen mitgelieferten (offiziellen) Avatar. Fremde Avatare brauchen ab M4
-    eine Zustimmung. Bei jedem Fehler: Blob als Rückfall, der Kobold läuft weiter."""
-    ordner = AVATAR_ORDNER / avatar_id
+    eine Zustimmung. Bei jedem Fehler: Blob als Rückfall, der Kobold läuft weiter.
+    ``ordner``: gebauter Avatar-Ordner außerhalb des Pakets (nur Entwickler, --avatar-pfad)."""
+    ordner = ordner or AVATAR_ORDNER / avatar_id
     try:
         avatar = Avatar(ordner)
         log.info("Avatar geladen: %s (%d Animationen)", avatar.name, len(avatar.animationen))

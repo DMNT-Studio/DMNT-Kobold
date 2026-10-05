@@ -1,12 +1,22 @@
 """Baut einen Avatar-Ordner aus Quellbildern.
 
-Aufruf:  python werkzeuge/avatar_bauen.py quellen/<name>
+Aufruf:  python werkzeuge/avatar_bauen.py quellen/<name> [--ziel <ordner>]
          python werkzeuge/avatar_bauen.py quellen/zubehoer   (Kopfhörer usw. für alle Avatare)
-         python werkzeuge/avatar_bauen.py --vorlagen quellen/<name>   (Einzelposen als Vorlage)
-Ergebnis: src/dmnt_kobold/avatare/<id>/ mit avatar.json, frames/, toene/, Herkunft, Porträt.
+         python werkzeuge/avatar_bauen.py --vorlagen quellen/<name> [--innen <gegenstand>]
+             vorhandener Avatar mit Auge: Einzelposen als Vorlage (vorlagen/<id>/)
+             neuer Ordner: Hüpf-Avatar anlegen – leere Rahmen je Pose, Bauplan,
+             Start-verhalten.json, LIESMICH (Bilder setzt man danach im Avatar-Editor ein)
+Ergebnis: src/dmnt_kobold/avatare/<id>/ (oder --ziel) mit avatar.json, frames/, toene/, …
 
 Bauplan-Eintrag eines Frames: [Quelle, Pose-Nr, Augen-Effekt] oder
 [Quelle, Pose-Nr, Augen-Effekt, Hand-Variante] (z. B. "daumen_runter").
+
+Zwei Arten auszurichten:
+- mit Auge (DMNT 9000): Größe und Lage über das rote Auge (siehe unten)
+- ``"ausrichtung": "rahmen"``: jedes Bild ist ein Rahmen ``rahmen_px`` groß, der Fußpunkt
+  liegt unten in der Mitte. Andere Größen werden auf die Rahmenbreite skaliert. Für
+  Avatare ohne Auge (Hüpfer wie Sulfi oder Kiesel). Optional je Quelle ``"hinten"``:
+  eigene Rückwand (Innenleben liegt dann zwischen Rückwand und Körper).
 
 Das Programm selbst kennt nur fertige Frames. Dieses Werkzeug erledigt alles davor:
 - Bildbögen in Einzelbilder zerlegen (leere Spalten trennen die Posen)
@@ -15,7 +25,9 @@ Das Programm selbst kennt nur fertige Frames. Dieses Werkzeug erledigt alles dav
 - Fußpunkt (unten) und Körpermitte (Auge) ausrichten
 - Augen-Effekte rechnen (hell, dunkel, aus, grell, puls) für Ausdrücke
 - Herkunfts-Bild zusammensetzen, Töne synthetisieren
-- verhalten.json gegen den Katalog prüfen (Fehler brechen ab, bevor etwas gelöscht wird)
+- verhalten.json und Körper (bewegung, partikel, toene) gegen den Katalog prüfen
+  (Fehler brechen ab, bevor etwas gelöscht wird)
+- Töne aus Dateien übernehmen (.ogg wird zu .wav – mit soundfile oder ffmpeg)
 
 Was gebaut wird, steht in ``bauplan.json`` im Quellordner.
 Benötigt (nur zum Bauen): Pillow, numpy, scipy.
@@ -263,7 +275,21 @@ class BauFehler(SystemExit):
     """Bau abgebrochen – Meldung ist für Menschen (deutsch, mit Regel-id und Feld)."""
 
 
-def verhalten_pruefen(quelle: Path, plan: dict) -> dict | None:
+def innen_varianten(zplan: dict) -> set[str]:
+    """Varianten des Innenlebens aus zubehoer.json (z. B. {"froh", "erschreckt"})."""
+    return {v for z in zplan.values() if z.get("sitz") == "innen" for v in z.get("varianten", {})}
+
+
+def koerper_pruefen(quelle: Path, plan: dict) -> None:
+    """Körper-Blöcke des Bauplans prüfen. Fehler → BauFehler, Warnungen → Ausgabe."""
+    fehler, warnungen = katalog.koerper_pruefen(plan, quelle)
+    for w in warnungen:
+        print(f"  Warnung: {w}")
+    if fehler:
+        raise BauFehler("Fehler im Bauplan – Bau abgebrochen:\n" + "\n".join(f"  - {f}" for f in fehler))
+
+
+def verhalten_pruefen(quelle: Path, plan: dict, zplan: dict | None = None) -> dict | None:
     """verhalten.json gegen den Katalog prüfen. Fehler → BauFehler, Warnungen → Ausgabe."""
     datei = quelle / "verhalten.json"
     if not datei.exists():
@@ -272,7 +298,8 @@ def verhalten_pruefen(quelle: Path, plan: dict) -> dict | None:
         verhalten = json.loads(datei.read_text(encoding="utf-8"))
     except ValueError as e:
         raise BauFehler(f"Fehler in verhalten.json: kein gültiges JSON ({e})") from None
-    fehler, warnungen = katalog.pruefen(verhalten, plan.get("animationen", {}).keys())
+    fehler, warnungen = katalog.pruefen(verhalten, plan.get("animationen", {}).keys(),
+                                        innen_varianten(zplan or {}))
     for w in warnungen:
         print(f"  Warnung: {w}")
     if fehler:
@@ -282,12 +309,122 @@ def verhalten_pruefen(quelle: Path, plan: dict) -> dict | None:
     return verhalten
 
 
-def bauen(quelle: Path) -> Path:
-    plan = json.loads((quelle / "bauplan.json").read_text(encoding="utf-8"))
-    ziel = WURZEL / "src" / "dmnt_kobold" / "avatare" / plan["id"]
-    s = plan.get("skalierung", 2)
-    verhalten = verhalten_pruefen(quelle, plan)        # vor allem anderen: nichts kaputt bauen
+# --- Rahmen-Ausrichtung (ohne Auge) -------------------------------------------------
 
+
+def rahmen_bild(pfad: Path, q: dict, rahmen_b: int) -> np.ndarray:
+    """Bild einer Quelle im Rahmen-Modus: auf Rahmenbreite (× faktor) skaliert, ungeschnitten."""
+    bild = laden(pfad, q.get("hintergrund"), q.get("toleranz"))
+    f = rahmen_b / bild.shape[1] * float(q.get("faktor", 1.0))
+    return bild if abs(f - 1) < 1e-6 else skalieren(bild, f)
+
+
+def kopf_aus_umriss(rgba: np.ndarray) -> tuple[float, float, float, float]:
+    """Ohne Auge: Mitte, „Augenhöhe“ (35 % von oben), Breite und Oberkante der Figur."""
+    ys, xs = np.nonzero(rgba[..., 3] > 40)
+    if not len(xs):
+        h, w = rgba.shape[:2]
+        return w / 2, h * 0.35, w * 0.6, 0.0
+    oben, unten = ys.min(), ys.max()
+    return (xs.min() + xs.max()) / 2, oben + (unten - oben) * 0.35, float(xs.max() - xs.min()), float(oben)
+
+
+def rahmen_posen(quelle: Path, plan: dict) -> tuple[dict, dict, dict]:
+    """→ (Posen je Quelle, Anker je Pose (Fußpunkt unten Mitte), Rückwände je Pose)."""
+    rahmen_b = int(plan.get("rahmen_px", [256, 256])[0])
+    skaliert: dict[str, list[np.ndarray]] = {}
+    hinten: dict[tuple[str, int], np.ndarray] = {}
+    for name, q in plan["quellen"].items():
+        if q.get("bilder", 1) != 1:
+            raise BauFehler(f"Quelle „{name}“: im Rahmen-Modus ein Bild je Datei")
+        bild = rahmen_bild(quelle / q["datei"], q, rahmen_b)
+        if not (bild[..., 3] > 20).any():
+            print(f"  Warnung: Bild „{q['datei']}“ ist leer")
+        skaliert[name] = [bild]
+        if q.get("hinten"):
+            if (quelle / q["hinten"]).exists():
+                hinten[(name, 0)] = rahmen_bild(quelle / q["hinten"], q, rahmen_b)
+            else:
+                print(f"  Warnung: Rückwand „{q['hinten']}“ fehlt – übersprungen")
+    anker = {(name, 0): (liste[0].shape[1] / 2, liste[0].shape[0]) for name, liste in skaliert.items()}
+    return skaliert, anker, hinten
+
+
+# --- Töne aus Dateien -------------------------------------------------------------------
+
+
+def ton_als_wav(quelle: Path, ziel: Path) -> None:
+    """Ton-Datei → 16-bit-WAV (winsound spielt nur WAV). .ogg und andere Formate über
+    soundfile oder ffmpeg."""
+    import wave
+
+    if quelle.suffix.lower() == ".wav":
+        try:
+            with wave.open(str(quelle), "rb") as w:
+                if w.getsampwidth() == 2:
+                    shutil.copy(quelle, ziel)
+                    return
+        except wave.Error:
+            pass
+    try:
+        import soundfile  # noqa: PLC0415 – nur zum Bauen
+
+        daten, rate = soundfile.read(str(quelle), dtype="int16")
+        soundfile.write(str(ziel), daten, rate, subtype="PCM_16")
+        return
+    except ImportError:
+        pass
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        raise BauFehler(f"Ton „{quelle.name}“: zum Umwandeln in WAV wird ffmpeg oder das Paket soundfile "
+                        "gebraucht (pip install soundfile)")
+    import subprocess
+
+    ergebnis = subprocess.run([ffmpeg, "-y", "-loglevel", "error", "-i", str(quelle), "-ac", "1",
+                               "-sample_fmt", "s16", str(ziel)], capture_output=True, text=True)
+    if ergebnis.returncode != 0 or not ziel.exists():
+        raise BauFehler(f"Ton „{quelle.name}“ ließ sich nicht umwandeln: {ergebnis.stderr.strip()[:200]}")
+
+
+def bauen(quelle: Path, ziel: Path | None = None) -> Path:
+    plan = json.loads((quelle / "bauplan.json").read_text(encoding="utf-8"))
+    ziel = ziel or WURZEL / "src" / "dmnt_kobold" / "avatare" / plan["id"]
+    s = plan.get("skalierung", 2)
+    rahmen = plan.get("ausrichtung") == "rahmen"
+    zplan_vorab = json.loads((quelle / "zubehoer.json").read_text(encoding="utf-8")) \
+        if (quelle / "zubehoer.json").exists() else {}
+    koerper_pruefen(quelle, plan)                      # vor allem anderen: nichts kaputt bauen
+    verhalten = verhalten_pruefen(quelle, plan, zplan_vorab)
+    if rahmen:
+        skaliert, anker, rueckwand = rahmen_posen(quelle, plan)
+        ohne_auge = set(skaliert)
+        posen = {}
+    else:
+        rueckwand = {}
+        skaliert, anker, ohne_auge, posen = auge_posen(quelle, plan, s)
+
+    def kopf(name: str, p: np.ndarray) -> tuple[float, float, float, float]:
+        if rahmen:
+            return kopf_aus_umriss(p)
+        return kopf_ohne_auge(p) if name in ohne_auge else kopf_finden(p)
+
+    # gemeinsame Leinwand: Anker = Fußpunkt
+    links = rechts = oben = 0.0
+    for (name, i), (cx, fy) in anker.items():
+        p = skaliert[name][i]
+        links, rechts = max(links, cx), max(rechts, p.shape[1] - cx)
+        oben = max(oben, fy)
+    breite_px = int(np.ceil(2 * max(links, rechts))) + 4
+    hoehe_px = int(np.ceil(oben)) + 4
+    breite_px += breite_px % s
+    hoehe_px += hoehe_px % s
+    ax, ay = breite_px / 2, hoehe_px - 2
+    return _bauen_rest(quelle, plan, ziel, s, rahmen, verhalten, skaliert, anker, ohne_auge, rueckwand, kopf,
+                       breite_px, hoehe_px, ax, ay)
+
+
+def auge_posen(quelle: Path, plan: dict, s: int):
+    """Posen mit rotem Auge laden, über die Augengröße skalieren → (Posen, Anker, ohne Auge, roh)."""
     # 1) Posen laden
     posen: dict[str, list[np.ndarray]] = {}
     for name, q in plan["quellen"].items():
@@ -324,25 +461,17 @@ def bauen(quelle: Path) -> Path:
         ziel_breite = kopf_finden(skaliert[bezug_name][bezug_nr])[2] * q.get("faktor", 1.0)
         skaliert[name] = [skalieren(p, ziel_breite / kopf_ohne_auge(p)[2]) for p in posen[name]]
 
-    def kopf(name: str, p: np.ndarray) -> tuple[float, float, float, float]:
-        return kopf_ohne_auge(p) if name in ohne_auge else kopf_finden(p)
-
-    # 3) gemeinsame Leinwand: Anker = (Augen-x, Fuss-y)
+    # 3) Anker = (Augen-x, Fuss-y)
     anker = {}
-    links = rechts = oben = 0.0
     for name, liste in skaliert.items():
         for i, p in enumerate(liste):
             cx = auge_finden(p)[0] if name not in ohne_auge else kopf_ohne_auge(p)[0]
-            fy = p.shape[0]
-            anker[(name, i)] = (cx, fy)
-            links, rechts = max(links, cx), max(rechts, p.shape[1] - cx)
-            oben = max(oben, fy)
-    breite_px = int(np.ceil(2 * max(links, rechts))) + 4
-    hoehe_px = int(np.ceil(oben)) + 4
-    breite_px += breite_px % s
-    hoehe_px += hoehe_px % s
-    ax, ay = breite_px / 2, hoehe_px - 2
+            anker[(name, i)] = (cx, p.shape[0])
+    return skaliert, anker, ohne_auge, posen
 
+
+def _bauen_rest(quelle, plan, ziel, s, rahmen, verhalten, skaliert, anker, ohne_auge, rueckwand, kopf,
+                breite_px, hoehe_px, ax, ay) -> Path:
     if ziel.exists():
         shutil.rmtree(ziel)
     (ziel / "frames").mkdir(parents=True)
@@ -359,7 +488,7 @@ def bauen(quelle: Path) -> Path:
         if name not in ohne_auge:
             ex, ey, er = auge_finden(p)
             m["auge"] = ((ex + dx - ax) / s, (ey + dy - ay) / s, er / s)
-        h = hand_finden(p)
+        h = None if rahmen else hand_finden(p)
         if h is not None:
             m["hand"] = ((h[0] + dx - ax) / s, (h[1] + dy - ay) / s)
         kopf_rel[f"{name}:{i}"] = m
@@ -375,7 +504,7 @@ def bauen(quelle: Path) -> Path:
     # 4) Animationen
     animationen = {}
     for anim, a in plan["animationen"].items():
-        pfade, koepfe, posen_schluessel = [], [], []
+        pfade, koepfe, posen_schluessel, hinten_pfade = [], [], [], []
         (ziel / "frames" / anim).mkdir()
         for i, eintrag in enumerate(a["bilder"]):
             pose, nr, effekt = eintrag[:3]
@@ -393,10 +522,20 @@ def bauen(quelle: Path) -> Path:
             rel = f"frames/{anim}/{i:02d}.png"
             leinwand.save(ziel / rel, optimize=True)
             pfade.append(rel)
+            if (pose, nr) in rueckwand:
+                wand = Image.new("RGBA", (breite_px, hoehe_px))
+                wand.alpha_composite(Image.fromarray(rueckwand[(pose, nr)], "RGBA"), (dx, dy))
+                hinten_rel = f"frames/{anim}/{i:02d}_hinten.png"
+                wand.save(ziel / hinten_rel, optimize=True)
+                hinten_pfade.append(hinten_rel)
+            else:
+                hinten_pfade.append(None)
             kx, ky, kb, ko = k[0] + dx, k[1] + dy, k[2], k[3] + dy
             koepfe.append([round(kx / s, 1), round(ky / s, 1), round(kb / s, 1), round(ko / s, 1)])
         animationen[anim] = {"fps": a["fps"], "schleife": a.get("schleife", True), "bilder": pfade,
                              "koepfe": koepfe, "posen": posen_schluessel}
+        if any(hinten_pfade):
+            animationen[anim]["hinten"] = hinten_pfade
         if zubehoer_info:
             animationen[anim]["zubehoer"] = {
                 teil: [platzierung_liste(platzierung(info, zubehoer_plan[teil], schluessel, kopf_rel))
@@ -407,8 +546,12 @@ def bauen(quelle: Path) -> Path:
     # 5) Körpermaß aus der Ruhepose (für die Physik)
     ruhe = np.array(Image.open(ziel / animationen["ruhe"]["bilder"][0]))
     ys, xs = np.nonzero(ruhe[..., 3] > 40)
-    koerper_b = (xs.max() - xs.min()) / s
-    koerper_h = (ay - ys.min()) / s
+    if len(xs):
+        koerper_b = (xs.max() - xs.min()) / s
+        koerper_h = (ay - ys.min()) / s
+    else:                                     # leere Vorlage: Rahmen als Körper
+        print("  Warnung: Pose „ruhe“ ist leer – Körpermaß = Rahmen")
+        koerper_b, koerper_h = breite_px / s * 0.6, hoehe_px / s * 0.6
 
     # 6) Porträt (für den Einrichten-Modus, M4)
     portraet = None
@@ -423,14 +566,25 @@ def bauen(quelle: Path) -> Path:
     herkunft = herkunft_bauen(quelle, plan["herkunft"], ziel) if "herkunft" in plan else None
 
     # 8) Töne
-    toene = {}
+    toene: dict[str, object] = {}
     if plan.get("toene"):
         (ziel / "toene").mkdir()
         for name, t in plan["toene"].items():
-            segmente = [tuple(x) for x in t["segmente"]]
-            pcm = synthese(segmente, 1.0, welle=t.get("welle", "sinus"))
-            schreibe_wav(ziel / "toene" / f"{name}.wav", pcm)
-            toene[name] = f"toene/{name}.wav"
+            if "segmente" in t:                  # synthetisiert
+                segmente = [tuple(x) for x in t["segmente"]]
+                pcm = synthese(segmente, 1.0, welle=t.get("welle", "sinus"))
+                schreibe_wav(ziel / "toene" / f"{name}.wav", pcm)
+                toene[name] = f"toene/{name}.wav"
+                continue
+            dateien = []                         # Körper-Ton aus Dateien (fehlende: Warnung beim Prüfen)
+            for n, rel in enumerate(t.get("dateien", []), 1):
+                if (quelle / rel).is_file():
+                    ton_als_wav(quelle / rel, ziel / "toene" / f"{name}_{n}.wav")
+                    dateien.append(f"toene/{name}_{n}.wav")
+            if dateien:
+                toene[name] = {"dateien": dateien, "tonhoehe": t.get("tonhoehe", 0.0),
+                               "wiederholen": t.get("wiederholen", [1, 1])}
+                print(f"  Ton {name}: {len(dateien)} Datei(en)")
 
     # 9) Verhalten, Sonderlogik, Lizenz, avatar.json
     if verhalten is not None:
@@ -448,18 +602,19 @@ def bauen(quelle: Path) -> Path:
         "anker": [ax / s, ay / s],
         "koerper": {"breite": round(float(koerper_b), 1), "hoehe": round(float(koerper_h), 1)},
         "blickrichtung": plan.get("blickrichtung", 1),
-        "bewegung": plan.get("bewegung", {"art": "gehen", "tempo": 60}),
+        "bewegung": plan.get("bewegung", {"art": "gehen"}),
         "herkunft": herkunft,
         "portraet": portraet,
         "animationen": animationen,
         "toene": toene,
         "outfits": outfits.get("outfits", {}),
         "outfit": outfits.get("aktiv"),
-        "zubehoer": {teil: {"bild": info["bild"],
-                            "immer": bool(zubehoer_plan[teil].get("immer")) or teil in im_outfit,
-                            "gruppe": zubehoer_plan[teil].get("gruppe", teil)}
+        "zubehoer": {teil: zubehoer_eintrag(teil, info, zubehoer_plan[teil], im_outfit)
                      for teil, info in zubehoer_info.items()},
     }
+    for k in ("partikel", "koerper_deckkraft"):
+        if k in plan:
+            avatar[k] = plan[k]
     (ziel / "avatar.json").write_text(json.dumps(avatar, ensure_ascii=False, indent=2), encoding="utf-8")
     vorschau_schreiben(plan, skaliert, anker, ax, ay, breite_px, hoehe_px, s, kopf_rel, zubehoer_plan,
                        zubehoer_info)
@@ -479,23 +634,51 @@ def bauen(quelle: Path) -> Path:
 ZUBEHOER_MAX_BREITE = 480
 
 
+def _zubehoer_bild(pfad: Path, z: dict, ziel: Path, name: str) -> tuple[str, float] | None:
+    """Bild freistellen, verkleinert in den Avatar-Ordner legen → (Pfad, Höhe/Breite)."""
+    if not pfad.exists():
+        return None
+    bild = laden(pfad, z.get("hintergrund"), z.get("toleranz"))
+    if (bild[..., 3] > 20).any():
+        bild = zuschneiden(bild)
+    if bild.shape[1] > ZUBEHOER_MAX_BREITE:
+        bild = skalieren(bild, ZUBEHOER_MAX_BREITE / bild.shape[1])
+    (ziel / "zubehoer").mkdir(exist_ok=True)
+    rel = f"zubehoer/{name}.png"
+    Image.fromarray(bild, "RGBA").save(ziel / rel, optimize=True)
+    return rel, bild.shape[0] / bild.shape[1]
+
+
 def zubehoer_vorbereiten(quelle: Path, zplan: dict, ziel: Path) -> dict[str, dict]:
-    """Bilder freistellen, verkleinert in den Avatar-Ordner legen. → {teil: {bild, verhaeltnis}}"""
+    """Bilder freistellen, verkleinert in den Avatar-Ordner legen.
+    → {teil: {bild, verhaeltnis, varianten: {name: {bild, x, y}}}}"""
     info = {}
     for teil, z in zplan.items():
-        pfad = (quelle / z["datei"]).resolve()
-        if not pfad.exists():
+        haupt = _zubehoer_bild((quelle / z["datei"]).resolve(), z, ziel, teil)
+        if haupt is None:
             print(f"  Zubehör {teil}: Bild fehlt ({z['datei']}) – übersprungen")
             continue
-        bild = zuschneiden(laden(pfad, z.get("hintergrund"), z.get("toleranz")))
-        if bild.shape[1] > ZUBEHOER_MAX_BREITE:
-            bild = skalieren(bild, ZUBEHOER_MAX_BREITE / bild.shape[1])
-        (ziel / "zubehoer").mkdir(exist_ok=True)
-        rel = f"zubehoer/{teil}.png"
-        Image.fromarray(bild, "RGBA").save(ziel / rel, optimize=True)
-        info[teil] = {"bild": rel, "verhaeltnis": bild.shape[0] / bild.shape[1]}
-        print(f"  Zubehör {teil}: {len(z.get('posen', {}))} Pose(n) eingestellt")
+        info[teil] = {"bild": haupt[0], "verhaeltnis": haupt[1], "varianten": {}}
+        for v, d in z.get("varianten", {}).items():          # Innenleben je Stimmung (tnt@froh)
+            bild = _zubehoer_bild((quelle / d["datei"]).resolve(), z, ziel, f"{teil}@{v}")
+            if bild is None:
+                print(f"  Zubehör {teil}@{v}: Bild fehlt ({d['datei']}) – Grundvariante gilt")
+                continue
+            info[teil]["varianten"][v] = {"bild": bild[0], "x": float(d.get("x", 0)), "y": float(d.get("y", 0))}
+        extra = f", Varianten: {', '.join(info[teil]['varianten'])}" if info[teil]["varianten"] else ""
+        print(f"  Zubehör {teil}: {len(z.get('posen', {}))} Pose(n) eingestellt{extra}")
     return info
+
+
+def zubehoer_eintrag(teil: str, info: dict, z: dict, im_outfit: set[str]) -> dict:
+    """Eintrag in avatar.json. Innenleben (Sitz „innen“) gehört zum Körper: immer an."""
+    eintrag = {"bild": info["bild"],
+               "immer": bool(z.get("immer")) or teil in im_outfit or z.get("sitz") == "innen",
+               "gruppe": z.get("gruppe", teil)}
+    if z.get("sitz") == "innen":
+        eintrag["sitz"] = "innen"
+        eintrag["varianten"] = info.get("varianten", {})
+    return eintrag
 
 
 def hand_finden(rgba: np.ndarray) -> tuple[float, float] | None:
@@ -523,6 +706,9 @@ def hand_finden(rgba: np.ndarray) -> tuple[float, float] | None:
 def standard_platzierung(info: dict, z: dict, merkmale: dict) -> dict:
     kx, _ky, kb, ko = merkmale["kopf"]
     sitz = z.get("sitz")
+    if sitz == "innen":                       # mitten im Körper, gut ein Drittel so breit
+        b = kb * 0.38
+        return {"x": kx, "y": ko / 2, "breite": b, "winkel": 0.0, "hinten": False, "aus": False}
     if sitz == "am_auge" and merkmale.get("auge"):
         ex, ey, er = merkmale["auge"]
         b = er * 4.4
@@ -661,14 +847,38 @@ def vorlagen_exportieren(quelle: Path) -> Path:
     return ziel
 
 
+def _option(args: list[str], name: str) -> str | None:
+    if name not in args:
+        return None
+    i = args.index(name)
+    if i + 1 >= len(args):
+        raise SystemExit(f"{name} braucht einen Wert")
+    wert = args[i + 1]
+    del args[i:i + 2]
+    return wert
+
+
 if __name__ == "__main__":
-    if len(sys.argv) == 3 and sys.argv[1] == "--vorlagen":
-        vorlagen_exportieren(Path(sys.argv[2]).resolve())
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    args = sys.argv[1:]
+    ziel_ordner = _option(args, "--ziel")
+    innen = _option(args, "--innen")
+    if len(args) == 2 and args[0] == "--vorlagen":
+        ordner = Path(args[1]).resolve()
+        plan_datei = ordner / "bauplan.json"
+        if not plan_datei.exists() or json.loads(plan_datei.read_text(encoding="utf-8")).get("ausrichtung") \
+                == "rahmen":
+            from vorlagen_huepfen import huepf_vorlagen   # neuer Hüpf-Avatar: leere Rahmen
+
+            huepf_vorlagen(ordner, innen)
+        else:
+            vorlagen_exportieren(ordner)
         raise SystemExit(0)
-    if len(sys.argv) != 2:
+    if len(args) != 1:
         raise SystemExit(__doc__)
-    quelle = Path(sys.argv[1]).resolve()
+    quelle = Path(args[0]).resolve()
     if quelle.name == "zubehoer":
         zubehoer_bauen(quelle, WURZEL / "src" / "dmnt_kobold" / "zubehoer")
     else:
-        print(f"Fertig: {bauen(quelle)}")
+        print(f"Fertig: {bauen(quelle, Path(ziel_ordner).resolve() if ziel_ordner else None)}")

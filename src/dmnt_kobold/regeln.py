@@ -6,7 +6,7 @@ Ablauf je Ereignis (Regeln in Listen-Reihenfolge):
   schon → Abklingzeit vorbei → Chance gewürfelt → Aktionen ausführen.
 
 Aus den Aktionen entsteht höchstens ein Wunsch an den Motor (Animation, Spruch, Ton,
-Ziel), Quelle ``<name>:<regel-id>``. Nebenher: Zubehör an/aus, andere Regeln
+Ziel, Hüpfen, Innenleben), Quelle ``<name>:<regel-id>``. Nebenher: Zubehör an/aus, andere Regeln
 zurückziehen, still werden. Was der Katalog nicht kennt, wird ignoriert –
 ``katalog.pruefen`` meldet es schon beim Bauen.
 """
@@ -134,6 +134,7 @@ class RegelPersoenlichkeit(Modul):
         rid = r["id"]
         wunsch: dict = {}
         bleiben = trotz_ruhe = False
+        eigene_dauer: float | None = None
         for a in r.get("dann", []):
             art = a.get("aktion")
             if art == "zurueckziehen":
@@ -158,6 +159,15 @@ class RegelPersoenlichkeit(Modul):
                 wunsch["ton"] = a["name"]
             elif art == "gehen_zu" and a.get("ziel") in ZIELE:
                 wunsch["ziel"] = ZIELE[a["ziel"]]
+            elif art == "freuen_huepfend":
+                wunsch["bewegung"] = "freuen_huepfend"
+                if a.get("dauer_s") is not None:
+                    try:
+                        eigene_dauer = self._zahl(a["dauer_s"])
+                    except (TypeError, ValueError, KeyError):
+                        pass
+            elif art == "innen" and isinstance(a.get("variante"), str) and a["variante"].strip("@ "):
+                wunsch["innen"] = a["variante"].strip("@ ")
         if not wunsch:
             return
         prioritaet = int(r.get("prioritaet", 50))
@@ -165,12 +175,14 @@ class RegelPersoenlichkeit(Modul):
                 and self._ruhig - {rid}):
             return                                   # Avatar soll gerade still sein
         if "animation" not in wunsch:
-            wunsch["animation"] = "sprechen" if "text" in wunsch else "ruhe"
+            wunsch["animation"] = "sprechen" if "text" in wunsch else                 "freuen" if wunsch.get("bewegung") == "freuen_huepfend" else "ruhe"
         if bleiben:
             dauer, aufheben = None, True
         else:
             dauer = r.get("dauer_s", 5.0)
             dauer = None if dauer is None else float(dauer)
+            if eigene_dauer is not None and eigene_dauer > 0:
+                dauer = eigene_dauer
             aufheben = bool(r.get("aufheben", False))
         self.wunsch(rid, prioritaet=prioritaet, dauer_s=dauer, aufheben=aufheben, **wunsch)
 

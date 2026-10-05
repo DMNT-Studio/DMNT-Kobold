@@ -8,7 +8,8 @@ Drei Bereiche:
   Animationen  welche Pose mit welchem Augen-Effekt in welcher Animation steckt;
                Bilder tauschen, umsortieren, Tempo, Vorschau
   Zubehör      Kopfhörer, Hüte & Co.: Bild, Sitz, „immer tragen“ und für jede Pose
-               Position/Größe/Drehung per Maus (ziehen, Mausrad, Umschalt+Mausrad)
+               Position/Größe/Drehung per Maus (ziehen, Mausrad, Umschalt+Mausrad);
+               Sitz „im Körper“ = Innenleben mit Varianten je Stimmung (tnt@froh)
   Verhalten    Werte, Regeln (Wenn … → Dann …) und was der Avatar kann – siehe
                editor_verhalten.py, geprüft gegen den Katalog des Sockels
 
@@ -331,6 +332,15 @@ class Projekt:
     def standard(self, teil: str, schluessel: str) -> dict | None:
         return self.vorschau["posen"].get(schluessel, {}).get("zubehoer_standard", {}).get(teil)
 
+    @property
+    def rahmen(self) -> bool:
+        """Avatar ohne Auge (Rahmen-Ausrichtung, z. B. Hüpfer): keine Augen-Effekte."""
+        return self.bauplan.get("ausrichtung") == "rahmen"
+
+    def innen_varianten(self) -> list[str]:
+        return sorted({v for z in self.zubehoer.values() if z.get("sitz") == "innen"
+                       for v in z.get("varianten", {})})
+
     def zubehoer_bild(self, teil: str) -> Path | None:
         z = self.vorschau.get("zubehoer", {}).get(teil)
         if z and Path(z["bild"]).exists():
@@ -513,6 +523,9 @@ class FrameKarte(QFrame):
         self.hand.setCurrentIndex(1 if len(eintrag) > 3 and eintrag[3] == "daumen_runter" else 0)
         self.hand.currentIndexChanged.connect(self._aendern)
         lay.addWidget(self.hand)
+        if pr.rahmen:                      # ohne Auge und Hand: nur die Pose zählt
+            self.effekt.hide()
+            self.hand.hide()
         knoepfe = QHBoxLayout()
         for text, f, tip in (("◀", lambda: tab.verschieben(index, -1), "nach vorne"),
                              ("▶", lambda: tab.verschieben(index, 1), "nach hinten"),
@@ -876,6 +889,7 @@ class ZubehoerTab(QWidget):
         self.sitz.addItem("auf dem Kopf (wie ein Hut)", "auf_kopf")
         self.sitz.addItem("am Auge (wie ein Monokel)", "am_auge")
         self.sitz.addItem("in der Hand (wie ein Stock)", "in_hand")
+        self.sitz.addItem("im Körper (Innenleben, z. B. TNT)", "innen")
         self.sitz.currentIndexChanged.connect(self._eigenschaften)
         form.addRow("Standard-Sitz", self.sitz)
         self.gruppe = QLineEdit()
@@ -895,6 +909,42 @@ class ZubehoerTab(QWidget):
         kb.addWidget(bild_neu)
         kb.addWidget(bild_auf)
         ll.addLayout(kb)
+
+        # Innenleben: Varianten je Stimmung (tnt@froh), eigener Versatz
+        self.innen_box = QWidget()
+        ib = QVBoxLayout(self.innen_box)
+        ib.setContentsMargins(0, 6, 0, 0)
+        ib.addWidget(QLabel("Varianten (Innenleben je Stimmung)"))
+        self.varianten = QListWidget()
+        self.varianten.setMaximumHeight(110)
+        self.varianten.currentTextChanged.connect(lambda _: self.variante_anzeigen())
+        ib.addWidget(self.varianten)
+        vk = QHBoxLayout()
+        v_neu = QPushButton("Variante …")
+        v_neu.setToolTip("Bild für eine Stimmung, z. B. froh → tnt@froh")
+        v_neu.clicked.connect(self._variante_neu)
+        v_weg = QPushButton("Entfernen")
+        v_weg.clicked.connect(self._variante_entfernen)
+        vk.addWidget(v_neu)
+        vk.addWidget(v_weg)
+        ib.addLayout(vk)
+        vv = QHBoxLayout()
+        self.v_felder = {}
+        for achse in ("x", "y"):
+            vv.addWidget(QLabel(f"Versatz {achse}"))
+            f = QDoubleSpinBox()
+            f.setRange(-100, 100)
+            f.setSingleStep(0.5)
+            f.setDecimals(1)
+            f.valueChanged.connect(self._variante_versatz)
+            self.v_felder[achse] = f
+            vv.addWidget(f)
+        ib.addLayout(vv)
+        hinweis = QLabel("Regeln wählen die Variante mit der Aktion „innen“. Fehlt sie, gilt die Grundvariante.")
+        hinweis.setObjectName("neben")
+        hinweis.setWordWrap(True)
+        ib.addWidget(hinweis)
+        ll.addWidget(self.innen_box)
 
         # Outfits: mehrere Teile gemeinsam an/aus
         trenner = QFrame()
@@ -1026,7 +1076,83 @@ class ZubehoerTab(QWidget):
         self.immer.setChecked(bool(z.get("immer")))
         self._laed = False
         self._bild_cache: dict[str, QPixmap] = {}
+        self.varianten_aufbauen()
         self.pose_anzeigen()
+
+    # --- Innenleben-Varianten ------------------------------------------------------
+    def varianten_aufbauen(self) -> None:
+        z = self.editor.projekt.zubehoer.get(self.teil or "", {})
+        innen = z.get("sitz") == "innen"
+        self.innen_box.setVisible(innen)
+        aktuell = self.varianten.currentItem().text() if self.varianten.currentItem() else None
+        self.varianten.blockSignals(True)
+        self.varianten.clear()
+        for v in z.get("varianten", {}):
+            self.varianten.addItem(v)
+        treffer = self.varianten.findItems(aktuell or "", Qt.MatchFlag.MatchExactly)
+        if treffer:
+            self.varianten.setCurrentItem(treffer[0])
+        elif self.varianten.count():
+            self.varianten.setCurrentRow(0)
+        self.varianten.blockSignals(False)
+        self.variante_anzeigen()
+
+    def _variante(self) -> dict | None:
+        it = self.varianten.currentItem()
+        z = self.editor.projekt.zubehoer.get(self.teil or "", {})
+        return z.get("varianten", {}).get(it.text()) if it else None
+
+    def variante_anzeigen(self) -> None:
+        v = self._variante()
+        self._laed = True
+        for achse, f in self.v_felder.items():
+            f.setEnabled(v is not None)
+            f.setValue(float(v.get(achse, 0)) if v else 0.0)
+        self._laed = False
+
+    def _variante_versatz(self) -> None:
+        v = self._variante()
+        if self._laed or v is None:
+            return
+        for achse, f in self.v_felder.items():
+            v[achse] = round(f.value(), 1)
+        self.editor.projekt.zubehoer_speichern()
+        self.editor.geaendert()
+
+    def _variante_neu(self) -> None:
+        from PIL import Image
+
+        t = self.teil
+        if not t:
+            return
+        name, ok = QInputDialog.getText(self, "Neue Variante", f"Stimmung (z. B. froh, erschreckt) – wird zu {t}@…:")
+        name = "".join(c for c in name.strip().lower().lstrip("@") if c.isalnum() or c == "_")
+        if not ok or not name:
+            return
+        datei, _ = QFileDialog.getOpenFileName(self, f"Bild für {t}@{name}", str(Path.home() / "Downloads"),
+                                               "Bilder (*.png *.jpg *.jpeg *.webp)")
+        if not datei:
+            return
+        pr = self.editor.projekt
+        (pr.ordner / "zubehoer").mkdir(exist_ok=True)
+        ziel = pr.ordner / "zubehoer" / f"{t}@{name}.png"
+        if ziel.exists():
+            pr._sichern(ziel)  # noqa: SLF001
+        Image.open(datei).save(ziel)
+        pr.zubehoer[t].setdefault("varianten", {})[name] = {"datei": f"zubehoer/{t}@{name}.png", "x": 0, "y": 0}
+        pr.zubehoer_speichern()
+        self.editor.geaendert(neu_aufbauen=True)
+        self.editor.meldung(f"Variante {t}@{name} angelegt. In Regeln: Aktion „innen“, Variante „{name}“.")
+
+    def _variante_entfernen(self) -> None:
+        it = self.varianten.currentItem()
+        t = self.teil
+        if not it or not t or QMessageBox.question(self, "Entfernen", f"Variante „{t}@{it.text()}“ entfernen?") \
+                != QMessageBox.StandardButton.Yes:
+            return
+        self.editor.projekt.zubehoer[t].get("varianten", {}).pop(it.text(), None)
+        self.editor.projekt.zubehoer_speichern()
+        self.editor.geaendert(neu_aufbauen=True)
 
     def _bild(self, teil: str) -> QPixmap | None:
         if teil not in self._bild_cache:
@@ -1043,6 +1169,8 @@ class ZubehoerTab(QWidget):
         pfad = pr.vorschau_bild(s)
         pose = frisch(pfad) if pfad and pfad.exists() else None
         p = pr.platzierung(t, s) if t else None
+        if p is not None and pr.zubehoer.get(t, {}).get("sitz") == "innen":
+            p["hinten"] = True             # Innenleben liegt im Körper: hinter dem (durchsichtigen) Bild
         andere = []
         if self.alle_zeigen.isChecked():
             for anderes in pr.zubehoer:
@@ -1139,7 +1267,8 @@ class ZubehoerTab(QWidget):
         z = self.editor.projekt.zubehoer[self.teil]
         z["sitz"] = self.sitz.currentData()
         z["gruppe"] = self.gruppe.text().strip() or self.teil
-        z["immer"] = self.immer.isChecked()
+        z["immer"] = self.immer.isChecked() or z["sitz"] == "innen"     # Innenleben gehört zum Körper
+        self.varianten_aufbauen()
         if z["immer"]:   # aus einer Gruppe nur eins
             for anderes, w in self.editor.projekt.zubehoer.items():
                 if anderes != self.teil and w.get("gruppe", anderes) == z["gruppe"]:
@@ -1401,6 +1530,8 @@ class Editor(QMainWindow):
         dateien = {str(self.projekt.ordner / q["datei"]) for q in self.projekt.bauplan["quellen"].values()}
         dateien |= {str((self.projekt.ordner / z["datei"]).resolve()) for z in self.projekt.zubehoer.values()
                     if z.get("datei")}
+        dateien |= {str((self.projekt.ordner / v["datei"]).resolve()) for z in self.projekt.zubehoer.values()
+                    for v in z.get("varianten", {}).values() if v.get("datei")}
         dateien |= {str(self.projekt.ordner / d) for d in Projekt.DATEIEN.values()}
         self._waechter.addPaths([d for d in dateien if Path(d).exists()])
 

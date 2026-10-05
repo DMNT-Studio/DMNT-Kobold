@@ -5,8 +5,7 @@
   "hoehe": 124,
   "blickrichtung": 1,
   "bewegung": {
-    "art": "gehen",
-    "tempo": 55
+    "art": "gehen"
   },
   "quellen": {
     "gehen": {

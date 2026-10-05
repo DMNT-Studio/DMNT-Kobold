@@ -44,7 +44,8 @@ class Param:
     """Parameter einer Bedingung oder Aktion.
 
     typ: text, liste (eine Zeile je Eintrag), zahl, bool, auswahl, sowie Auswahl aus dem
-    Avatar: animation, ton, zubehoer, regel (eine Regel-id), regeln (Liste von Regel-ids).
+    Avatar: animation, ton, zubehoer, innen (Variante des Innenlebens), regel (eine Regel-id),
+    regeln (Liste von Regel-ids).
     Bei Bedingungen: ``feld`` = Ereignisdaten-Feld, ``vergleich`` = gleich, enthaelt,
     ab (Zahl ≥), eine_von (Liste), regel (Sprechblase dieser Regel), laeuft.
     Zahlen dürfen auf einen Wert verweisen: "$einschlafen_nach_min".
@@ -154,7 +155,12 @@ EREIGNISSE: tuple[EreignisDef, ...] = (
     EreignisDef("audio.still", "Der Ton ist wieder aus."),
     EreignisDef("avatar.gezogen", "Der Avatar wird mit der Maus gepackt."),
     EreignisDef("avatar.losgelassen", "Der Avatar wird losgelassen oder geworfen.", daten=("vx", "vy")),
-    EreignisDef("avatar.gelandet", "Der Avatar landet nach einem Fall oder Sprung."),
+    EreignisDef("avatar.gelandet", "Der Avatar landet nach einem Hüpfer, Fall oder Sprung.",
+                bedingungen=(Param("art", "auswahl", "Nur nach einem Hüpfer (hupf) oder nach einem Fall (fall).",
+                                   feld="art", auswahl=("hupf", "fall")),
+                             Param("fallhoehe_px", "zahl", "Nur ab dieser Fallhöhe (Pixel vom höchsten Punkt bis "
+                                   "zur Landung).", feld="fallhoehe_px", vergleich="ab")),
+                daten=("art", "fallhoehe_px")),
     EreignisDef("avatar.einrichten_auf", "Die Einrichten-Bühne wird geöffnet."),
     EreignisDef("avatar.einrichten_zu", "Die Einrichten-Bühne wird geschlossen."),
     EreignisDef("avatar.umbenannt", "Der Nutzer gibt dem Avatar einen neuen Namen.", daten=("name",),
@@ -194,7 +200,7 @@ AKTIONEN: tuple[AktionDef, ...] = (
     AktionDef("zubehoer", "Zubehör an- oder ausziehen. Bleibt, bis eine Regel es wieder ändert.",
               (Param("name", "zubehoer", "Zubehör", pflicht=True),
                Param("an", "bool", "anziehen (aus = ausziehen)", standard=True)), wunsch=False),
-    AktionDef("gehen_zu", "Geht an eine Stelle des aktuellen Bildschirms und bleibt dort.",
+    AktionDef("gehen_zu", "Geht an eine Stelle des aktuellen Bildschirms und bleibt dort (Hüpfer hüpfen hin).",
               (Param("ziel", "auswahl", "Ziel", pflicht=True, auswahl=("links", "rechts", "mitte")),)),
     AktionDef("bleiben", "Hält an, bis eine andere Regel ihn zurückzieht (Dauer gilt dann nicht). Wird er "
               "verdrängt, wartet er. Solange er besteht, feuert die Regel nicht erneut.", wunsch=False),
@@ -202,6 +208,12 @@ AKTIONEN: tuple[AktionDef, ...] = (
               (Param("regeln", "regeln", "Regeln, eine id je Zeile", pflicht=True),), wunsch=False),
     AktionDef("ruhig", f"Still werden: Sprüche anderer Regeln (Priorität unter {LEISE_AB}) entfallen ganz, "
               "bis diese Regel zurückgezogen wird.", wunsch=False),
+    AktionDef("freuen_huepfend", "Drei Hüpfer auf der Stelle mit einer vollen Drehung (Animation „freuen“). "
+              "Avatare, die nicht hüpfen, zeigen nur „freuen“.",
+              (Param("dauer_s", "zahl", "So lange läuft der Wunsch (ohne Angabe: Dauer der Regel)."),)),
+    AktionDef("innen", "Zeigt eine Variante des Innenlebens (Gegenstand im Körper), solange der Wunsch läuft. "
+              "Fehlt die Variante, bleibt die Grundvariante.",
+              (Param("variante", "innen", "Variante, z. B. froh (zu tnt@froh)", pflicht=True),)),
 )
 
 #: Felder einer Regel (außer wenn/dann) mit Standard und Grenzen
@@ -269,9 +281,13 @@ WERTE: tuple[WertDef, ...] = (
     WertDef("blinzeln_min_s", "Blinzeln: frühestens alle …", "s", 3.0, 0.5, 60, "Eigenleben"),
     WertDef("blinzeln_max_s", "… spätestens alle.", "s", 7.0, 0.5, 120, "Eigenleben"),
     # Bewegung
-    WertDef("laufgeschwindigkeit", "Tempo beim Herumlaufen. Ohne Angabe gilt bewegung.tempo aus dem "
-            "Bauplan.", "px/s", 60, 10, 300, "Bewegung"),
+    WertDef("laufgeschwindigkeit", "Tempo beim Herumlaufen.", "px/s", 60, 10, 300, "Bewegung"),
     WertDef("zieltempo", "Tempo, wenn er zu einem Ziel geht (gehen_zu).", "px/s", 140, 20, 600, "Bewegung"),
+    # Hüpfen (nur Avatare mit bewegung.art = huepfen)
+    WertDef("sprungweite_px", "So weit kommt er mit einem Hüpfer.", "px", 36, 0, 300, "Hüpfen"),
+    WertDef("sprunghoehe_px", "So hoch hüpft er.", "px", 26, 4, 200, "Hüpfen"),
+    WertDef("hupf_pause_min_s", "Pause zwischen zwei Hüpfern: mindestens …", "s", 0.8, 0, 10, "Hüpfen"),
+    WertDef("hupf_pause_max_s", "… höchstens.", "s", 1.6, 0, 10, "Hüpfen"),
     # Motor
     WertDef("wunsch_verfaellt_s", "Nicht begonnene Wünsche verfallen nach dieser Zeit (keine veralteten "
             "Reaktionen).", "s", 10.0, 1, 120, "Motor"),
@@ -291,6 +307,19 @@ KERN_ANIMATIONEN: dict[str, tuple[str, str]] = {
     "anschauen": ("Den Nutzer ansehen, Blick folgt der Maus", "Regeln"),
     "freuen": ("Freude", "Regeln"),
     "erschrecken": ("Erschrecken, Blick folgt der Maus", "Regeln"),
+    "hocken": ("Vor dem Hüpfer zusammenziehen", "Sockel (Hüpfen)"),
+    "absprung": ("Abspringen, gestreckt", "Sockel (Hüpfen)"),
+    "flug": ("Im Bogen fliegen", "Sockel (Hüpfen)"),
+    "landen": ("Aufkommen, kurz gestaucht", "Sockel (Hüpfen, nach jedem Fall)"),
+    "drehen": ("Drehen auf der Stelle: vorne → ¾ → Seite → ¾ hinten → hinten", "freuen_huepfend, Regeln"),
+}
+#: Rückfall, wenn die Animation fehlt (sonst gilt RUECKFALL)
+KERN_RUECKFALL: dict[str, str] = {
+    "hocken": "ruhe, prozedural gestaucht",
+    "absprung": "ruhe, prozedural gestreckt",
+    "flug": "ruhe",
+    "landen": "ruhe, prozedural gestaucht",
+    "drehen": "Pseudo-Drehung: Breite folgt |cos|, Rückseite gespiegelt (ein Umlauf 700 ms)",
 }
 NAMEN = {"laufen": "bewegen"}          # intern → Kern-Vokabular
 RUECKFALL = "ruhe"
@@ -356,6 +385,8 @@ class Werte:
 
 ID_MUSTER = re.compile(r"^[a-z0-9_]+$")
 _OBEN = {"werte", "regeln", "beschreibung"}
+MIN_MAX = (("ruhe_min_s", "ruhe_max_s"), ("laufen_min_s", "laufen_max_s"), ("sitzen_min_s", "sitzen_max_s"),
+           ("blinzeln_min_s", "blinzeln_max_s"), ("hupf_pause_min_s", "hupf_pause_max_s"))
 _REGEL_SCHLUESSEL = {"id", "aktiv", "wenn", "dann", "prioritaet", "abklingzeit_s", "chance", "dauer_s",
                      "aufheben", "gruppe"}
 
@@ -402,9 +433,11 @@ def _param_pruefen(p: Param, wert, ort: str, regel_ids: set[str], fehler: list[s
         falsch("erwartet einen Text")
 
 
-def pruefen(verhalten, animationen: Iterable[str] | None = None) -> tuple[list[str], list[str]]:
+def pruefen(verhalten, animationen: Iterable[str] | None = None,
+            innen_varianten: Iterable[str] | None = None) -> tuple[list[str], list[str]]:
     """Prüft eine verhalten.json gegen den Katalog → (Fehler, Warnungen), deutsch,
-    jeweils mit Regel-id und Feld. Fehler brechen den Bau ab, Warnungen nicht."""
+    jeweils mit Regel-id und Feld. Fehler brechen den Bau ab, Warnungen nicht.
+    ``innen_varianten``: Varianten des Innenlebens (z. B. {"froh"}), None = nicht prüfen."""
     fehler: list[str] = []
     warnungen: list[str] = []
     if not isinstance(verhalten, dict):
@@ -425,6 +458,10 @@ def pruefen(verhalten, animationen: Iterable[str] | None = None) -> tuple[list[s
             fehler.append(f"Wert „{wid}“: erwartet eine Zahl")
         elif not d.min <= wert <= d.max:
             fehler.append(f"Wert „{wid}“ = {wert} liegt außerhalb {d.min:g}–{d.max:g} {d.einheit}".rstrip())
+    for unten, oben in MIN_MAX:
+        a, b = werte.get(unten, WERT[unten].standard), werte.get(oben, WERT[oben].standard)
+        if _zahl(a) and _zahl(b) and a > b:
+            fehler.append(f"Wert „{unten}“ = {a:g} ist größer als „{oben}“ = {b:g}")
 
     regeln = verhalten.get("regeln", [])
     if not isinstance(regeln, list):
@@ -432,6 +469,7 @@ def pruefen(verhalten, animationen: Iterable[str] | None = None) -> tuple[list[s
     ids: list[str] = [r.get("id") for r in regeln if isinstance(r, dict) and isinstance(r.get("id"), str)]
     regel_ids = set(ids)
     vorhanden = set(animationen) if animationen is not None else None
+    varianten = {v.lstrip("@") for v in innen_varianten} if innen_varianten is not None else None
     gesehen: set[str] = set()
     for nr, r in enumerate(regeln, 1):
         if not isinstance(r, dict):
@@ -518,6 +556,9 @@ def pruefen(verhalten, animationen: Iterable[str] | None = None) -> tuple[list[s
                 ziel = rueckfall(akt["name"], vorhanden)
                 if ziel != NAMEN.get(akt["name"], akt["name"]):
                     warnungen.append(f"{ort}: Animation „{akt['name']}“ fehlt – Rückfall auf „{ziel}“")
+            if art == "innen" and varianten is not None and isinstance(akt.get("variante"), str)                     and akt["variante"].lstrip("@") not in varianten:
+                warnungen.append(f"{ort}: Innenleben-Variante „{akt['variante']}“ fehlt – es bleibt die "
+                                 "Grundvariante")
     return fehler, warnungen
 
 
@@ -546,6 +587,160 @@ def platzhalter(ereignis: str, daten: dict) -> dict[str, str]:
     if ereignis == "avatar.umbenannt" and daten.get("name"):
         p["name"] = str(daten["name"])
     return p
+
+
+# --- Körper: Aussehen aus dem Bauplan (→ avatar.json) ---------------------------------
+# Aussehen und Körper stehen im Bauplan, Temperament (wie weit, wie oft, wie schnell) in
+# den Werten oben. Nichts doppelt: Tempo gibt es nur als Wert „laufgeschwindigkeit“.
+
+BEWEGUNGSARTEN: dict[str, str] = {
+    "gehen": "läuft mit der Animation „bewegen“",
+    "gleiten": "gleitet ohne eigene Laufbilder (Platzhalter-Blob)",
+    "huepfen": "hüpft schwerfällig: hocken → absprung → flug → landen → Pause",
+}
+HUEPF_STANDARD = {"hocken_ms": 260, "stauchen": {"breite": 1.18, "hoehe": 0.78},
+                  "strecken": {"breite": 0.88, "hoehe": 1.16}}
+ABSPRUNG_S = 0.08
+LANDEN_S = 0.14
+DREHUNG_S = 0.7                 # ein Umlauf der Pseudo-Drehung
+PARTIKEL_FORMEN = ("quadrat", "tropfen")
+PARTIKEL_STANDARD = {"farbe": "#FFFFFF", "deckkraft": 0.6, "anzahl": [6, 10], "groesse_px": [3, 4],
+                     "reichweite_px": 22, "dauer_ms": 380, "form": "quadrat"}
+PARTIKEL_RAND = 28              # so viel Platz bekommt das Fenster für Partikel
+TON_ABSTAND_S = 0.09            # Abstand zwischen Wiederholungen
+TON_ENDUNGEN = (".wav", ".ogg")
+
+
+def momente() -> list[str]:
+    """Momente, zu denen Partikel und Körper-Töne kommen: die Kern-Animationen."""
+    return list(KERN_ANIMATIONEN)
+
+
+def _bereich(fehler: list[str], ort: str, wert, lo: float, hi: float, ganz: bool = False) -> None:
+    if not _zahl(wert) or (ganz and int(wert) != wert):
+        fehler.append(f"{ort}: erwartet eine {'ganze ' if ganz else ''}Zahl")
+    elif not lo <= wert <= hi:
+        fehler.append(f"{ort} = {wert:g} liegt außerhalb {lo:g}–{hi:g}")
+
+
+def _paar(fehler: list[str], ort: str, wert, lo: float, hi: float, ganz: bool = False) -> None:
+    if not (isinstance(wert, list) and len(wert) == 2):
+        fehler.append(f"{ort}: erwartet [von, bis]")
+        return
+    for x in wert:
+        _bereich(fehler, ort, x, lo, hi, ganz)
+    if all(_zahl(x) for x in wert) and wert[0] > wert[1]:
+        fehler.append(f"{ort}: „von“ ist größer als „bis“")
+
+
+def koerper_pruefen(plan: dict, ordner=None) -> tuple[list[str], list[str]]:
+    """Prüft die Körper-Blöcke eines Bauplans (bewegung, partikel, toene,
+    koerper_deckkraft) → (Fehler, Warnungen), deutsch. ``ordner``: Quellordner, um
+    Ton-Dateien zu finden (fehlende Datei = Warnung, der Ton entfällt)."""
+    fehler: list[str] = []
+    warnungen: list[str] = []
+    bekannt = set(momente())
+
+    b = plan.get("bewegung", {})
+    if not isinstance(b, dict):
+        fehler.append("bewegung: erwartet ein Objekt")
+        b = {}
+    if "tempo" in b:
+        fehler.append("bewegung.tempo gibt es nicht mehr – die Laufgeschwindigkeit ist jetzt der Wert "
+                      "„laufgeschwindigkeit“ in verhalten.json (Avatar-Editor → Verhalten → Werte). "
+                      "Bitte „tempo“ aus dem Bauplan löschen.")
+    for k in b:
+        if k not in ("art", "tempo", "hocken_ms", "stauchen", "strecken"):
+            fehler.append(f"bewegung: unbekannter Eintrag „{k}“")
+    art = b.get("art", "gehen")
+    if art not in BEWEGUNGSARTEN:
+        fehler.append(f"bewegung.art: „{art}“ gibt es nicht ({', '.join(BEWEGUNGSARTEN)})")
+    if "hocken_ms" in b:
+        _bereich(fehler, "bewegung.hocken_ms", b["hocken_ms"], 0, 2000)
+    for form in ("stauchen", "strecken"):
+        if form not in b:
+            continue
+        f = b[form]
+        if not isinstance(f, dict):
+            fehler.append(f"bewegung.{form}: erwartet ein Objekt mit „breite“ und „hoehe“")
+            continue
+        for k, v in f.items():
+            if k not in ("breite", "hoehe"):
+                fehler.append(f"bewegung.{form}: unbekannter Eintrag „{k}“")
+            else:
+                _bereich(fehler, f"bewegung.{form}.{k}", v, 0.5, 1.6)
+
+    if "koerper_deckkraft" in plan:
+        _bereich(fehler, "koerper_deckkraft", plan["koerper_deckkraft"], 0.05, 1.0)
+
+    partikel = plan.get("partikel", {})
+    if not isinstance(partikel, dict):
+        fehler.append("partikel: erwartet ein Objekt (Moment → Einstellungen)")
+        partikel = {}
+    for moment, d in partikel.items():
+        ort = f"partikel.{moment}"
+        if moment not in bekannt:
+            fehler.append(f"{ort}: „{moment}“ ist kein Moment des Sockels (erlaubt: {', '.join(momente())})")
+            continue
+        if not isinstance(d, dict):
+            fehler.append(f"{ort}: erwartet ein Objekt")
+            continue
+        for k, v in d.items():
+            o = f"{ort}.{k}"
+            if k == "farbe":
+                if not (isinstance(v, str) and re.fullmatch(r"#[0-9A-Fa-f]{6}", v)):
+                    fehler.append(f"{o}: erwartet eine Farbe wie #F2E36B")
+            elif k == "deckkraft":
+                _bereich(fehler, o, v, 0.05, 1.0)
+            elif k == "anzahl":
+                _paar(fehler, o, v, 1, 40, ganz=True)
+            elif k == "groesse_px":
+                _paar(fehler, o, v, 1, 16)
+            elif k == "reichweite_px":
+                _bereich(fehler, o, v, 2, PARTIKEL_RAND)
+            elif k == "dauer_ms":
+                _bereich(fehler, o, v, 50, 2000)
+            elif k == "form":
+                if v not in PARTIKEL_FORMEN:
+                    fehler.append(f"{o}: „{v}“ gibt es nicht ({', '.join(PARTIKEL_FORMEN)})")
+            else:
+                fehler.append(f"{ort}: unbekannter Eintrag „{k}“")
+
+    toene = plan.get("toene", {})
+    if not isinstance(toene, dict):
+        fehler.append("toene: erwartet ein Objekt (Name → Ton)")
+        toene = {}
+    for name, t in toene.items():
+        ort = f"toene.{name}"
+        if not isinstance(t, dict):
+            fehler.append(f"{ort}: erwartet ein Objekt")
+            continue
+        if "segmente" in t:                         # synthetisierter Ton (frei benannt, für die Aktion „ton“)
+            continue
+        if name not in bekannt:
+            fehler.append(f"{ort}: „{name}“ ist kein Moment des Sockels (erlaubt: {', '.join(momente())}). "
+                          "Töne aus Dateien kommen automatisch zu ihrem Moment.")
+            continue
+        if "dateien" not in t:
+            fehler.append(f"{ort}: „dateien“ fehlt")
+        for k, v in t.items():
+            o = f"{ort}.{k}"
+            if k == "dateien":
+                if not (isinstance(v, list) and v and all(isinstance(x, str) for x in v)):
+                    fehler.append(f"{o}: erwartet eine Liste von Dateinamen")
+                    continue
+                for x in v:
+                    if not x.lower().endswith(TON_ENDUNGEN):
+                        fehler.append(f"{o}: „{x}“ – erlaubt sind {', '.join(TON_ENDUNGEN)}")
+                    elif ordner is not None and not (ordner / x).is_file():
+                        warnungen.append(f"{o}: Datei „{x}“ fehlt – wird übersprungen")
+            elif k == "tonhoehe":
+                _bereich(fehler, o, v, 0, 0.5)
+            elif k == "wiederholen":
+                _paar(fehler, o, v, 1, 5, ganz=True)
+            else:
+                fehler.append(f"{ort}: unbekannter Eintrag „{k}“")
+    return fehler, warnungen
 
 
 # --- Markdown ---------------------------------------------------------------------------
@@ -588,4 +783,17 @@ def als_markdown() -> str:
     z += ["", "## Kern-Animationen", "", f"Fehlt eine Animation, gilt `{RUECKFALL}`. Varianten `name~2` werden "
           "zufällig gewählt.", "", "| Animation | Wofür | Genutzt von |", "|---|---|---|"]
     z += [f"| `{n}` | {w} | {wer} |" for n, (w, wer) in KERN_ANIMATIONEN.items()]
+    z += ["", "Eigener Rückfall: " + "; ".join(f"`{n}` → {t}" for n, t in KERN_RUECKFALL.items()) + "."]
+    z += ["", "## Körper (Bauplan → avatar.json)", "",
+          "Aussehen gehört in den Bauplan, Temperament in die Werte. Partikel und Töne aus Dateien hängen "
+          "an Momenten (= Kern-Animationen).", "",
+          "| Block | Inhalt |", "|---|---|",
+          "| `bewegung.art` | " + "; ".join(f"`{a}` {t}" for a, t in BEWEGUNGSARTEN.items()) + " |",
+          "| `bewegung.hocken_ms`, `stauchen`, `strecken` | Hüpfen: Hockzeit, Form beim Stauchen/Strecken "
+          "(`breite`, `hoehe` 0,5–1,6) |",
+          "| `koerper_deckkraft` | Deckkraft des Körpers über dem Innenleben (0,05–1) |",
+          "| `partikel.<moment>` | `farbe`, `deckkraft`, `anzahl` [von, bis], `groesse_px` [von, bis], "
+          f"`reichweite_px` (bis {PARTIKEL_RAND}), `dauer_ms`, `form` ({' / '.join(PARTIKEL_FORMEN)}) |",
+          "| `toene.<moment>` | `dateien` (.wav/.ogg), `tonhoehe` (Streuung ±), `wiederholen` [von, bis] |",
+          "| Zubehör-Sitz `innen` | Gegenstand im Körper, Varianten je Stimmung (`tnt@froh`), Aktion `innen` |"]
     return "\n".join(z) + "\n"

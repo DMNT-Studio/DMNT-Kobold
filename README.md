@@ -54,6 +54,29 @@ Sockels und bricht bei Fehlern mit Regel und Feld ab.
   zusätzlich. Ein Avatar ohne `persoenlichkeit.py` ist „ohne Code“ – DMNT 9000 ist es.
 - Endnutzer stellen weiterhin nur Name, Tricks und Lautstärke ein.
 
+## Hüpf-Avatare (ab 0.6.0)
+
+Aussehen steht im Bauplan, Temperament in den Werten – nichts doppelt.
+
+- **Bewegung:** `bewegung.art` = `gehen`, `gleiten` oder `huepfen`. Hüpfer laufen nie: hocken →
+  absprung → flug (echte Parabel) → landen → Pause. Weite, Höhe und Pausen sind Werte
+  (`sprungweite_px`, `sprunghoehe_px`, `hupf_pause_min_s`/`_max_s`), die Form beim Stauchen und
+  Strecken steht im Bauplan. Die Laufgeschwindigkeit ist nur noch der Wert `laufgeschwindigkeit`
+  (`bewegung.tempo` gibt es nicht mehr – der Bau sagt es).
+- **Aktionen:** `freuen_huepfend` (drei Hüpfer auf der Stelle mit einer Drehung) und `innen`
+  (Variante des Innenlebens, z. B. `tnt@froh`, solange der Wunsch läuft).
+- **Drehen:** Animation `drehen` mit fünf Ansichten, sonst Pseudo-Drehung.
+- **Partikel und Körper-Töne** je Moment (Kern-Animation), z. B. Spritzer und Schmatzen beim
+  Landen; Töne aus .wav/.ogg mit Tonhöhen-Streuung und Wiederholungen.
+- **Innenleben:** Zubehör-Sitz „im Körper“, zwischen Rückwand und Körper, wackelt nach.
+- Neuer Hüpf-Avatar: `python werkzeuge/avatar_bauen.py --vorlagen quellen/<name> [--innen <gegenstand>]`
+  legt leere Rahmen, Bauplan, Start-Verhalten und LIESMICH an; Bilder dann im Avatar-Editor
+  („Bilder“ → „Ersetzen“).
+- Prüf-Figur (nur Entwickler): `python tests/daten/huepf_probe/zeichnen.py`,
+  `python werkzeuge/avatar_bauen.py tests/daten/huepf_probe --ziel build/huepf_probe`,
+  `python -m dmnt_kobold --avatar-pfad build/huepf_probe` (eigene Daten, läuft neben dem
+  normalen Kobold; Klick öffnet hier nicht das Einrichten).
+
 ## Grenzen
 
 - **Exklusives Vollbild:** Über Spielen im exklusiven Vollbild kann Windows kein Overlay

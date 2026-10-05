@@ -17,8 +17,7 @@
   },
   "blickrichtung": 1,
   "bewegung": {
-    "art": "gehen",
-    "tempo": 55
+    "art": "gehen"
   },
   "herkunft": "herkunft.jpg",
   "portraet": "portraet.png",

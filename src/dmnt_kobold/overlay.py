@@ -6,6 +6,12 @@ Das Fenster wandert mit dem Avatar. Transparente Bereiche sind durchklickbar
 Ablauf pro Takt:
   Verhaltensmotor (Wünsche/Eigenleben) → Ausgabe → Physik → Darstellung,
   Sprechblase, Töne. Nutzer-Eingriff (Ziehen, Menü) hat immer Vorrang.
+
+Hüpfer (``bewegung.art = huepfen``) laufen nie: Jede Bewegung ist eine Kette aus
+hocken → absprung → flug (echte Parabel) → landen → Pause. ``freuen_huepfend`` sind
+drei Hüpfer auf der Stelle mit einer vollen Drehung. Partikel (Spritzer) und
+Körper-Töne kommen zu ihren Momenten; ein Innenleben wackelt mit einer Feder nach.
+Ohne Bewegung, Partikel und Wackeln fällt der Takt auf 100 ms (CPU in Ruhe).
 """
 from __future__ import annotations
 
@@ -16,8 +22,8 @@ import random
 import time
 from collections import deque
 
-from PySide6.QtCore import QElapsedTimer, QPoint, QPointF, Qt, QTimer
-from PySide6.QtGui import QCursor, QPainter
+from PySide6.QtCore import QElapsedTimer, QPoint, QPointF, QRect, QRectF, Qt, QTimer
+from PySide6.QtGui import QColor, QCursor, QPainter, QRegion
 from PySide6.QtWidgets import QWidget
 
 from . import katalog, win32
@@ -47,9 +53,42 @@ ZIELTEMPO = katalog.standard("zieltempo")
 ZIEL_RAND = 24.0
 
 BEWEGTE_ANIMATIONEN = {"laufen", "anschauen", "freuen", "erschrecken", "sprechen", "gezogen", "fallen",
-                       "unzufrieden"}
+                       "unzufrieden", "drehen"}
+HUEPF_PHASEN = ("hocken", "absprung", "flug", "landen")
+FREUDE_HUEPFER = 3
+FREUDE_PAUSE_S = 0.1
+FLUG_ENTSPANNEN_S = 0.16      # so lange bleibt er nach dem Absprung gestreckt
+PARTIKEL_SCHWERKRAFT = 1400.0
+INNEN_VERZOEGERUNG_S = 0.06   # Innenleben folgt dem Körper so viel später …
+INNEN_FEDER = 900.0           # … mit einer leichten Feder
+INNEN_DAEMPFUNG = 16.0
+INNEN_MAX_PX = 6.0
 
 MASKE_AKTIV = os.environ.get("DMNT_KOBOLD_OHNE_MASKE") != "1"
+
+
+def _mischen(a: tuple[float, float], b: tuple[float, float], u: float) -> tuple[float, float]:
+    u = max(0.0, min(1.0, u))
+    return a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u
+
+
+def huepf_form(phase: str, t: float, bewegung: dict, hocken_s: float) -> tuple[float, float]:
+    """(Breite, Höhe) des Körpers in einer Hüpf-Phase – Stauchen und Strecken um den
+    Fußpunkt, Form aus dem Bauplan (``stauchen``, ``strecken``)."""
+    st = bewegung.get("stauchen", katalog.HUEPF_STANDARD["stauchen"])
+    sr = bewegung.get("strecken", katalog.HUEPF_STANDARD["strecken"])
+    gestaucht = (float(st.get("breite", 1)), float(st.get("hoehe", 1)))
+    gestreckt = (float(sr.get("breite", 1)), float(sr.get("hoehe", 1)))
+    if phase == "hocken":
+        u = t / hocken_s if hocken_s > 0 else 1.0
+        return _mischen((1.0, 1.0), gestaucht, u * u * (3 - 2 * u))
+    if phase == "absprung":
+        return _mischen(gestaucht, gestreckt, t / katalog.ABSPRUNG_S)
+    if phase == "flug":
+        return _mischen(gestreckt, (1.0, 1.0), t / FLUG_ENTSPANNEN_S)
+    if phase == "landen":
+        return _mischen((1.0, 1.0), gestaucht, math.sin(math.pi * min(1.0, t / katalog.LANDEN_S)))
+    return 1.0, 1.0
 
 
 def ausdruck(animation: str, t: float, blinzelt: bool) -> tuple[float, float, str, str, bool]:
@@ -86,7 +125,7 @@ def ausdruck(animation: str, t: float, blinzelt: bool) -> tuple[float, float, st
 class AvatarFenster(QWidget):
     def __init__(self, bus: EventBus, motor: Verhaltensmotor, schalter: Schalter,
                  toene: Toene, beim_beenden, darsteller: Darsteller, lauftempo: float = LAUFTEMPO,
-                 zieltempo: float = ZIELTEMPO) -> None:
+                 zieltempo: float = ZIELTEMPO, werte: katalog.Werte | None = None) -> None:
         super().__init__(None)
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
@@ -102,6 +141,9 @@ class AvatarFenster(QWidget):
         self.fuss = darsteller.fuss
         self.lauftempo = lauftempo
         self.zieltempo = zieltempo
+        self.werte = werte or katalog.Werte()
+        self.huepft = darsteller.bewegung.get("art") == "huepfen"
+        self.hocken_s = float(darsteller.bewegung.get("hocken_ms", katalog.HUEPF_STANDARD["hocken_ms"])) / 1000
         self.setFixedSize(darsteller.fenster_b, darsteller.fenster_h)
         self.setWindowTitle("DMNT-Kobold")
 
@@ -120,6 +162,7 @@ class AvatarFenster(QWidget):
 
         # Einrichten: von außen gesetzt (app.py)
         self.beim_einrichten = None          # Klick auf den Avatar / Menü → Einrichten
+        self.klick_oeffnet_einrichten = True  # aus beim Entwickler-Start (--avatar-pfad)
         self.menue_eintraege = lambda: []    # Einträge der Tricks fürs Rechtsklick-Menü
         self.einrichten_aktiv = False
         self._fuehrung: dict | None = None   # Schweben/Springen statt Physik
@@ -150,6 +193,23 @@ class AvatarFenster(QWidget):
         self._masken: dict[tuple, object] = {}
         self._zustand = Zustand()
         self._topmost_rest = 0.0
+
+        # Hüpfen, Drehen, Partikel, Innenleben
+        self._rng = random.Random()
+        self._phase = ""                     # "", hocken, absprung, flug, landen, pause
+        self._phase_t = 0.0
+        self._pause_s = 0.0
+        self._hupf_weite = 0.0
+        self._freude: dict | None = None     # {"wid", "rest", "phi"} – freuen_huepfend
+        self._drehung: float | None = None
+        self._partikel: list[dict] = []
+        self._partikel_maske = False
+        self._innen_variante: str | None = None
+        self._innen_pos: list[float] | None = None
+        self._innen_v = [0.0, 0.0]
+        self._innen_spur: deque[tuple[float, float, float]] = deque(maxlen=32)
+        self._innen_versatz = (0.0, 0.0)
+        self._zeit = 0.0
 
         self._uhr = QElapsedTimer()
         self._uhr.start()
@@ -197,10 +257,13 @@ class AvatarFenster(QWidget):
             self.toene.spielen(ton)
 
         laufen = False
+        self._zeit += dt
         if self._fuehrung is not None:
             ereignisse = self._fuehrung_schritt(dt)
         elif self._festgehalten:
             ereignisse = []
+        elif self.huepft:
+            ereignisse = self._huepfen(dt, a)
         else:
             # Bewegungsentscheidung (Nutzer-Eingriff hat Vorrang)
             frei = k.zustand == STEHT and not self._gedrueckt and not self._menue_offen
@@ -218,29 +281,49 @@ class AvatarFenster(QWidget):
         if GEDREHT in ereignisse:
             self.motor.eigenleben.richtung = k.richtung
         if GELANDET in ereignisse:
-            self._stauch_t = 0.0
-            self.toene.spielen("landen")
-            self.bus.senden("avatar.gelandet")
+            if not self.huepft:
+                self._stauch_t = 0.0
+            self._moment("landen")
+            art, hoehe = k.landung
+            self.bus.senden("avatar.gelandet", art=art, fallhoehe_px=round(hoehe))
         if GERETTET in ereignisse:
             log.info("Avatar ins Nichts gefallen → Hauptmonitor")
 
         # welche Animation ist sichtbar?
         if k.zustand == GEZOGEN:
             animation = "gezogen"
-        elif k.zustand == FAELLT:
+        elif k.zustand == FAELLT and not (self.huepft and k.hupf_flug):
             animation = "fallen"
         elif self._fuehrung is not None:
             animation = "schweben" if self._fuehrung["art"] == "schweben" else "springen"
         elif laufen:
             animation = "laufen"
+        elif self.huepft and (self._phase in HUEPF_PHASEN or k.zustand == FAELLT):
+            animation = a.animation if self._freude is not None else (self._phase or "fallen")
+        elif self.huepft and self._phase == "pause" and self._freude is None and self._will_huepfen(a):
+            animation = "ruhe"                 # zwischen zwei Hüpfern einer Kette
         else:
             animation = a.animation
+        if self.huepft and animation == "laufen":
+            animation = "ruhe"                 # Hüpfer laufen nie
         if animation != self._animation:
             self._animation = animation
             self._animation_t = 0.0
             self._variante = random.choice(self.darsteller.varianten(animation))
+            if animation not in ("landen", "laufen"):       # landen kommt mit der Landung
+                self._moment(animation, ton=animation != "sprechen")
         else:
             self._animation_t += dt
+
+        # Drehen: freuen_huepfend (eine Drehung über drei Hüpfer) oder Animation „drehen“
+        if self._freude is not None:
+            self._drehung = self._freude["phi"] if 0 < self._freude["phi"] < 360 else None
+        elif animation == "drehen":
+            self._drehung = (self._animation_t / katalog.DREHUNG_S * 360) % 360
+        else:
+            self._drehung = None
+        self._innen_schritt(dt, a)
+        self._partikel_schritt(dt)
 
         # Blick zum Mauszeiger beim Anschauen, Avatar dreht sich mit
         self._blick = (0.0, 0.0)
@@ -266,14 +349,200 @@ class AvatarFenster(QWidget):
         self._darstellung_aktualisieren()
         self._sprechblase(a)
 
-        if k.in_bewegung or self._stauch_t >= 0 or self._gedrueckt or self._fuehrung is not None:
+        if k.in_bewegung or self._stauch_t >= 0 or self._gedrueckt or self._fuehrung is not None \
+                or self._phase in HUEPF_PHASEN or self._partikel or self._innen_wackelt() \
+                or self._drehung is not None:
             soll = TAKT_SCHNELL_MS
-        elif animation in BEWEGTE_ANIMATIONEN:
+        elif animation in BEWEGTE_ANIMATIONEN or self._phase == "pause":
             soll = TAKT_MITTEL_MS
         else:
             soll = TAKT_RUHE_MS
         if self._takt.interval() != soll:
             self._takt.setInterval(soll)
+
+    # --- Hüpfen ----------------------------------------------------------------
+    def _will_huepfen(self, a: Ausgabe) -> bool:
+        if self._freude is not None and self._freude["rest"] > 0:
+            return True
+        if a.ziel is not None:
+            ziel_x = self._ziel_x(a.ziel)
+            return ziel_x is not None and abs(ziel_x - self.koerper.x) > 4
+        return bool(a.laufen) and not self.schalter.nicht_stoeren
+
+    def _naechster_hupfer(self, a: Ausgabe) -> float | None:
+        """Weite des nächsten Hüpfers (setzt die Richtung) oder None = stehen bleiben."""
+        k = self.koerper
+        if self._freude is not None:
+            return 0.0 if self._freude["rest"] > 0 else None
+        weite = float(self.werte["sprungweite_px"])
+        if a.ziel is not None:
+            ziel_x = self._ziel_x(a.ziel)
+            if ziel_x is None or abs(ziel_x - k.x) <= 4:
+                return None
+            k.richtung = 1 if ziel_x > k.x else -1
+            return min(weite, abs(ziel_x - k.x))
+        if a.laufen and not self.schalter.nicht_stoeren:
+            k.richtung = a.richtung
+            return weite
+        return None
+
+    def _huepfen(self, dt: float, a: Ausgabe) -> list[str]:
+        """Ablauf eines Hüpfers: hocken → absprung → flug → landen → pause."""
+        k = self.koerper
+        # freuen_huepfend: neuer Wunsch → drei Hüpfer; Wunsch vorbei → nach der Landung aufhören
+        if a.bewegung == "freuen_huepfend" and a.wunsch_id is not None:
+            if self._freude is None or self._freude["wid"] != a.wunsch_id:
+                self._freude = {"wid": a.wunsch_id, "rest": FREUDE_HUEPFER, "phi": 0.0}
+                if self._phase == "pause":
+                    self._phase = ""
+        elif self._freude is not None and self._phase in ("", "pause"):
+            self._freude = None
+
+        if k.zustand == GEZOGEN:
+            self._phase, self._freude = "", None
+            return []
+        if self._gedrueckt and self._phase in ("", "hocken", "pause"):   # Maus drückt: stillhalten
+            self._phase = ""
+            return k.schritt(dt, self.monitore)
+        if k.zustand == FAELLT and not k.hupf_flug:          # geworfen oder heruntergefallen
+            self._phase = ""
+            ereignisse = k.schritt(dt, self.monitore)
+            if GELANDET in ereignisse:
+                self._phase, self._phase_t = "landen", 0.0
+            return ereignisse
+
+        self._phase_t += dt
+        phase = self._phase
+        ereignisse: list[str] = []
+        if phase in ("", "pause"):
+            frei = k.zustand == STEHT and not self._menue_offen
+            fertig = phase == "" or self._phase_t >= self._pause_s
+            if frei and fertig:
+                weite = self._naechster_hupfer(a)
+                if weite is not None:
+                    self._hupf_weite = weite
+                    self._phase, self._phase_t = "hocken", 0.0
+                elif phase == "pause":
+                    self._phase = ""
+            ereignisse = k.schritt(dt, self.monitore)
+        elif phase == "hocken":
+            if self._phase_t >= self.hocken_s:
+                weite, ereignisse = k.hupf_weite(self._hupf_weite, self.monitore, self.schalter.monitor_bleiben)
+                k.hupf_ab(weite, float(self.werte["sprunghoehe_px"]))
+                self._phase, self._phase_t = "absprung", 0.0
+                if self._freude is not None:
+                    self._freude["rest"] -= 1
+            else:
+                ereignisse = k.schritt(dt, self.monitore)
+        elif phase in ("absprung", "flug"):
+            if phase == "absprung" and self._phase_t >= katalog.ABSPRUNG_S:
+                self._phase = "flug"
+            ereignisse = k.schritt(dt, self.monitore)
+            if self._freude is not None:      # eine volle Drehung, verteilt auf die Flüge
+                schritt = 360 / (FREUDE_HUEPFER * k.flugzeit(float(self.werte["sprunghoehe_px"])))
+                bis = 360 * (FREUDE_HUEPFER - self._freude["rest"]) / FREUDE_HUEPFER
+                self._freude["phi"] = min(bis, self._freude["phi"] + schritt * dt)
+            if GELANDET in ereignisse:
+                self._phase, self._phase_t = "landen", 0.0
+                if self._freude is not None:
+                    self._freude["phi"] = 360 * (FREUDE_HUEPFER - self._freude["rest"]) / FREUDE_HUEPFER
+            elif k.zustand == STEHT:          # Flug abgebrochen (z. B. Monitor weg)
+                self._phase = ""
+        elif phase == "landen":
+            if self._phase_t >= katalog.LANDEN_S:
+                self._phase, self._phase_t = "pause", 0.0
+                if self._freude is not None:
+                    self._pause_s = FREUDE_PAUSE_S
+                else:
+                    self._pause_s = self._rng.uniform(float(self.werte["hupf_pause_min_s"]),
+                                                      float(self.werte["hupf_pause_max_s"]))
+            ereignisse = k.schritt(dt, self.monitore)
+        return ereignisse
+
+    # --- Momente: Partikel und Körper-Töne --------------------------------------
+    def _moment(self, name: str, ton: bool = True) -> None:
+        if ton:
+            if name == "landen":
+                self.toene.spielen("landen")
+            else:
+                self.toene.moment(name)
+        d = self.darsteller.partikel.get(name)
+        if not d:
+            return
+        k = self.koerper
+        unten = name in ("landen", "hocken", "absprung")
+        y0 = k.y if unten else k.y - self.darsteller.hoehe * 0.5
+        dauer = max(0.05, float(d["dauer_ms"]) / 1000)
+        weite = float(d["reichweite_px"])
+        farbe = QColor(d["farbe"])
+        for _ in range(self._rng.randint(int(d["anzahl"][0]), int(d["anzahl"][1]))):
+            seite = self._rng.choice((-1, 1))
+            self._partikel.append({
+                "x": k.x + seite * self._rng.uniform(0.1, 0.4) * self.darsteller.breite / 2, "y": y0 - 1,
+                "vx": seite * self._rng.uniform(0.45, 1.0) * weite / (dauer * 0.8),
+                "vy": -self._rng.uniform(150, 230), "t": 0.0, "dauer": dauer, "boden": k.y,
+                "g": self._rng.uniform(float(d["groesse_px"][0]), float(d["groesse_px"][1])),
+                "farbe": farbe, "deckkraft": float(d["deckkraft"]), "form": d.get("form", "quadrat")})
+
+    def _partikel_schritt(self, dt: float) -> None:
+        if not self._partikel:
+            return
+        for t in self._partikel:
+            t["t"] += dt
+            t["vy"] += PARTIKEL_SCHWERKRAFT * dt
+            t["x"] += t["vx"] * dt
+            t["y"] += t["vy"] * dt
+            if t["y"] >= t["boden"]:            # auf dem Boden liegen bleiben
+                t["y"], t["vy"], t["vx"] = t["boden"], 0.0, t["vx"] * 0.6
+        self._partikel = [t for t in self._partikel if t["t"] < t["dauer"]]
+        self.update()
+
+    def _partikel_im_fenster(self) -> list[tuple[QRectF, QColor, str]]:
+        ox = self.koerper.x - self.fuss.x()
+        oy = self.koerper.y - self.fuss.y()
+        ergebnis = []
+        for t in self._partikel:
+            g = t["g"]
+            h = g * 1.3 if t["form"] == "tropfen" else g
+            farbe = QColor(t["farbe"])
+            farbe.setAlphaF(max(0.0, t["deckkraft"] * (1 - t["t"] / t["dauer"])))
+            ergebnis.append((QRectF(t["x"] - ox - g / 2, t["y"] - oy - h, g, h), farbe, t["form"]))
+        return ergebnis
+
+    # --- Innenleben: Variante und Nachwackeln ----------------------------------------
+    def _innen_wackelt(self) -> bool:
+        return self._innen_versatz != (0.0, 0.0) or abs(self._innen_v[0]) + abs(self._innen_v[1]) > 1.0
+
+    def _innen_schritt(self, dt: float, a: Ausgabe) -> None:
+        if not self.darsteller.innenleben:
+            return
+        variante = a.innen
+        if variante != self._innen_variante:
+            self._innen_variante = variante
+            self._innen_v[1] -= 70.0          # Wechsel: kleiner Hopser im Körper
+        k = self.koerper
+        mitte = (k.x, k.y - self.darsteller.hoehe * self._zustand.sy / 2)
+        self._innen_spur.append((self._zeit, *mitte))
+        if self._innen_pos is None:
+            self._innen_pos = list(mitte)
+        ziel = mitte
+        for zeit, x, y in self._innen_spur:     # Stand vor 60 ms
+            if zeit <= self._zeit - INNEN_VERZOEGERUNG_S:
+                ziel = (x, y)
+        for i in (0, 1):
+            beschl = INNEN_FEDER * (ziel[i] - self._innen_pos[i]) - INNEN_DAEMPFUNG * self._innen_v[i]
+            self._innen_v[i] += beschl * dt
+            self._innen_pos[i] += self._innen_v[i] * dt
+            versatz = self._innen_pos[i] - mitte[i]
+            if abs(versatz) > INNEN_MAX_PX:
+                self._innen_pos[i] = mitte[i] + math.copysign(INNEN_MAX_PX, versatz)
+        dx = round((self._innen_pos[0] - mitte[0]) * 2) / 2
+        dy = round((self._innen_pos[1] - mitte[1]) * 2) / 2
+        if abs(dx) < 0.5 and abs(dy) < 0.5 and abs(self._innen_v[0]) + abs(self._innen_v[1]) < 1.0:
+            dx = dy = 0.0
+            self._innen_v = [0.0, 0.0]
+            self._innen_pos = list(mitte)
+        self._innen_versatz = (dx, dy)
 
     def _monitor(self) -> Monitor | None:
         k = self.koerper
@@ -328,6 +597,7 @@ class AvatarFenster(QWidget):
             k.richtung = 1 if x > k.x else -1
         self._gedrueckt = False
         self._stauch_t = -1.0
+        self._phase, self._freude = "", None
         self._fuehrung = {"art": art, "von": (k.x, k.y), "nach": (x, y), "t": 0.0,
                           "dauer": max(0.05, dauer), "fertig": fertig}
         self._takt.setInterval(TAKT_SCHNELL_MS)
@@ -354,9 +624,12 @@ class AvatarFenster(QWidget):
         if f["art"] == "springen":
             self._festgehalten = False
             k.zustand = STEHT
-            self._stauch_t = 0.0
-            self.toene.spielen("landen")
-            self.bus.senden("avatar.gelandet")
+            if self.huepft:
+                self._phase, self._phase_t = "landen", 0.0
+            else:
+                self._stauch_t = 0.0
+            self._moment("landen")
+            self.bus.senden("avatar.gelandet", art="hupf", fallhoehe_px=round(70 + 0.12 * abs(y1 - y0)))
             k.pruefe_monitore(self.monitore)    # Monitor inzwischen weg → Hauptmonitor
         else:
             self._festgehalten = True
@@ -396,33 +669,55 @@ class AvatarFenster(QWidget):
         sprite = self.darsteller.animiert_sich_selbst
         if sprite and self._animation == "laufen":
             sx, sy = 1.0, 1.0                  # die Frames laufen selbst
-        if self._stauch_t >= 0:
+        if self.huepft and self._phase in HUEPF_PHASEN:
+            sx, sy = huepf_form(self._phase, self._phase_t, self.darsteller.bewegung, self.hocken_s)
+        elif self._stauch_t >= 0:
             s = math.sin(math.pi * self._stauch_t / STAUCH_DAUER)
             sx, sy = 1 + 0.14 * s, 1 - 0.16 * s
         elif self.koerper.zustand == FAELLT:
             s = min(abs(self.koerper.vy) / 1800.0, 1.0) * 0.08
             sx, sy = 1 - s * 0.6, 1 + s
+        richtung = self.koerper.richtung
+        animation, drehung = self._variante, None
+        if self._drehung is not None:
+            phi = self._drehung
+            if self.darsteller.hat("drehen"):            # Frames vorne → … → hinten
+                animation, drehung = "drehen", phi
+                if phi > 180:
+                    richtung = -richtung
+            else:                                        # Pseudo-Drehung
+                c = math.cos(math.radians(phi))
+                sx *= max(0.06, abs(c))
+                if c < 0:
+                    richtung = -richtung
         if sprite:                             # grob runden → wenige Masken im Cache
             sx, sy = round(sx * 50) / 50, round(sy * 50) / 50
         z = Zustand(
-            animation=self._variante, t=self._animation_t, sx=sx, sy=sy,
-            richtung=self.koerper.richtung, augen=augen, mund=mund,
+            animation=animation, t=self._animation_t, sx=sx, sy=sy,
+            richtung=richtung, augen=augen, mund=mund,
             blick=(round(self._blick[0], 1), round(self._blick[1], 1)), zzz=zzz,
             schatten=self.koerper.zustand == STEHT and self._fuehrung is None,
-            zubehoer=a.zubehoer if a else frozenset(),
+            zubehoer=a.zubehoer if a else frozenset(), drehung=drehung,
+            innen=self._innen_variante, innen_versatz=self._innen_versatz,
         )
         schluessel = self.darsteller.masken_schluessel(z)
-        darst = (schluessel, z.augen, z.mund, z.blick, round(z.sx, 3), round(z.sy, 3))
-        if erzwingen or darst != self._letzte_darstellung:
+        darst = (schluessel, z.augen, z.mund, z.blick, round(z.sx, 3), round(z.sy, 3), z.innen_versatz)
+        if erzwingen or darst != self._letzte_darstellung or self._partikel or self._partikel_maske:
             self._letzte_darstellung = darst
             self._zustand = z
-            if MASKE_AKTIV and (erzwingen or schluessel != self._letzte_maske):
+            if MASKE_AKTIV and (erzwingen or schluessel != self._letzte_maske or self._partikel
+                                or self._partikel_maske):
                 self._letzte_maske = schluessel
                 maske = self._masken.get(schluessel)
                 if maske is None:
                     if len(self._masken) > MASKEN_CACHE:
                         self._masken.clear()
                     maske = self._masken[schluessel] = self.darsteller.maske(z)
+                if self._partikel:     # Qt zeichnet nur in der Maske: kurz um die Spritzer erweitern
+                    maske = QRegion(maske)
+                    for r, _f, _form in self._partikel_im_fenster():
+                        maske = maske.united(QRegion(r.adjusted(-1, -1, 1, 1).toAlignedRect()))
+                self._partikel_maske = bool(self._partikel)
                 self.setMask(maske)
             self.update()
 
@@ -432,6 +727,15 @@ class AvatarFenster(QWidget):
         p.fillRect(self.rect(), Qt.GlobalColor.transparent)
         p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
         self.darsteller.zeichnen(p, self._zustand)
+        if self._partikel:
+            p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+            p.setPen(Qt.PenStyle.NoPen)
+            for r, farbe, form in self._partikel_im_fenster():
+                p.setBrush(farbe)
+                if form == "tropfen":
+                    p.drawEllipse(r)
+                else:
+                    p.drawRect(r)
         p.end()
 
     # --- Maus ----------------------------------------------------------------
@@ -477,9 +781,9 @@ class AvatarFenster(QWidget):
             self.bus.senden("avatar.losgelassen", vx=round(vx), vy=round(vy))
         else:
             self.bus.senden("maus.klick")
-            if self.beim_einrichten is not None:
+            if self.beim_einrichten is not None and self.klick_oeffnet_einrichten:
                 self.beim_einrichten()
-            else:
+            elif not self.huepft:              # Hüpfer: was ein Klick bewirkt, regeln die Regeln
                 k.huepfen()
                 self.toene.spielen("huepfen")
         self._uhr.restart()

@@ -1,10 +1,17 @@
-"""Einstieg: QApplication, Einzelinstanz, Logging, Datenhaltung, Verdrahtung."""
+"""Einstieg: QApplication, Einzelinstanz, Logging, Datenhaltung, Verdrahtung.
+
+Entwickler-Start: ``python -m dmnt_kobold --avatar-pfad <gebauter Avatar-Ordner>``
+startet einen Avatar außerhalb des Pakets (z. B. die Prüf-Figur). Er wird nicht als
+Avatar gespeichert, hat eigene Daten (build/kobold_entwickler, läuft also neben dem
+normalen Kobold), und ein Klick öffnet nicht das Einrichten (das geht per Rechtsklick).
+"""
 from __future__ import annotations
 
 import logging
 import os
 import sys
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 from PySide6.QtCore import QLockFile, QPoint, QRect, Qt, QTimer
 from PySide6.QtGui import QGuiApplication
@@ -38,7 +45,22 @@ def _logging_einrichten() -> None:
     sys.excepthook = ausnahme
 
 
+def _avatar_pfad() -> Path | None:
+    if "--avatar-pfad" not in sys.argv:
+        return None
+    i = sys.argv.index("--avatar-pfad")
+    if i + 1 >= len(sys.argv):
+        raise SystemExit("--avatar-pfad braucht einen Ordner (gebauter Avatar mit avatar.json)")
+    ordner = Path(sys.argv[i + 1]).resolve()
+    if not (ordner / "avatar.json").is_file():
+        raise SystemExit(f"Kein gebauter Avatar in {ordner} (avatar.json fehlt)")
+    if not os.environ.get("DMNT_KOBOLD_DATEN"):     # eigene Daten → läuft neben dem echten Kobold
+        os.environ["DMNT_KOBOLD_DATEN"] = str(Path.cwd() / "build" / "kobold_entwickler")
+    return ordner
+
+
 def main() -> int:
+    avatar_pfad = _avatar_pfad()
     QGuiApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
@@ -91,16 +113,19 @@ def main() -> int:
 
     bus = EventBus()
     avatar_id = einstellungen.get("avatar", STANDARD_AVATAR)
-    darsteller, avatar = avatar_laden(avatar_id)
-    if avatar is None and avatar_id != STANDARD_AVATAR:
+    darsteller, avatar = avatar_laden(avatar_id, avatar_pfad)
+    if avatar is None and (avatar_id != STANDARD_AVATAR or avatar_pfad is not None):
         darsteller, avatar = avatar_laden(STANDARD_AVATAR)
+    if avatar_pfad is not None:
+        log.info("Entwickler-Start mit Avatar aus %s", avatar_pfad)
     werte = avatar.werte if avatar else Werte()          # Verhalten gehört zum Avatar
     motor = Verhaltensmotor(bus, Eigenleben(werte=werte))
     icon = avatar_icon(avatar) or blob.icon()
     app.setWindowIcon(icon)
     toene = Toene(pfade.datenordner() / "cache" / "toene",
                   lautstaerke=float(einstellungen.get("lautstaerke", 0.35)),
-                  avatar_toene=avatar.toene if avatar else None)
+                  avatar_toene=avatar.toene if avatar else None,
+                  koerper_toene=avatar.koerper_toene if avatar else None)
     lauftempo = avatar.lauftempo if avatar else werte["laufgeschwindigkeit"]
     name = lambda: einstellungen.get("name") or (avatar.name if avatar else "DMNT-Kobold")  # noqa: E731
 
@@ -108,7 +133,9 @@ def main() -> int:
         log.info("Beenden über Menü")
         app.quit()
 
-    fenster = AvatarFenster(bus, motor, schalter, toene, beenden, darsteller, lauftempo, werte["zieltempo"])
+    fenster = AvatarFenster(bus, motor, schalter, toene, beenden, darsteller, lauftempo, werte["zieltempo"],
+                            werte=werte)
+    fenster.klick_oeffnet_einrichten = avatar_pfad is None
     for teil in (avatar.zubehoer_immer if avatar else []):     # z. B. ein Hut, den er immer trägt
         motor.zubehoer_setzen(teil, True, "avatar")
     if schalter.nicht_stoeren:
@@ -267,7 +294,8 @@ def main() -> int:
         if e.daten.get("quelle") == "autostart":
             einstellungen["autostart_gefragt"] = True
     bus.abonnieren("sprechblase.zu", autostart_zu)
-    QTimer.singleShot(AUTOSTART_FRAGE_NACH_MS, autostart_fragen)
+    if avatar_pfad is None:                  # Entwickler-Start: echten Autostart nie anfassen
+        QTimer.singleShot(AUTOSTART_FRAGE_NACH_MS, autostart_fragen)
 
     # --- Monitore -------------------------------------------------------------------
     # Änderungen gebündelt und verzögert auswerten: Windows meldet beim Abstecken

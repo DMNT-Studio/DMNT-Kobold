@@ -40,6 +40,8 @@ class Wunsch:
     aufheben: bool = False
     ziel: str | float | None = None      # "rand_rechts", "rand_links", "mitte" oder x
     ton: str | None = None
+    bewegung: str | None = None          # z. B. "freuen_huepfend" (Hüpfer auf der Stelle)
+    innen: str | None = None             # Variante des Innenlebens, z. B. "froh"
     quelle: str = ""
     beim_knopf: Callable[[str], None] | None = None
     id: int = 0
@@ -59,6 +61,8 @@ class Ausgabe:
     wunsch_id: int | None = None
     blinzelt: bool = False
     zubehoer: frozenset[str] = frozenset()
+    bewegung: str | None = None
+    innen: str | None = None
 
 
 class Verhaltensmotor:
@@ -178,7 +182,7 @@ class Verhaltensmotor:
         if w is not None:
             blase = (w.id, w.text, w.knoepfe) if w.text else None
             return Ausgabe(w.animation, False, el.richtung, w.ziel, blase, toene, w.id, el.blinzelt,
-                           self.zubehoer)
+                           self.zubehoer, w.bewegung, w.innen)
         anim = el.zustand
         return Ausgabe(anim, anim == LAUFEN, el.richtung, None, None, toene, None, el.blinzelt,
                        self.zubehoer)

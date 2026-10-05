@@ -99,6 +99,10 @@ def kurz_dann(regel: dict) -> str:
             teile.append(f"{a.get('name', '?')} {'an' if a.get('an', True) else 'aus'}")
         elif art == "gehen_zu":
             teile.append(f"geht {a.get('ziel', '?')}")
+        elif art == "freuen_huepfend":
+            teile.append("hüpft vor Freude")
+        elif art == "innen":
+            teile.append(f"innen @{a.get('variante', '?')}")
         elif art == "zurueckziehen":
             teile.append("beendet " + ", ".join(a.get("regeln", [])))
         else:
@@ -167,9 +171,9 @@ class ParamFeld(QWidget):
             w.setEditText(text)
             w.lineEdit().setPlaceholderText("Zahl oder Wert aus der Liste")
             w.editTextChanged.connect(self.geaendert)
-        elif t in ("auswahl", "animation", "ton", "zubehoer", "regel"):
+        elif t in ("auswahl", "animation", "ton", "zubehoer", "regel", "innen"):
             w = QComboBox()
-            w.setEditable(t in ("animation", "ton", "zubehoer"))
+            w.setEditable(t in ("animation", "ton", "zubehoer", "innen"))
             if not p.pflicht:
                 w.addItem("")
             for o in (p.auswahl if t == "auswahl" else quellen.get(t, [])):
@@ -744,8 +748,6 @@ class WerteBereich(QScrollArea):
         self._laed = False
 
     def standard(self, d: katalog.WertDef) -> float:
-        if d.id == "laufgeschwindigkeit":            # ohne Angabe gilt das Tempo aus dem Bauplan
-            return float(self.tab.editor.projekt.bauplan.get("bewegung", {}).get("tempo", d.standard))
         return d.standard
 
     @property
@@ -771,8 +773,7 @@ class WerteBereich(QScrollArea):
         name.setText(f"<b style='color:{farbe}'>{d.id}</b>{' · geändert' if abweichend else ''}<br>"
                      f"<span style='color:{stil.NEBENTEXT}'>{html.escape(d.beschreibung)}</span>")
         std = self.standard(d)
-        quelle = " (Bauplan)" if d.id == "laufgeschwindigkeit" and std != d.standard else ""
-        standard.setText(f"Standard: {std:g} {d.einheit}{quelle}".strip())
+        standard.setText(f"Standard: {std:g} {d.einheit}".strip())
         knopf.setEnabled(abweichend)
 
     def _regler(self, d: katalog.WertDef, pos: int) -> None:
@@ -838,10 +839,18 @@ class KoennenBereich(QTextBrowser):
                         (f" ({basis[n]} Varianten)" if basis[n] > 1 else "") + "</span>"
             elif n == katalog.RUECKFALL:
                 stand = f"<span style='color:{stil.ROT}'>✗ fehlt – Pflicht!</span>"
+            elif n in katalog.KERN_RUECKFALL:
+                stand = f"<span style='color:{WARN}'>fehlt → Rückfall: {e(katalog.KERN_RUECKFALL[n])}</span>"
             else:
                 stand = f"<span style='color:{WARN}'>fehlt → Rückfall auf „{katalog.RUECKFALL}“</span>"
             z.append(f"<tr><td><b>{e(n)}</b></td><td>{e(wofuer)}</td><td>{e(wer)}</td><td>{stand}</td></tr>")
         z.append("</table>")
+        bewegung = self.tab.editor.projekt.bauplan.get("bewegung", {}).get("art", "gehen")
+        z.append(f"<p>Bewegungsart: <b>{e(bewegung)}</b> – {e(katalog.BEWEGUNGSARTEN.get(bewegung, '?'))}</p>")
+        varianten = self.tab.editor.projekt.innen_varianten()
+        if varianten:
+            z.append("<p>Innenleben-Varianten (Aktion „innen“): " + ", ".join(f"<b>{e(v)}</b>" for v in varianten)
+                     + "</p>")
         eigene = sorted(set(basis) - set(namen))
         if eigene:
             z.append("<p>Weitere Animationen des Avatars (nur über Regeln erreichbar): " +
@@ -920,6 +929,7 @@ class VerhaltenTab(QWidget):
         return {"animation": anims,
                 "ton": sorted(set(pr.bauplan.get("toene", {})) | set(KLAENGE)),
                 "zubehoer": sorted(set(pr.zubehoer) | {"kopfhoerer"}),
+                "innen": pr.innen_varianten(),
                 "regel": [r.get("id", "") for r in self.verhalten.get("regeln", [])]}
 
     # --- Ablauf ---------------------------------------------------------------------------
@@ -945,7 +955,7 @@ class VerhaltenTab(QWidget):
         self.editor.geaendert()
 
     def pruefen(self) -> None:
-        self.pruefung = katalog.pruefen(self.verhalten, self.animationen())
+        self.pruefung = katalog.pruefen(self.verhalten, self.animationen(), self.editor.projekt.innen_varianten())
         fehler, warnungen = self.pruefung
         sonder = self.sonderlogik()
         if sonder is None:
