@@ -341,6 +341,10 @@ def bauen(quelle: Path) -> Path:
     zubehoer_plan = json.loads((quelle / "zubehoer.json").read_text(encoding="utf-8")) \
         if (quelle / "zubehoer.json").exists() else {}
     zubehoer_info = zubehoer_vorbereiten(quelle, zubehoer_plan, ziel)
+    # Outfits: Zubehör, das gemeinsam an- und ausgezogen wird (outfits.json)
+    outfits = json.loads((quelle / "outfits.json").read_text(encoding="utf-8")) \
+        if (quelle / "outfits.json").exists() else {"aktiv": None, "outfits": {}}
+    im_outfit = set(outfits.get("outfits", {}).get(outfits.get("aktiv") or "", []))
 
     # 4) Animationen
     animationen = {}
@@ -420,7 +424,10 @@ def bauen(quelle: Path) -> Path:
         "portraet": portraet,
         "animationen": animationen,
         "toene": toene,
-        "zubehoer": {teil: {"bild": info["bild"], "immer": bool(zubehoer_plan[teil].get("immer")),
+        "outfits": outfits.get("outfits", {}),
+        "outfit": outfits.get("aktiv"),
+        "zubehoer": {teil: {"bild": info["bild"],
+                            "immer": bool(zubehoer_plan[teil].get("immer")) or teil in im_outfit,
                             "gruppe": zubehoer_plan[teil].get("gruppe", teil)}
                      for teil, info in zubehoer_info.items()},
     }

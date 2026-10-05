@@ -108,6 +108,8 @@ class Projekt:
         self.bauplan = json.loads((self.ordner / "bauplan.json").read_text(encoding="utf-8"))
         z = self.ordner / "zubehoer.json"
         self.zubehoer = json.loads(z.read_text(encoding="utf-8")) if z.exists() else {}
+        o = self.ordner / "outfits.json"
+        self.outfits = json.loads(o.read_text(encoding="utf-8")) if o.exists() else {"aktiv": None, "outfits": {}}
         self.vorschau_laden()
 
     def vorschau_laden(self) -> None:
@@ -120,6 +122,10 @@ class Projekt:
 
     def bauplan_speichern(self) -> None:
         (self.ordner / "bauplan.json").write_text(json.dumps(self.bauplan, indent=2, ensure_ascii=False) + "\n",
+                                                  encoding="utf-8")
+
+    def outfits_speichern(self) -> None:
+        (self.ordner / "outfits.json").write_text(json.dumps(self.outfits, indent=2, ensure_ascii=False) + "\n",
                                                   encoding="utf-8")
 
     def zubehoer_speichern(self) -> None:
@@ -771,10 +777,10 @@ class ZubehoerTab(QWidget):
         self.sitz.currentIndexChanged.connect(self._eigenschaften)
         form.addRow("Standard-Sitz", self.sitz)
         self.gruppe = QLineEdit()
-        self.gruppe.setToolTip("Aus einer Gruppe trägt er immer nur eins (z. B. „hut“)")
+        self.gruppe.setToolTip("Von allem auf demselben Platz trägt er nur eins (z. B. „hut“, „auge“, „hand“)")
         self.gruppe.editingFinished.connect(self._eigenschaften)
-        form.addRow("Gruppe", self.gruppe)
-        self.immer = QCheckBox("trägt er immer")
+        form.addRow("Platz", self.gruppe)
+        self.immer = QCheckBox("trägt er immer (einzeln)")
         self.immer.setToolTip("Dauerhaft auf (z. B. sein Hut). Kopfhörer kommen automatisch bei Musik.")
         self.immer.toggled.connect(self._eigenschaften)
         form.addRow("", self.immer)
@@ -787,6 +793,31 @@ class ZubehoerTab(QWidget):
         kb.addWidget(bild_neu)
         kb.addWidget(bild_auf)
         ll.addLayout(kb)
+
+        # Outfits: mehrere Teile gemeinsam an/aus
+        trenner = QFrame()
+        trenner.setFrameShape(QFrame.Shape.HLine)
+        ll.addWidget(trenner)
+        ll.addWidget(QLabel("Outfits (zusammen an- und ausziehen)"))
+        oz = QHBoxLayout()
+        self.outfit_wahl = QComboBox()
+        self.outfit_wahl.currentIndexChanged.connect(lambda _: self.outfit_anzeigen())
+        oz.addWidget(self.outfit_wahl, 1)
+        o_neu = QPushButton("Neu …")
+        o_neu.clicked.connect(self._outfit_neu)
+        o_weg = QPushButton("Löschen")
+        o_weg.clicked.connect(self._outfit_loeschen)
+        oz.addWidget(o_neu)
+        oz.addWidget(o_weg)
+        ll.addLayout(oz)
+        self.outfit_teile = QListWidget()
+        self.outfit_teile.setMaximumHeight(120)
+        self.outfit_teile.itemChanged.connect(self._outfit_teil)
+        ll.addWidget(self.outfit_teile)
+        self.outfit_an = QPushButton()
+        self.outfit_an.setObjectName("haupt")
+        self.outfit_an.clicked.connect(self._outfit_umschalten)
+        ll.addWidget(self.outfit_an)
         split.addWidget(links)
 
         # Mitte: Posen
@@ -865,6 +896,7 @@ class ZubehoerTab(QWidget):
         treffer = self.teile.findItems(teil or "", Qt.MatchFlag.MatchExactly)
         self.teile.setCurrentItem(treffer[0] if treffer else self.teile.item(0))
         self.teile.blockSignals(False)
+        self.outfits_aufbauen()
         self.posen.blockSignals(True)
         self.posen.clear()
         for s in sorted(pr.posen(), key=lambda k: not pr.benutzt(k)):
@@ -1011,6 +1043,81 @@ class ZubehoerTab(QWidget):
                     w["immer"] = False
         self.editor.projekt.zubehoer_speichern()
         self.editor.geaendert()
+
+    # --- Outfits -----------------------------------------------------------------
+    def outfits_aufbauen(self) -> None:
+        o = self.editor.projekt.outfits
+        alt = self.outfit_wahl.currentText() or o.get("aktiv") or ""
+        self.outfit_wahl.blockSignals(True)
+        self.outfit_wahl.clear()
+        for name in o.get("outfits", {}):
+            self.outfit_wahl.addItem(name)
+        i = self.outfit_wahl.findText(alt)
+        self.outfit_wahl.setCurrentIndex(i if i >= 0 else 0)
+        self.outfit_wahl.blockSignals(False)
+        self.outfit_anzeigen()
+
+    def outfit_anzeigen(self) -> None:
+        o = self.editor.projekt.outfits
+        name = self.outfit_wahl.currentText()
+        teile = set(o.get("outfits", {}).get(name, []))
+        self.outfit_teile.blockSignals(True)
+        self.outfit_teile.clear()
+        for t in self.editor.projekt.zubehoer:
+            it = QListWidgetItem(t)
+            it.setFlags(it.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            it.setCheckState(Qt.CheckState.Checked if t in teile else Qt.CheckState.Unchecked)
+            self.outfit_teile.addItem(it)
+        self.outfit_teile.blockSignals(False)
+        self.outfit_teile.setEnabled(bool(name))
+        an = bool(name) and o.get("aktiv") == name
+        self.outfit_an.setEnabled(bool(name))
+        self.outfit_an.setText(f"„{name}“ ausziehen" if an else (f"„{name}“ anziehen" if name else "kein Outfit"))
+
+    def _outfit_teil(self, it: QListWidgetItem) -> None:
+        o = self.editor.projekt.outfits
+        name = self.outfit_wahl.currentText()
+        if not name:
+            return
+        teile = [self.outfit_teile.item(i).text() for i in range(self.outfit_teile.count())
+                 if self.outfit_teile.item(i).checkState() == Qt.CheckState.Checked]
+        o.setdefault("outfits", {})[name] = teile
+        self.editor.projekt.outfits_speichern()
+        self.editor.geaendert()
+
+    def _outfit_umschalten(self) -> None:
+        o = self.editor.projekt.outfits
+        name = self.outfit_wahl.currentText()
+        o["aktiv"] = None if o.get("aktiv") == name else name
+        self.editor.projekt.outfits_speichern()
+        self.editor.geaendert()
+        self.outfit_anzeigen()
+        self.editor.meldung(f"Outfit „{name}“ " + ("angezogen." if o["aktiv"] else "ausgezogen.")
+                            + " Nach dem Bau „Kobold neu starten“.")
+
+    def _outfit_neu(self) -> None:
+        name, ok = QInputDialog.getText(self, "Neues Outfit", "Name (z. B. gentleman, pirat, winter):")
+        name = "".join(c for c in name.strip().lower() if c.isalnum() or c in "_-")
+        if not ok or not name:
+            return
+        o = self.editor.projekt.outfits
+        o.setdefault("outfits", {}).setdefault(name, [])
+        self.editor.projekt.outfits_speichern()
+        self.outfits_aufbauen()
+        self.outfit_wahl.setCurrentText(name)
+
+    def _outfit_loeschen(self) -> None:
+        name = self.outfit_wahl.currentText()
+        o = self.editor.projekt.outfits
+        if not name or QMessageBox.question(self, "Löschen", f"Outfit „{name}“ löschen?") \
+                != QMessageBox.StandardButton.Yes:
+            return
+        o.get("outfits", {}).pop(name, None)
+        if o.get("aktiv") == name:
+            o["aktiv"] = None
+        self.editor.projekt.outfits_speichern()
+        self.editor.geaendert()
+        self.outfits_aufbauen()
 
     def _teil_datei(self) -> Path | None:
         t = self.teil

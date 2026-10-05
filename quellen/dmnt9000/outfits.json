@@ -1,0 +1,10 @@
+{
+  "aktiv": "gentleman",
+  "outfits": {
+    "gentleman": [
+      "zylinder",
+      "monokel",
+      "spazierstock"
+    ]
+  }
+}

@@ -876,8 +876,8 @@
         "monokel": [
           [
             0.0,
-            -95.0,
-            28.6,
+            -93.4,
+            33.6,
             0.0,
             0,
             0
@@ -1892,6 +1892,14 @@
     "landen": "toene/landen.wav",
     "huepfen": "toene/huepfen.wav"
   },
+  "outfits": {
+    "gentleman": [
+      "zylinder",
+      "monokel",
+      "spazierstock"
+    ]
+  },
+  "outfit": "gentleman",
   "zubehoer": {
     "kopfhoerer": {
       "bild": "zubehoer/kopfhoerer.png",
@@ -1900,7 +1908,7 @@
     },
     "zylinder": {
       "bild": "zubehoer/zylinder.png",
-      "immer": false,
+      "immer": true,
       "gruppe": "hut"
     },
     "monokel": {

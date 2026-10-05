@@ -18,14 +18,23 @@
     "datei": "zubehoer/monokel.png",
     "sitz": "am_auge",
     "gruppe": "auge",
-    "immer": true,
-    "posen": {}
+    "immer": false,
+    "posen": {
+      "daumen:0": {
+        "aus": false,
+        "breite": 33.6,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": 0.0,
+        "y": -93.4
+      }
+    }
   },
   "spazierstock": {
     "datei": "zubehoer/spazierstock.png",
     "sitz": "in_hand",
     "gruppe": "hand",
-    "immer": true,
+    "immer": false,
     "posen": {
       "sprung:0": {
         "aus": true
