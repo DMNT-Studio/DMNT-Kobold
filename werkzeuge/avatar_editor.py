@@ -28,12 +28,14 @@ import sys
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QFileSystemWatcher, QPointF, QProcess, QRectF, QSize, Qt, QTimer, Signal
+from PySide6.QtCore import (QEvent, QFileSystemWatcher, QObject, QPointF, QProcess, QRectF, QSize, Qt, QTimer,
+                            Signal)
 from PySide6.QtGui import QAction, QColor, QIcon, QPainter, QPen, QPixmap
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog, QFormLayout,
-                               QFrame, QGridLayout, QHBoxLayout, QInputDialog, QLabel, QLineEdit, QListWidget,
-                               QListWidgetItem, QMainWindow, QMessageBox, QPlainTextEdit, QPushButton,
-                               QScrollArea, QSpinBox, QSplitter, QTabWidget, QToolBar, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplication, QCheckBox, QComboBox,
+                               QDoubleSpinBox, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout,
+                               QInputDialog, QLabel, QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
+                               QMessageBox, QPlainTextEdit, QPushButton, QScrollArea, QSlider, QSpinBox, QSplitter,
+                               QTabWidget, QToolBar, QVBoxLayout, QWidget)
 
 WURZEL = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WURZEL / "src"))
@@ -1686,10 +1688,28 @@ def helles_design(app: QApplication) -> None:
         pass
 
 
+class KeinMausrad(QObject):
+    """Mausrad verstellt keine Auswahllisten, Zahlenfelder und Regler – sonst ändert man beim
+    Scrollen durch die Seite aus Versehen Werte. Das Rad scrollt stattdessen die Seite;
+    verstellen geht nur per Klick oder Tippen."""
+
+    def eventFilter(self, obj, event):  # noqa: N802 (Qt-API)
+        if event.type() == QEvent.Type.Wheel and isinstance(obj, (QComboBox, QAbstractSpinBox, QSlider)):
+            w = obj.parentWidget()
+            while w is not None and not isinstance(w, QAbstractScrollArea):
+                w = w.parentWidget()
+            if w is not None:
+                QApplication.sendEvent(w.viewport(), event)
+            return True
+        return super().eventFilter(obj, event)
+
+
 def main() -> int:
     app = QApplication(sys.argv)
     app.setApplicationName("DMNT Avatar-Editor")
     helles_design(app)
+    kein_mausrad = KeinMausrad(app)
+    app.installEventFilter(kein_mausrad)
     from PySide6.QtCore import QLockFile
 
     (WURZEL / "build").mkdir(exist_ok=True)
