@@ -55,8 +55,59 @@
         "hinten": false,
         "hoehe": 100.0,
         "winkel": 9.0,
-        "x": -10.7,
-        "y": -129.6
+        "x": -11.0,
+        "y": -128.0
+      },
+      "gehen4:0": {
+        "aus": false,
+        "breite": 37.7,
+        "hinten": false,
+        "hoehe": 100.0,
+        "winkel": 15.0,
+        "x": 3.1,
+        "y": -116.4
+      },
+      "gehen4:1": {
+        "aus": false,
+        "breite": 34.9,
+        "hinten": false,
+        "winkel": 15.0,
+        "x": 2.5,
+        "y": -115.5
+      },
+      "gehen4:2": {
+        "aus": false,
+        "breite": 36.9,
+        "hinten": false,
+        "hoehe": 112.5,
+        "winkel": 15.0,
+        "x": 2.6,
+        "y": -117.0
+      },
+      "gehen4:3": {
+        "aus": false,
+        "breite": 34.8,
+        "hinten": false,
+        "hoehe": 112.5,
+        "winkel": 15.0,
+        "x": 3.2,
+        "y": -110.5
+      },
+      "sprung:0": {
+        "aus": false,
+        "breite": 50.2,
+        "hinten": false,
+        "winkel": -9.0,
+        "x": -5.5,
+        "y": -114.5
+      },
+      "fallen:0": {
+        "aus": false,
+        "breite": 57.1,
+        "hinten": false,
+        "winkel": 21.0,
+        "x": 18.6,
+        "y": -121.4
       }
     }
   },

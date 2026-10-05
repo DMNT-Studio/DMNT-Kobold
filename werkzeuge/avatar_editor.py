@@ -97,6 +97,33 @@ def pose_name(schluessel: str) -> str:
 
 # --- Datenmodell -----------------------------------------------------------------
 
+VERLAUF_MAX = 300          # so viele alte Fassungen je JSON-Datei bleiben in _alt/verlauf/
+_FEHLT = object()
+
+
+def drei_wege(basis, mein, platte):
+    """Dreiwege-Zusammenführung für JSON-Daten: Was ich seit ``basis`` geändert habe,
+    kommt auf den Stand von der Platte – fremde Änderungen (anderer Editor, Claude)
+    bleiben erhalten. Listen und Werte gelten als Ganzes."""
+    if not (isinstance(basis, dict) and isinstance(mein, dict) and isinstance(platte, dict)):
+        return platte if mein == basis else mein
+    ergebnis = dict(platte)
+    for k in set(basis) | set(mein):
+        b = basis.get(k, _FEHLT)
+        if k not in mein:                                  # von mir gelöscht
+            if k in ergebnis and b is not _FEHLT and ergebnis[k] == b:
+                del ergebnis[k]
+            continue
+        m = mein[k]
+        if b is not _FEHLT and m == b:                     # von mir nicht angefasst
+            continue
+        if k in ergebnis and b is not _FEHLT:
+            ergebnis[k] = drei_wege(b, m, ergebnis[k])
+        else:
+            ergebnis[k] = m
+    return ergebnis
+
+
 class Projekt:
     """Quellen eines Avatars + die Vorschau des letzten Baus."""
 
@@ -104,13 +131,70 @@ class Projekt:
         self.ordner = ordner
         self.laden()
 
+    DATEIEN = {"bauplan": "bauplan.json", "zubehoer": "zubehoer.json", "outfits": "outfits.json"}
+    LEER = {"bauplan": {}, "zubehoer": {}, "outfits": {"aktiv": None, "outfits": {}}}
+
     def laden(self) -> None:
-        self.bauplan = json.loads((self.ordner / "bauplan.json").read_text(encoding="utf-8"))
-        z = self.ordner / "zubehoer.json"
-        self.zubehoer = json.loads(z.read_text(encoding="utf-8")) if z.exists() else {}
-        o = self.ordner / "outfits.json"
-        self.outfits = json.loads(o.read_text(encoding="utf-8")) if o.exists() else {"aktiv": None, "outfits": {}}
+        self._basis: dict[str, dict] = {}
+        self._geschrieben: dict[str, str] = {}
+        for attr in self.DATEIEN:
+            wert = self._platte(attr)
+            setattr(self, attr, wert)
+            self._basis[attr] = copy.deepcopy(wert)
         self.vorschau_laden()
+
+    def _platte(self, attr: str) -> dict:
+        pfad = self.ordner / self.DATEIEN[attr]
+        if not pfad.exists():
+            return copy.deepcopy(self.LEER[attr])
+        return json.loads(pfad.read_text(encoding="utf-8"))
+
+    def _speichern(self, attr: str) -> None:
+        """Sicher speichern: alte Fassung in den Verlauf, fremde Änderungen zusammenführen,
+        atomar schreiben. So geht nie etwas verloren – auch nicht bei zwei Editoren."""
+        pfad = self.ordner / self.DATEIEN[attr]
+        platte = self._platte(attr)
+        mein = getattr(self, attr)
+        neu = mein if platte == self._basis.get(attr) else drei_wege(self._basis.get(attr, {}), mein, platte)
+        text = json.dumps(neu, indent=2, ensure_ascii=False) + "\n"
+        if pfad.exists():
+            alt_text = pfad.read_text(encoding="utf-8")
+            if alt_text == text:
+                self._basis[attr] = copy.deepcopy(neu)
+                setattr(self, attr, neu)
+                return
+            verlauf = self.ordner / "_alt" / "verlauf"
+            verlauf.mkdir(parents=True, exist_ok=True)
+            (verlauf / f"{pfad.stem}_{time.strftime('%Y%m%d_%H%M%S')}_{int(time.time() * 1000) % 1000:03d}.json"
+             ).write_text(alt_text, encoding="utf-8")
+            alle = sorted(verlauf.glob(f"{pfad.stem}_*.json"))
+            for weg in alle[:-VERLAUF_MAX]:
+                weg.unlink(missing_ok=True)
+        tmp = pfad.with_suffix(".json.tmp")
+        tmp.write_text(text, encoding="utf-8")
+        os.replace(tmp, pfad)
+        self._geschrieben[attr] = text
+        self._basis[attr] = copy.deepcopy(neu)
+        setattr(self, attr, neu)
+
+    def von_aussen_geaendert(self, attr: str) -> bool:
+        """Datei wurde extern geändert? Dann übernehmen (meine Änderungen sind immer
+        schon gespeichert). Liefert True, wenn sich etwas geändert hat."""
+        pfad = self.ordner / self.DATEIEN[attr]
+        if not pfad.exists():
+            return False
+        text = pfad.read_text(encoding="utf-8")
+        if text == self._geschrieben.get(attr):
+            return False
+        platte = json.loads(text)
+        if platte == getattr(self, attr):
+            return False
+        neu = drei_wege(self._basis.get(attr, {}), getattr(self, attr), platte)
+        setattr(self, attr, neu)
+        self._basis[attr] = copy.deepcopy(platte)
+        if neu != platte:
+            self._speichern(attr)
+        return True
 
     def vorschau_laden(self) -> None:
         p = VORSCHAU / self.id / "posen.json"
@@ -121,16 +205,13 @@ class Projekt:
         return self.bauplan["id"]
 
     def bauplan_speichern(self) -> None:
-        (self.ordner / "bauplan.json").write_text(json.dumps(self.bauplan, indent=2, ensure_ascii=False) + "\n",
-                                                  encoding="utf-8")
+        self._speichern("bauplan")
 
     def outfits_speichern(self) -> None:
-        (self.ordner / "outfits.json").write_text(json.dumps(self.outfits, indent=2, ensure_ascii=False) + "\n",
-                                                  encoding="utf-8")
+        self._speichern("outfits")
 
     def zubehoer_speichern(self) -> None:
-        (self.ordner / "zubehoer.json").write_text(json.dumps(self.zubehoer, indent=2, ensure_ascii=False) + "\n",
-                                                   encoding="utf-8")
+        self._speichern("zubehoer")
 
     # Posen
     def posen(self) -> list[str]:
@@ -1303,12 +1384,30 @@ class Editor(QMainWindow):
         dateien = {str(self.projekt.ordner / q["datei"]) for q in self.projekt.bauplan["quellen"].values()}
         dateien |= {str((self.projekt.ordner / z["datei"]).resolve()) for z in self.projekt.zubehoer.values()
                     if z.get("datei")}
+        dateien |= {str(self.projekt.ordner / d) for d in Projekt.DATEIEN.values()}
         self._waechter.addPaths([d for d in dateien if Path(d).exists()])
 
     def _datei_geaendert(self, pfad: str) -> None:
-        self.meldung(f"Geändert: {Path(pfad).name}")
         QTimer.singleShot(300, self._beobachten)      # manche Programme ersetzen die Datei
+        name = Path(pfad).name
+        attr = next((a for a, d in Projekt.DATEIEN.items() if d == name), None)
+        if attr is not None:
+            QTimer.singleShot(250, lambda: self._json_von_aussen(attr))
+            return
+        self.meldung(f"Geändert: {name}")
         self.geaendert()
+
+    def _json_von_aussen(self, attr: str) -> None:
+        try:
+            geaendert = self.projekt.von_aussen_geaendert(attr)
+        except (OSError, ValueError):
+            return                                   # Datei wird gerade geschrieben – nächstes Signal abwarten
+        if geaendert:
+            self.meldung(f"{Projekt.DATEIEN[attr]} wurde außerhalb geändert – übernommen.")
+            self.bilder.aufbauen()
+            self.animationen.aufbauen()
+            self.zubehoer.aufbauen()
+            self.geaendert()
 
     def _avatar_wechseln(self) -> None:
         self.projekt = Projekt(self.wahl.currentData())
@@ -1420,6 +1519,14 @@ def main() -> int:
     app = QApplication(sys.argv)
     app.setApplicationName("DMNT Avatar-Editor")
     helles_design(app)
+    from PySide6.QtCore import QLockFile
+
+    (WURZEL / "build").mkdir(exist_ok=True)
+    sperre = QLockFile(str(WURZEL / "build" / "avatar_editor.lock"))
+    sperre.setStaleLockTime(0)
+    if not sperre.tryLock(100):                 # zwei Editoren würden sich gegenseitig überschreiben
+        QMessageBox.information(None, "Avatar-Editor", "Der Avatar-Editor ist schon offen.")
+        return 0
     e = Editor()
     if "--tab" in sys.argv:              # z. B. --tab 2 öffnet direkt „Zubehör“
         e.tabs.setCurrentIndex(int(sys.argv[sys.argv.index("--tab") + 1]))
