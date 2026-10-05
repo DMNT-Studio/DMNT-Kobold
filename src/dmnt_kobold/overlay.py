@@ -38,7 +38,7 @@ from .bus import EventBus
 from .menue import Schalter, baue_menue
 from .monitore import Monitor, lese_monitore, monitor_bei, monitor_unter_fuss
 from .motor import Ausgabe, Verhaltensmotor
-from .physik import FAELLT, GEDREHT, GELANDET, GERETTET, GEZOGEN, STEHT, Koerper, nachhupf
+from .physik import FAELLT, GEDREHT, GELANDET, GERETTET, GEZOGEN, STEHT, Koerper, nachhupf, nachhupf_nach_fall
 from .sprechblase import Sprechblase
 from .toene import Toene
 
@@ -537,10 +537,11 @@ class AvatarFenster(QWidget):
     def _nachfedern(self, a: Ausgabe) -> list[str] | None:
         """Nach einer Hüpf-Landung wie ein Ball nachfedern (Wert ``nachhuepfen``).
         Startet den nächsten, kleineren Nachhüpfer → Ereignisse, sonst None = Ende.
-        Nur nach Hüpfern (nicht nach Fällen), in Ketten nur nach dem letzten Hüpfer."""
+        Nach Hüpfern und nach Fällen/Würfen (Höhe aus der Fallhöhe, Schwung seitwärts läuft
+        gebremst weiter); in Ketten nur nach dem letzten Hüpfer."""
         k = self.koerper
         faktor = float(self.werte["nachhuepfen"])
-        if faktor <= 0 or self._lande_art not in ("hupf", "nachhupf") or k.zustand != STEHT \
+        if faktor <= 0 or self._lande_art not in ("hupf", "nachhupf", "fall") or k.zustand != STEHT \
                 or self._gedrueckt or self._menue_offen:
             return None
         if self._freude is not None and self._freude["rest"] > 0:      # Kette geht weiter
@@ -548,17 +549,26 @@ class AvatarFenster(QWidget):
         ziel_x = self._ziel_x(a.ziel) if a.ziel is not None else None
         if self._freude is None and ziel_x is not None and abs(ziel_x - k.x) > 4:
             return None
-        schon = self._nach["stufe"] if self._nach is not None else 0
-        hoehe, weite = self._hupf_letzt
-        naechster = nachhupf(hoehe, weite, faktor, schon)
-        if naechster is None:
-            return None
-        h, w = naechster
+        if self._lande_art == "fall":
+            erster = nachhupf_nach_fall(k.landung[1], k.lande_vx, faktor)
+            if erster is None:
+                return None
+            h, w, richtung = erster
+            if richtung:
+                k.richtung = richtung
+            schon, h0 = 0, h / faktor
+        else:
+            schon = self._nach["stufe"] if self._nach is not None else 0
+            hoehe, weite = self._hupf_letzt
+            naechster = nachhupf(hoehe, weite, faktor, schon)
+            if naechster is None:
+                return None
+            h, w = naechster
+            h0 = self._nach["h0"] if self._nach is not None else hoehe
         if a.ziel is not None:            # am Ziel: senkrecht nachfedern, nicht drüber hinaus
             w = 0.0
         w, ereignisse = k.hupf_weite(w, self.monitore, self.schalter.monitor_bleiben)
         k.hupf_ab(w, h)
-        h0 = self._nach["h0"] if self._nach is not None else hoehe
         self._hupf_letzt = (h, w)
         self._nach = {"h0": h0, "verh": h / h0 if h0 > 0 else 0.0, "stufe": schon + 1}
         self._phase, self._phase_t = "absprung", 0.0

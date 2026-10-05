@@ -289,8 +289,9 @@ WERTE: tuple[WertDef, ...] = (
     WertDef("sprunghoehe_px", "So hoch hüpft er.", "px", 26, 4, 200, "Hüpfen"),
     WertDef("hupf_pause_min_s", "Pause zwischen zwei Hüpfern: mindestens …", "s", 0.8, 0, 10, "Hüpfen"),
     WertDef("hupf_pause_max_s", "… höchstens.", "s", 1.6, 0, 10, "Hüpfen"),
-    WertDef("nachhuepfen", "Nachfedern nach einer Hüpf-Landung wie ein Ball: Jeder Nachhüpfer ist so viel "
-            "mal so hoch wie der vorige (höchstens 4, Ende unter 3 px). 0 = aus.", "", 0.0, 0.0, 0.8, "Hüpfen"),
+    WertDef("nachhuepfen", "Nachfedern nach einer Landung (Hüpfer, Fall, Wurf) wie ein Ball: Jeder Nachhüpfer "
+            "ist so viel mal so hoch wie der vorige bzw. wie die Fallhöhe (höchstens 150 px und 8 Nachhüpfer, "
+            "Ende unter 3 px). 0 = aus.", "", 0.0, 0.0, 0.8, "Hüpfen"),
     # Motor
     WertDef("wunsch_verfaellt_s", "Nicht begonnene Wünsche verfallen nach dieser Zeit (keine veralteten "
             "Reaktionen).", "s", 10.0, 1, 120, "Motor"),

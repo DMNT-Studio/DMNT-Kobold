@@ -171,3 +171,54 @@ def test_kleine_nachhupfer_ohne_spritzer(fenster):
     assert f._partikel == []
     f._moment("landen", staerke=0.5)
     assert len(f._partikel) == 3
+
+
+# --- Nachfedern nach Fall und Wurf ------------------------------------------------------------
+
+def test_fall_hoehe_und_deckel():
+    from dmnt_kobold.physik import NACHHUPF_MAX_PX, nachhupf_nach_fall
+
+    h, w, r = nachhupf_nach_fall(200, 0.0, 0.45)
+    assert h == pytest.approx(90) and w == 0.0 and r == 0                  # senkrecht
+    assert nachhupf_nach_fall(1000, 0.0, 0.8)[0] == NACHHUPF_MAX_PX        # tiefer Wurf: gedeckelt
+    assert nachhupf_nach_fall(5, 0.0, 0.45) is None                         # zu klein
+    assert nachhupf_nach_fall(200, 0.0, 0.0) is None                        # aus
+    h, w, r = nachhupf_nach_fall(200, -400.0, 0.45)
+    assert r == -1 and w == pytest.approx(400 * math.sqrt(0.45) * Koerper.flugzeit(h))
+
+
+def test_physik_merkt_seitwaertsgeschwindigkeit():
+    m = [mon("A", 0, 0, 1920, 1080, haupt=True)]
+    k = Koerper(x=800, y=700)
+    k.loslassen(300.0, 0.0)
+    for _ in range(300):
+        k.schritt(DT, m)
+        if k.zustand == STEHT:
+            break
+    assert k.landung[0] == "fall" and k.lande_vx == pytest.approx(300.0) and k.vx == 0.0
+
+
+def test_wurf_federt_nach(fenster):
+    f = fenster
+    f.werte = katalog.Werte({"nachhuepfen": 0.45, "hupf_pause_min_s": 5, "hupf_pause_max_s": 5})
+    _ruhe(f)
+    k = f.koerper
+    boden = k.y
+    k.y = boden - 300
+    k.loslassen(250.0, 0.0)
+    x0 = k.x
+    _ticks(f, 3.0)
+    arten = [l["art"] for l in f.landungen]
+    assert arten[0] == "fall" and len(arten) >= 4 and set(arten[1:]) == {"nachhupf"}
+    assert k.x > x0 and k.zustand == STEHT and k.y == boden
+
+
+def test_fall_ohne_nachfedern_bei_null(fenster):
+    f = fenster
+    f.werte = katalog.Werte({"hupf_pause_min_s": 5, "hupf_pause_max_s": 5})
+    _ruhe(f)
+    k = f.koerper
+    k.y -= 300
+    k.loslassen(0.0, 0.0)
+    _ticks(f, 2.0)
+    assert [l["art"] for l in f.landungen] == ["fall"]

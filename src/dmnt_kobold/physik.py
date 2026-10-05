@@ -28,7 +28,9 @@ HUEPFER = -520.0          # px/s, Anfangsgeschwindigkeit Hüpfer
 ABPRALL = 0.5             # Anteil der Geschwindigkeit nach Abprall
 RETTUNG_UNTER = 400.0     # px unter dem virtuellen Desktop → Rettung
 NACHHUPF_MIN_PX = 3.0     # niedrigere Nachhüpfer entfallen
-NACHHUPF_MAX = 4          # höchstens so viele Nachhüpfer nach einer Landung
+NACHHUPF_MAX = 8          # höchstens so viele Nachhüpfer nach einer Landung
+NACHHUPF_MAX_PX = 150.0   # nach einem tiefen Fall federt er höchstens so hoch zurück
+NACHHUPF_MAX_WEITE = 300.0
 
 
 def nachhupf(hoehe: float, weite: float, faktor: float, schon: int) -> tuple[float, float] | None:
@@ -37,10 +39,24 @@ def nachhupf(hoehe: float, weite: float, faktor: float, schon: int) -> tuple[flo
     kürzere Flugzeit). ``schon`` = bisherige Nachhüpfer nach dieser Landung."""
     if faktor <= 0 or schon >= NACHHUPF_MAX:
         return None
-    h = hoehe * faktor
+    h = min(hoehe * faktor, NACHHUPF_MAX_PX)
     if h < NACHHUPF_MIN_PX:
         return None
-    return h, max(0.0, weite) * math.sqrt(faktor)
+    return h, min(max(0.0, weite) * math.sqrt(faktor), NACHHUPF_MAX_WEITE)
+
+
+def nachhupf_nach_fall(fallhoehe: float, vx: float, faktor: float) -> tuple[float, float, int] | None:
+    """Erster Nachhüpfer nach einem Fall oder Wurf → (Höhe, Weite, Richtung) oder None.
+    Höhe = Fallhöhe × Faktor (gedeckelt); die Seitwärtsbewegung beim Aufprall läuft
+    gebremst (× √Faktor) weiter, Richtung 0 = senkrecht."""
+    if faktor <= 0:
+        return None
+    h = min(fallhoehe * faktor, NACHHUPF_MAX_PX)
+    if h < NACHHUPF_MIN_PX:
+        return None
+    weite = min(abs(vx) * math.sqrt(faktor) * Koerper.flugzeit(h), NACHHUPF_MAX_WEITE)
+    richtung = 0 if weite < 1.0 else (1 if vx > 0 else -1)
+    return h, weite if richtung else 0.0, richtung
 
 # Zustände
 STEHT = "steht"
@@ -67,6 +83,7 @@ class Koerper:
         self.tempo = LAUFTEMPO
         self.hupf_flug = False                     # gerade in der Luft wegen eines Hüpfers
         self.landung: tuple[str, float] = ("fall", 0.0)   # (hupf | fall, Fallhöhe) der letzten Landung
+        self.lande_vx = 0.0                        # Seitwärtsgeschwindigkeit beim Aufprall
         self._start_y: float | None = None         # Boden beim Absprung
         self._oben_y: float | None = None          # höchster Punkt im Fall/Flug
 
@@ -204,6 +221,7 @@ class Koerper:
         boden = boden_unter(monitore, self.x, y_alt)
         if boden is not None and self.y >= boden:
             self.y = boden
+            self.lande_vx = self.vx                # für das Nachfedern nach einem Wurf
             self.vx = self.vy = 0.0
             self.zustand = STEHT
             gleich = self._start_y is not None and abs(boden - self._start_y) <= TOLERANZ + 1
