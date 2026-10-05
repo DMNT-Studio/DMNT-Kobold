@@ -105,6 +105,8 @@ def main() -> int:
         app.quit()
 
     fenster = AvatarFenster(bus, motor, schalter, toene, beenden, darsteller, lauftempo)
+    for teil in (avatar.zubehoer_immer if avatar else []):     # z. B. ein Hut, den er immer trägt
+        motor.zubehoer_setzen(teil, True, "avatar")
     if schalter.nicht_stoeren:
         motor.nicht_stoeren = True
         toene.stumm = True

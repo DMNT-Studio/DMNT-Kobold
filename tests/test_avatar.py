@@ -118,3 +118,25 @@ def test_varianten(qapp):
     assert darsteller.varianten("laufen") == ["bewegen"]
     assert darsteller.varianten("gibtsnicht") == ["gibtsnicht"]
     assert "sprechen" in darsteller.varianten("sprechen")
+
+
+def test_eigenes_zubehoer_mit_platzierung(qapp):
+    from PySide6.QtGui import QImage, QPainter
+
+    from dmnt_kobold.avatar import Zustand, avatar_laden
+
+    darsteller, avatar = avatar_laden("dmnt9000")
+    assert {"kopfhoerer", "zylinder"} <= set(avatar.zubehoer_bilder)
+    a = avatar.animationen["ruhe"]
+    assert len(a.zubehoer["zylinder"]) == len(a.bilder)
+
+    def deckung(zubehoer):
+        img = QImage(darsteller.fenster_b, darsteller.fenster_h, QImage.Format.Format_ARGB32)
+        img.fill(0)
+        p = QPainter(img)
+        darsteller.zeichnen(p, Zustand(animation="ruhe", zubehoer=frozenset(zubehoer), schatten=False))
+        p.end()
+        return sum(1 for y in range(0, img.height(), 2) for x in range(0, img.width(), 2)
+                   if img.pixelColor(x, y).alpha() > 0)
+
+    assert deckung({"zylinder"}) > deckung(set())

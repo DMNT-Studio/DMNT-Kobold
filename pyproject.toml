@@ -24,7 +24,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 dmnt_kobold = ["avatare/*/*.json", "avatare/*/*.py", "avatare/*/*.txt", "avatare/*/*.png",
-               "avatare/*/*.jpg", "avatare/*/frames/*/*.png", "avatare/*/toene/*.wav",
+               "avatare/*/*.jpg", "avatare/*/frames/*/*.png", "avatare/*/toene/*.wav", "avatare/*/zubehoer/*.png",
                "zubehoer/*.png", "tricks/*/*.py", "tricks/*/*.json"]
 
 [tool.pytest.ini_options]

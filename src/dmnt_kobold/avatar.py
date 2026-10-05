@@ -152,6 +152,9 @@ class Animation:
     schleife: bool
     bilder: list[QPixmap]
     koepfe: list[tuple[float, float, float, float]]
+    # Zubehör-Platzierung je Frame: teil → [[x, y, breite, winkel, hinten, aus], ...]
+    # (x/y = Mitte relativ zum Fußpunkt, logische Pixel)
+    zubehoer: dict[str, list[list[float]]] = field(default_factory=dict)
 
     def index(self, t: float) -> int:
         n = len(self.bilder)
@@ -191,10 +194,20 @@ class Avatar:
             koepfe = [tuple(k) for k in a.get("koepfe", [])] or [(self.anker[0], 0, self.koerper["breite"], 0)]
             while len(koepfe) < len(bilder):
                 koepfe.append(koepfe[-1])
-            self.animationen[name] = Animation(float(a["fps"]), bool(a.get("schleife", True)), bilder, koepfe)
+            self.animationen[name] = Animation(float(a["fps"]), bool(a.get("schleife", True)), bilder, koepfe,
+                                               dict(a.get("zubehoer", {})))
         if "ruhe" not in self.animationen:
             raise ValueError("Pflicht-Animation 'ruhe' fehlt")
         self.persoenlichkeit_datei = ordner / "persoenlichkeit.py"
+        # Avatar-eigenes Zubehör (Bild + Platzierung je Frame, im Editor eingestellt)
+        self.zubehoer_bilder: dict[str, QPixmap] = {}
+        self.zubehoer_immer: list[str] = []
+        for teil, z in daten.get("zubehoer", {}).items():
+            pm = QPixmap(str(ordner / z["bild"]))
+            if not pm.isNull():
+                self.zubehoer_bilder[teil] = pm
+                if z.get("immer"):
+                    self.zubehoer_immer.append(teil)
 
     def animation(self, name: str) -> Animation:
         name = NAMEN.get(name, name)
@@ -249,13 +262,38 @@ class SpriteDarsteller(Darsteller):
         t.scale(z.sx * spiegeln, z.sy)
         t.translate(-self.avatar.anker[0], -self.avatar.anker[1])
         p.setTransform(t, True)
+        if zubehoer:
+            self._eigenes_zubehoer(p, a, i, {t for t in zubehoer if t in a.zubehoer
+                                             and t in self.avatar.zubehoer_bilder}, vorne=False)
         p.drawPixmap(QPointF(0, 0), pm)
         if zubehoer:
-            kx, _ky, kb, ko = a.koepfe[i]
-            _zubehoer_zeichnen(p, self._zubehoer, zubehoer, QPointF(kx, 0), kb, ko)
+            eigene = {t for t in zubehoer if t in a.zubehoer and t in self.avatar.zubehoer_bilder}
+            self._eigenes_zubehoer(p, a, i, eigene, vorne=True)
+            rest = frozenset(zubehoer - eigene)
+            if rest:
+                kx, _ky, kb, ko = a.koepfe[i]
+                _zubehoer_zeichnen(p, self._zubehoer, rest, QPointF(kx, 0), kb, ko)
         p.restore()
         if z.zzz:
             _zzz(p, QPointF(self.fuss.x() + self.breite * 0.25, RAND_OBEN - 2))
+
+    def _eigenes_zubehoer(self, p: QPainter, a: Animation, i: int, teile: set[str], vorne: bool) -> None:
+        """Zubehör mit eigener Platzierung zeichnen (im Frame-Koordinatensystem).
+        ``vorne=False`` zeichnet nur, was hinter dem Körper liegt."""
+        ax, ay = self.avatar.anker
+        for teil in sorted(teile):
+            werte = a.zubehoer[teil]
+            x, y, b, winkel, hinten, aus = (werte[min(i, len(werte) - 1)] + [0, 0, 0])[:6]
+            if aus or bool(hinten) == vorne:
+                continue
+            pm = self.avatar.zubehoer_bilder[teil]
+            h = b * pm.height() / pm.width()
+            p.save()
+            p.translate(ax + x, ay + y)
+            if winkel:
+                p.rotate(winkel)
+            p.drawPixmap(QRectF(-b / 2, -h / 2, b, h), pm, QRectF(pm.rect()))
+            p.restore()
 
     def varianten(self, animation: str) -> list[str]:
         name = NAMEN.get(animation, animation)

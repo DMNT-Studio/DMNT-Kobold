@@ -282,7 +282,8 @@ def bauen(quelle: Path) -> Path:
         skaliert[name] = []
         for p in liste:
             _, _, r = auge_finden(p)
-            skaliert[name].append(skalieren(p, faktor_pro_augenpixel / r))
+            f = plan["quellen"][name].get("faktor", 1.0)
+            skaliert[name].append(skalieren(p, faktor_pro_augenpixel / r * f))
     # Quellen mit "massstab": "kopf" – Kopfbreite wie die Referenzpose (robuster,
     # wenn die Augengroesse zwischen den Bildern schwankt)
     ref_kopf = kopf_finden(skaliert[ref_name][ref_i])[2]
@@ -320,13 +321,25 @@ def bauen(quelle: Path) -> Path:
         shutil.rmtree(ziel)
     (ziel / "frames").mkdir(parents=True)
 
+    # Kopf je Pose relativ zum Anker (logische Pixel) – Grundlage fürs Zubehör
+    kopf_rel: dict[str, tuple[float, float, float, float]] = {}
+    for (name, i), (cx, fy) in anker.items():
+        kx, ky, kb, ko = kopf(name, skaliert[name][i])
+        dx, dy = round(ax - cx), round(ay - fy)
+        kopf_rel[f"{name}:{i}"] = ((kx + dx - ax) / s, (ky + dy - ay) / s, kb / s, (ko + dy - ay) / s)
+
+    zubehoer_plan = json.loads((quelle / "zubehoer.json").read_text(encoding="utf-8")) \
+        if (quelle / "zubehoer.json").exists() else {}
+    zubehoer_info = zubehoer_vorbereiten(quelle, zubehoer_plan, ziel)
+
     # 4) Animationen
     animationen = {}
     for anim, a in plan["animationen"].items():
-        pfade, koepfe = [], []
+        pfade, koepfe, posen_schluessel = [], [], []
         (ziel / "frames" / anim).mkdir()
         for i, eintrag in enumerate(a["bilder"]):
             pose, nr, effekt = eintrag[:3]
+            posen_schluessel.append(f"{pose}:{nr}")
             p = skaliert[pose][nr]
             if len(eintrag) > 3:
                 p = HAND_VARIANTEN[eintrag[3]](p)
@@ -343,7 +356,12 @@ def bauen(quelle: Path) -> Path:
             kx, ky, kb, ko = k[0] + dx, k[1] + dy, k[2], k[3] + dy
             koepfe.append([round(kx / s, 1), round(ky / s, 1), round(kb / s, 1), round(ko / s, 1)])
         animationen[anim] = {"fps": a["fps"], "schleife": a.get("schleife", True), "bilder": pfade,
-                             "koepfe": koepfe}
+                             "koepfe": koepfe, "posen": posen_schluessel}
+        if zubehoer_info:
+            animationen[anim]["zubehoer"] = {
+                teil: [platzierung_liste(platzierung(info, zubehoer_plan[teil], schluessel, kopf_rel))
+                       for schluessel in posen_schluessel]
+                for teil, info in zubehoer_info.items()}
         print(f"  {anim}: {len(pfade)} Frame(s)")
 
     # 5) Körpermaß aus der Ruhepose (für die Physik)
@@ -392,9 +410,102 @@ def bauen(quelle: Path) -> Path:
         "portraet": portraet,
         "animationen": animationen,
         "toene": toene,
+        "zubehoer": {teil: {"bild": info["bild"], "immer": bool(zubehoer_plan[teil].get("immer")),
+                            "gruppe": zubehoer_plan[teil].get("gruppe", teil)}
+                     for teil, info in zubehoer_info.items()},
     }
     (ziel / "avatar.json").write_text(json.dumps(avatar, ensure_ascii=False, indent=2), encoding="utf-8")
+    vorschau_schreiben(plan, skaliert, anker, ax, ay, breite_px, hoehe_px, s, kopf_rel, zubehoer_plan,
+                       zubehoer_info)
     return ziel
+
+
+# --- Zubehör ------------------------------------------------------------------------
+# zubehoer.json im Quellordner:
+#   {"kopfhoerer": {"datei": "../zubehoer/kopfhoerer.png", "hintergrund": "weiss",
+#                   "sitz": "ueber_kopf", "gruppe": "ohren", "immer": false,
+#                   "posen": {"seite:0": {"x": 1.5, "y": -98, "breite": 74, "winkel": 0,
+#                                          "hinten": false, "aus": false}}}}
+# x/y = Mitte des Zubehörs relativ zum Fußpunkt (logische Pixel), breite in logischen
+# Pixeln, winkel in Grad. Posen ohne Eintrag bekommen eine Standard-Platzierung aus
+# dem Kopf (``sitz``: "ueber_kopf" wie Kopfhörer, "auf_kopf" wie ein Hut).
+
+ZUBEHOER_MAX_BREITE = 480
+
+
+def zubehoer_vorbereiten(quelle: Path, zplan: dict, ziel: Path) -> dict[str, dict]:
+    """Bilder freistellen, verkleinert in den Avatar-Ordner legen. → {teil: {bild, verhaeltnis}}"""
+    info = {}
+    for teil, z in zplan.items():
+        pfad = (quelle / z["datei"]).resolve()
+        if not pfad.exists():
+            print(f"  Zubehör {teil}: Bild fehlt ({z['datei']}) – übersprungen")
+            continue
+        bild = zuschneiden(laden(pfad, z.get("hintergrund"), z.get("toleranz")))
+        if bild.shape[1] > ZUBEHOER_MAX_BREITE:
+            bild = skalieren(bild, ZUBEHOER_MAX_BREITE / bild.shape[1])
+        (ziel / "zubehoer").mkdir(exist_ok=True)
+        rel = f"zubehoer/{teil}.png"
+        Image.fromarray(bild, "RGBA").save(ziel / rel, optimize=True)
+        info[teil] = {"bild": rel, "verhaeltnis": bild.shape[0] / bild.shape[1]}
+        print(f"  Zubehör {teil}: {len(z.get('posen', {}))} Pose(n) eingestellt")
+    return info
+
+
+def standard_platzierung(info: dict, z: dict, kopf: tuple[float, float, float, float]) -> dict:
+    kx, _ky, kb, ko = kopf
+    if z.get("sitz") == "auf_kopf":
+        b = kb * 0.72
+        h = b * info["verhaeltnis"]
+        return {"x": kx, "y": ko - h / 2 + h * 0.12, "breite": b, "winkel": 0.0, "hinten": False, "aus": False}
+    b = kb * 1.12
+    h = b * info["verhaeltnis"]
+    return {"x": kx, "y": ko - h * 0.3 + h / 2, "breite": b, "winkel": 0.0, "hinten": False, "aus": False}
+
+
+def platzierung(info: dict, z: dict, schluessel: str, kopf_rel: dict) -> dict:
+    p = standard_platzierung(info, z, kopf_rel[schluessel])
+    p.update(z.get("posen", {}).get(schluessel, {}))
+    return p
+
+
+def platzierung_liste(p: dict) -> list:
+    return [round(float(p["x"]), 1), round(float(p["y"]), 1), round(float(p["breite"]), 1),
+            round(float(p.get("winkel", 0)), 1), int(bool(p.get("hinten"))), int(bool(p.get("aus")))]
+
+
+def vorschau_schreiben(plan, skaliert, anker, ax, ay, breite_px, hoehe_px, s, kopf_rel, zplan, zinfo) -> None:
+    """Für den Avatar-Editor: jede Pose auf der gemeinsamen Leinwand + Daten (build/vorschau/<id>/)."""
+    ordner = WURZEL / "build" / "vorschau" / plan["id"]
+    if ordner.exists():
+        shutil.rmtree(ordner)
+    ordner.mkdir(parents=True)
+    benutzt: dict[str, list[str]] = {}
+    for anim, a in plan["animationen"].items():
+        for e in a["bilder"]:
+            liste = benutzt.setdefault(f"{e[0]}:{e[1]}", [])
+            liste.append(anim)
+    posen = {}
+    for (name, i), (cx, fy) in anker.items():
+        schluessel = f"{name}:{i}"
+        dx, dy = round(ax - cx), round(ay - fy)
+        leinwand = Image.new("RGBA", (breite_px, hoehe_px))
+        leinwand.alpha_composite(Image.fromarray(skaliert[name][i], "RGBA"), (dx, dy))
+        datei = f"{name}_{i}.png"
+        leinwand.save(ordner / datei)
+        posen[schluessel] = {
+            "bild": datei, "quelle": name, "nr": i, "datei": plan["quellen"][name]["datei"],
+            "bilder_in_datei": plan["quellen"][name].get("bilder", 1),
+            "kopf": [round(v, 2) for v in kopf_rel[schluessel]],
+            "benutzt": benutzt.get(schluessel, []),
+            "zubehoer_standard": {t: standard_platzierung(zinfo[t], zplan[t], kopf_rel[schluessel])
+                                  for t in zinfo},
+        }
+    daten = {"id": plan["id"], "skalierung": s, "leinwand": [breite_px / s, hoehe_px / s],
+             "anker": [ax / s, ay / s], "posen": posen,
+             "zubehoer": {t: {"bild": str((WURZEL / "src" / "dmnt_kobold" / "avatare" / plan["id"] / i["bild"])),
+                              "verhaeltnis": i["verhaeltnis"]} for t, i in zinfo.items()}}
+    (ordner / "posen.json").write_text(json.dumps(daten, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 VORLAGEN_LIESMICH = """{name} – Bildvorlagen aller Posen
