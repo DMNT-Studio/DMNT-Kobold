@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from . import katalog
-from .eigenleben import LAUFEN, SCHLAFEN, Eigenleben
+from .eigenleben import LAUFEN, RENNEN, SCHLAFEN, Eigenleben
 
 log = logging.getLogger(__name__)
 
@@ -63,6 +63,7 @@ class Ausgabe:
     zubehoer: frozenset[str] = frozenset()
     bewegung: str | None = None
     innen: str | None = None
+    rennen: bool = False                 # Eigenleben flitzt („ihre 5 Minuten“)
 
 
 class Verhaltensmotor:
@@ -189,8 +190,8 @@ class Verhaltensmotor:
             return Ausgabe(w.animation, False, el.richtung, w.ziel, blase, toene, w.id, el.blinzelt,
                            self.zubehoer, w.bewegung, w.innen)
         anim = el.zustand
-        return Ausgabe(anim, anim == LAUFEN, el.richtung, None, None, toene, None, el.blinzelt,
-                       self.zubehoer)
+        return Ausgabe(anim, anim in (LAUFEN, RENNEN), el.richtung, None, None, toene, None, el.blinzelt,
+                       self.zubehoer, rennen=anim == RENNEN)
 
     def verdraengt_eigenleben(self) -> bool:
         return self._aktiv is not None

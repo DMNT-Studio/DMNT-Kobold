@@ -336,6 +336,11 @@ class AvatarFenster(QWidget):
             elif frei and a.laufen and not self.schalter.nicht_stoeren:
                 laufen = True
                 k.richtung = a.richtung
+                if a.rennen:                       # „ihre 5 Minuten“
+                    k.tempo = self.werte["renntempo"]
+                    if self.motor.eigenleben.sprung_holen():
+                        self._rennsprung()
+                        laufen = False
             ereignisse = k.schritt(dt, self.monitore, laufen, self.schalter.monitor_bleiben)
         if GEDREHT in ereignisse:
             self.motor.eigenleben.richtung = k.richtung
@@ -354,12 +359,14 @@ class AvatarFenster(QWidget):
         # welche Animation ist sichtbar?
         if k.zustand == GEZOGEN:
             animation = "gezogen"
+        elif k.zustand == FAELLT and k.hupf_flug and not self.huepft:      # Sprung beim Flitzen
+            animation = "springen" if self._hat("springen") else self._renn_animation()
         elif k.zustand == FAELLT and not (self.huepft and k.hupf_flug):
             animation = "fallen"
         elif self._fuehrung is not None:
             animation = "schweben" if self._fuehrung["art"] == "schweben" else "springen"
         elif laufen:
-            animation = "laufen"
+            animation = self._renn_animation() if a.rennen and a.ziel is None else "laufen"
         elif self.huepft and (self._phase in HUEPF_PHASEN or k.zustand == FAELLT):
             animation = a.animation if self._freude is not None else (self._phase or "fallen")
         elif self.huepft and self._phase == "pause" and self._freude is None and self._will_huepfen(a):
@@ -375,7 +382,7 @@ class AvatarFenster(QWidget):
             if animation not in ("landen", "laufen"):       # landen kommt mit der Landung
                 self._moment(animation, ton=animation != "sprechen")
         else:
-            self._animation_t += dt
+            self._animation_t += dt * (self._renn_faktor() if animation == "laufen" and a.rennen else 1.0)
 
         # Drehen: freuen_huepfend (eine Drehung über drei Hüpfer) oder Animation „drehen“
         if self._freude is not None:
@@ -421,6 +428,27 @@ class AvatarFenster(QWidget):
             soll = TAKT_RUHE_MS
         if self._takt.interval() != soll:
             self._takt.setInterval(soll)
+
+    # --- Rennen („ihre 5 Minuten“) --------------------------------------------
+    def _hat(self, name: str) -> bool:
+        """Hat der Avatar eigene Frames für diese Animation?"""
+        avatar = getattr(self.darsteller, "avatar", None)
+        return avatar is not None and any(n == name or n.startswith(name + "~") for n in avatar.animationen)
+
+    def _renn_animation(self) -> str:
+        return "rennen" if self._hat("rennen") else "laufen"
+
+    def _renn_faktor(self) -> float:
+        """Ohne eigene Renn-Frames laufen die Lauf-Frames entsprechend schneller."""
+        return max(1.0, min(4.0, self.werte["renntempo"] / max(self.lauftempo, 1.0)))
+
+    def _rennsprung(self) -> None:
+        """Mitten im Flitzen hochspringen – im Bogen, mit vollem Tempo weiter."""
+        k = self.koerper
+        h = self.werte["rennen_sprunghoehe_px"]
+        k.hupf_ab(k.tempo * Koerper.flugzeit(h), h)
+        if not self._hat("springen"):             # sonst kommt der Moment mit der Animation
+            self._moment("springen")
 
     # --- Hüpfen ----------------------------------------------------------------
     def _will_huepfen(self, a: Ausgabe) -> bool:
@@ -843,7 +871,7 @@ class AvatarFenster(QWidget):
         blinzelt = a.blinzelt if a else False
         sx, sy, augen, mund, zzz = ausdruck(self._animation, self._animation_t, blinzelt)
         sprite = self.darsteller.animiert_sich_selbst
-        if sprite and self._animation == "laufen":
+        if sprite and self._animation in ("laufen", "rennen"):
             sx, sy = 1.0, 1.0                  # die Frames laufen selbst
         if self.huepft and self._phase in HUEPF_PHASEN and self._nach is not None:
             # Nachhüpfer: schwächer gestaucht/gestreckt; Absprung direkt aus dem Stand ins Strecken

@@ -284,6 +284,17 @@ WERTE: tuple[WertDef, ...] = (
     # Bewegung
     WertDef("laufgeschwindigkeit", "Tempo beim Herumlaufen.", "px/s", 60, 10, 300, "Bewegung"),
     WertDef("zieltempo", "Tempo, wenn er zu einem Ziel geht (gehen_zu).", "px/s", 140, 20, 600, "Bewegung"),
+    # Rennen – „ihre 5 Minuten“: aus dem Nichts losflitzen, Haken schlagen, springen
+    WertDef("chance_rennen", "Wahrscheinlichkeit, nach einer Ruhephase wie aus dem Nichts loszuflitzen "
+            "(„ihre 5 Minuten“). 0 = nie. Nur bei Avataren, die gehen.", "", 0.0, 0, 0.5, "Rennen"),
+    WertDef("rennen_min_s", "Flitzen: mindestens …", "s", 3.0, 0.5, 60, "Rennen"),
+    WertDef("rennen_max_s", "… höchstens.", "s", 7.0, 0.5, 120, "Rennen"),
+    WertDef("renntempo", "Tempo beim Flitzen.", "px/s", 260, 40, 900, "Rennen"),
+    WertDef("rennen_haken_s", "Im Schnitt nach so vielen Sekunden schlägt er einen Haken "
+            "(Richtungswechsel, Zickzack).", "s", 0.9, 0.2, 10, "Rennen"),
+    WertDef("rennen_sprung_chance", "Wahrscheinlichkeit, an einem Haken hochzuspringen statt umzudrehen.",
+            "", 0.3, 0, 1, "Rennen"),
+    WertDef("rennen_sprunghoehe_px", "So hoch springt er beim Flitzen.", "px", 45, 5, 300, "Rennen"),
     # Hüpfen (nur Avatare mit bewegung.art = huepfen)
     WertDef("sprungweite_px", "So weit kommt er mit einem Hüpfer.", "px", 36, 0, 300, "Hüpfen"),
     WertDef("sprunghoehe_px", "So hoch hüpft er.", "px", 26, 4, 200, "Hüpfen"),
@@ -302,6 +313,7 @@ KERN_ANIMATIONEN: dict[str, tuple[str, str]] = {
     "ruhe": ("Stehen ohne Anlass – Pflicht, Rückfall für alles", "Eigenleben"),
     "bewegen": ("Gehen (intern „laufen“)", "Eigenleben, gehen_zu"),
     "sitzen": ("Hinsetzen", "Eigenleben"),
+    "rennen": ("Losflitzen im Zickzack („ihre 5 Minuten“)", "Eigenleben (chance_rennen)"),
     "schlafen": ("Schlafen", "Nicht stören"),
     "gezogen": ("Am Mauszeiger hängen", "Sockel (Ziehen)"),
     "fallen": ("Fallen", "Sockel (Physik)"),
@@ -319,6 +331,7 @@ KERN_ANIMATIONEN: dict[str, tuple[str, str]] = {
 }
 #: Rückfall, wenn die Animation fehlt (sonst gilt RUECKFALL)
 KERN_RUECKFALL: dict[str, str] = {
+    "rennen": "bewegen, schneller abgespielt",
     "hocken": "ruhe, prozedural gestaucht",
     "absprung": "ruhe, prozedural gestreckt",
     "flug": "ruhe",
@@ -390,7 +403,8 @@ class Werte:
 ID_MUSTER = re.compile(r"^[a-z0-9_]+$")
 _OBEN = {"werte", "regeln", "beschreibung"}
 MIN_MAX = (("ruhe_min_s", "ruhe_max_s"), ("laufen_min_s", "laufen_max_s"), ("sitzen_min_s", "sitzen_max_s"),
-           ("blinzeln_min_s", "blinzeln_max_s"), ("hupf_pause_min_s", "hupf_pause_max_s"))
+           ("blinzeln_min_s", "blinzeln_max_s"), ("hupf_pause_min_s", "hupf_pause_max_s"),
+           ("rennen_min_s", "rennen_max_s"))
 _REGEL_SCHLUESSEL = {"id", "aktiv", "wenn", "dann", "prioritaet", "abklingzeit_s", "chance", "dauer_s",
                      "aufheben", "gruppe"}
 
