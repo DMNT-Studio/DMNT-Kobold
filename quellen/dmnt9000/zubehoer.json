@@ -13,5 +13,26 @@
     "gruppe": "hut",
     "immer": false,
     "posen": {}
+  },
+  "monokel": {
+    "datei": "zubehoer/monokel.png",
+    "sitz": "am_auge",
+    "gruppe": "auge",
+    "immer": true,
+    "posen": {}
+  },
+  "spazierstock": {
+    "datei": "zubehoer/spazierstock.png",
+    "sitz": "in_hand",
+    "gruppe": "hand",
+    "immer": true,
+    "posen": {
+      "sprung:0": {
+        "aus": true
+      },
+      "fallen:0": {
+        "aus": true
+      }
+    }
   }
 }

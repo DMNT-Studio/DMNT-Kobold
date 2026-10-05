@@ -82,6 +82,14 @@ def oeffnen(pfad: Path, bearbeiten: bool = False) -> None:
         subprocess.Popen(["xdg-open", str(pfad)])
 
 
+def frisch(pfad) -> QPixmap:
+    """Bild immer frisch von der Platte (QPixmap(pfad) nutzt Qts Bild-Cache –
+    nach einem Neubau könnte sonst das alte Bild erscheinen)."""
+    from PySide6.QtGui import QImage
+
+    return QPixmap.fromImage(QImage(str(pfad)))
+
+
 def pose_name(schluessel: str) -> str:
     q, nr = schluessel.split(":")
     return f"{q} · Bild {int(nr) + 1}"
@@ -248,7 +256,7 @@ class PoseKarte(QFrame):
         bild.setStyleSheet("background: #E9ECE8; border-radius: 10px;")
         pfad = pr.vorschau_bild(schluessel)
         if pfad and pfad.exists():
-            bild.setPixmap(QPixmap(str(pfad)).scaled(216, 200, Qt.AspectRatioMode.KeepAspectRatio,
+            bild.setPixmap(frisch(pfad).scaled(216, 200, Qt.AspectRatioMode.KeepAspectRatio,
                                                      Qt.TransformationMode.SmoothTransformation))
         else:
             bild.setText("noch nicht gebaut")
@@ -385,7 +393,7 @@ class FrameKarte(QFrame):
         bild.setStyleSheet("background: #E9ECE8; border-radius: 8px;")
         pfad = pr.vorschau_bild(f"{eintrag[0]}:{eintrag[1]}")
         if pfad and pfad.exists():
-            bild.setPixmap(QPixmap(str(pfad)).scaled(140, 130, Qt.AspectRatioMode.KeepAspectRatio,
+            bild.setPixmap(frisch(pfad).scaled(140, 130, Qt.AspectRatioMode.KeepAspectRatio,
                                                      Qt.TransformationMode.SmoothTransformation))
         lay.addWidget(bild)
         self.pose = QComboBox()
@@ -520,7 +528,7 @@ class AnimationenTab(QWidget):
         self.frames.setWidget(innen)
         # Vorschau aus den gebauten Frames
         ordner = AVATARE / self.editor.projekt.id / "frames" / n
-        self._bilder = [QPixmap(str(p)).scaled(280, 260, Qt.AspectRatioMode.KeepAspectRatio,
+        self._bilder = [frisch(p).scaled(280, 260, Qt.AspectRatioMode.KeepAspectRatio,
                                                 Qt.TransformationMode.SmoothTransformation)
                         for p in sorted(ordner.glob("*.png"))]
         self._i = 0
@@ -758,6 +766,8 @@ class ZubehoerTab(QWidget):
         self.sitz = QComboBox()
         self.sitz.addItem("über dem Kopf (wie Kopfhörer)", "ueber_kopf")
         self.sitz.addItem("auf dem Kopf (wie ein Hut)", "auf_kopf")
+        self.sitz.addItem("am Auge (wie ein Monokel)", "am_auge")
+        self.sitz.addItem("in der Hand (wie ein Stock)", "in_hand")
         self.sitz.currentIndexChanged.connect(self._eigenschaften)
         form.addRow("Standard-Sitz", self.sitz)
         self.gruppe = QLineEdit()
@@ -863,7 +873,7 @@ class ZubehoerTab(QWidget):
             it.setData(Qt.ItemDataRole.UserRole, s)
             pfad = pr.vorschau_bild(s)
             if pfad and pfad.exists():
-                it.setIcon(QIcon(str(pfad)))
+                it.setIcon(QIcon(frisch(pfad)))
             if not benutzt:
                 it.setForeground(QColor("#9AA39E"))
             self.posen.addItem(it)
@@ -887,7 +897,7 @@ class ZubehoerTab(QWidget):
     def _bild(self, teil: str) -> QPixmap | None:
         if teil not in self._bild_cache:
             pfad = self.editor.projekt.zubehoer_bild(teil)
-            self._bild_cache[teil] = QPixmap(str(pfad)) if pfad and pfad.exists() else QPixmap()
+            self._bild_cache[teil] = frisch(pfad) if pfad and pfad.exists() else QPixmap()
         pm = self._bild_cache[teil]
         return pm if not pm.isNull() else None
 
@@ -897,7 +907,7 @@ class ZubehoerTab(QWidget):
             return
         v = pr.vorschau
         pfad = pr.vorschau_bild(s)
-        pose = QPixmap(str(pfad)) if pfad and pfad.exists() else None
+        pose = frisch(pfad) if pfad and pfad.exists() else None
         p = pr.platzierung(t, s) if t else None
         andere = []
         if self.alle_zeigen.isChecked():
@@ -1028,9 +1038,14 @@ class ZubehoerTab(QWidget):
         (pr.ordner / "zubehoer").mkdir(exist_ok=True)
         ziel = pr.ordner / "zubehoer" / f"{name}.png"
         Image.open(datei).save(ziel)
-        hut = any(w in name for w in ("hut", "muetze", "mütze", "kappe", "krone", "helm"))
-        eintrag = {"datei": f"zubehoer/{name}.png", "sitz": "auf_kopf" if hut else "ueber_kopf",
-                   "gruppe": "hut" if hut else name, "immer": False, "posen": {}}
+        sitz, gruppe = "ueber_kopf", name
+        if any(w in name for w in ("hut", "muetze", "mütze", "kappe", "krone", "helm")):
+            sitz, gruppe = "auf_kopf", "hut"
+        elif any(w in name for w in ("monokel", "brille", "lupe")):
+            sitz, gruppe = "am_auge", "auge"
+        elif any(w in name for w in ("stock", "schirm", "stab", "schwert", "zepter")):
+            sitz, gruppe = "in_hand", "hand"
+        eintrag = {"datei": f"zubehoer/{name}.png", "sitz": sitz, "gruppe": gruppe, "immer": False, "posen": {}}
         hg = hintergrund_erkennen(ziel)
         if hg:
             eintrag["hintergrund"] = hg
@@ -1290,6 +1305,8 @@ def main() -> int:
     app.setApplicationName("DMNT Avatar-Editor")
     helles_design(app)
     e = Editor()
+    if "--tab" in sys.argv:              # z. B. --tab 2 öffnet direkt „Zubehör“
+        e.tabs.setCurrentIndex(int(sys.argv[sys.argv.index("--tab") + 1]))
     e.show()
     return app.exec()
 

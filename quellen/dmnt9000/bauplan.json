@@ -31,7 +31,8 @@
     "gehen4": {
       "datei": "gehen4.png",
       "bilder": 4,
-      "massstab": "kopf"
+      "massstab": "kopf",
+      "faktor": 0.88
     },
     "sprung": {
       "datei": "sprung.png",

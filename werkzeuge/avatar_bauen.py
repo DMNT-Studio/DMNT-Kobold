@@ -322,11 +322,21 @@ def bauen(quelle: Path) -> Path:
     (ziel / "frames").mkdir(parents=True)
 
     # Kopf je Pose relativ zum Anker (logische Pixel) – Grundlage fürs Zubehör
-    kopf_rel: dict[str, tuple[float, float, float, float]] = {}
+    # Merkmale je Pose relativ zum Anker (logische Pixel): Kopf, Auge, vordere Hand
+    kopf_rel: dict[str, dict] = {}
     for (name, i), (cx, fy) in anker.items():
-        kx, ky, kb, ko = kopf(name, skaliert[name][i])
+        p = skaliert[name][i]
+        kx, ky, kb, ko = kopf(name, p)
         dx, dy = round(ax - cx), round(ay - fy)
-        kopf_rel[f"{name}:{i}"] = ((kx + dx - ax) / s, (ky + dy - ay) / s, kb / s, (ko + dy - ay) / s)
+        m = {"kopf": ((kx + dx - ax) / s, (ky + dy - ay) / s, kb / s, (ko + dy - ay) / s),
+             "auge": None, "hand": None}
+        if name not in ohne_auge:
+            ex, ey, er = auge_finden(p)
+            m["auge"] = ((ex + dx - ax) / s, (ey + dy - ay) / s, er / s)
+        h = hand_finden(p)
+        if h is not None:
+            m["hand"] = ((h[0] + dx - ax) / s, (h[1] + dy - ay) / s)
+        kopf_rel[f"{name}:{i}"] = m
 
     zubehoer_plan = json.loads((quelle / "zubehoer.json").read_text(encoding="utf-8")) \
         if (quelle / "zubehoer.json").exists() else {}
@@ -452,9 +462,42 @@ def zubehoer_vorbereiten(quelle: Path, zplan: dict, ziel: Path) -> dict[str, dic
     return info
 
 
-def standard_platzierung(info: dict, z: dict, kopf: tuple[float, float, float, float]) -> dict:
-    kx, _ky, kb, ko = kopf
-    if z.get("sitz") == "auf_kopf":
+def hand_finden(rgba: np.ndarray) -> tuple[float, float] | None:
+    """Vordere Hand (Handschuh): graue Fläche im mittleren Körperband, am weitesten
+    in Blickrichtung (rechts). None, wenn nichts Passendes da ist."""
+    r, g, b = (rgba[..., i].astype(int) for i in range(3))
+    grau = ((np.abs(r - g) < 14) & (np.abs(g - b) < 14) & (r > 90) & (r < 190) & (rgba[..., 3] > 200))
+    h = rgba.shape[0]
+    grau[: int(h * 0.33)] = False
+    grau[int(h * 0.74):] = False
+    marken, n = ndimage.label(grau)
+    if not n:
+        return None
+    groessen = ndimage.sum(grau, marken, range(1, n + 1))
+    kandidaten = [i + 1 for i, g_ in enumerate(groessen) if g_ >= max(groessen) * 0.35]
+    besten = None
+    for k in kandidaten:
+        ys, xs = np.nonzero(marken == k)
+        mitte = (xs.mean(), ys.mean())
+        if besten is None or mitte[0] > besten[0]:
+            besten = mitte
+    return besten
+
+
+def standard_platzierung(info: dict, z: dict, merkmale: dict) -> dict:
+    kx, _ky, kb, ko = merkmale["kopf"]
+    sitz = z.get("sitz")
+    if sitz == "am_auge" and merkmale.get("auge"):
+        ex, ey, er = merkmale["auge"]
+        b = er * 4.4
+        return {"x": ex, "y": ey, "breite": b, "winkel": 0.0, "hinten": False, "aus": False}
+    if sitz == "in_hand":
+        hx, hy = merkmale.get("hand") or (kx + kb * 0.55, -kb * 0.9)
+        hoehe = max(20.0, -hy / 0.92)           # vom Griff bis zum Boden
+        b = hoehe / info["verhaeltnis"]
+        return {"x": hx, "y": hy - hoehe * 0.06 + hoehe / 2, "breite": b, "winkel": 0.0,
+                "hinten": True, "aus": False}
+    if sitz == "auf_kopf":
         b = kb * 0.72
         h = b * info["verhaeltnis"]
         return {"x": kx, "y": ko - h / 2 + h * 0.12, "breite": b, "winkel": 0.0, "hinten": False, "aus": False}
@@ -496,7 +539,9 @@ def vorschau_schreiben(plan, skaliert, anker, ax, ay, breite_px, hoehe_px, s, ko
         posen[schluessel] = {
             "bild": datei, "quelle": name, "nr": i, "datei": plan["quellen"][name]["datei"],
             "bilder_in_datei": plan["quellen"][name].get("bilder", 1),
-            "kopf": [round(v, 2) for v in kopf_rel[schluessel]],
+            "kopf": [round(v, 2) for v in kopf_rel[schluessel]["kopf"]],
+            "auge": [round(v, 2) for v in kopf_rel[schluessel]["auge"]] if kopf_rel[schluessel]["auge"] else None,
+            "hand": [round(v, 2) for v in kopf_rel[schluessel]["hand"]] if kopf_rel[schluessel]["hand"] else None,
             "benutzt": benutzt.get(schluessel, []),
             "zubehoer_standard": {t: standard_platzierung(zinfo[t], zplan[t], kopf_rel[schluessel])
                                   for t in zinfo},
