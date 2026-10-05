@@ -48,12 +48,12 @@ def main() -> int:
     log.info("Start DMNT-Kobold %s", __version__)
 
     # Erst nach QApplication importieren (Qt-Widgets)
+    from .avatar import avatar_laden, persoenlichkeit_laden
     from .beobachter import Beobachter
     from .bus import EventBus
     from .menue import Schalter
     from .motor import Verhaltensmotor
     from .overlay import AvatarFenster
-    from .reaktionen import Reaktionen
     from .toene import Toene
     from .tray import baue_tray
 
@@ -61,15 +61,20 @@ def main() -> int:
     schalter = Schalter()
     bus = EventBus()
     motor = Verhaltensmotor(bus)
-    toene = Toene(pfade.datenordner() / "cache" / "toene")
+    darsteller, avatar = avatar_laden()
+    toene = Toene(pfade.datenordner() / "cache" / "toene",
+                  avatar_toene=avatar.toene if avatar else None)
+    lauftempo = float(avatar.bewegung.get("tempo", 60)) if avatar else 60.0
 
     def beenden() -> None:
         log.info("Beenden über Menü")
         app.quit()
 
-    fenster = AvatarFenster(bus, motor, schalter, toene, beenden)
-    reaktionen = Reaktionen(bus, motor)  # noqa: F841 – lebt über den Bus
-    beobachter = Beobachter(bus, fenster.kopf_mitte, os.getpid(), parent=app)  # noqa: F841
+    fenster = AvatarFenster(bus, motor, schalter, toene, beenden, darsteller, lauftempo)
+    persoenlichkeit = persoenlichkeit_laden(avatar, bus, motor)  # noqa: F841 – lebt über den Bus
+    log.info("Persönlichkeit: %s", type(persoenlichkeit).__name__)
+    beobachter = Beobachter(bus, fenster.kopf_mitte, os.getpid(), parent=app,  # noqa: F841
+                            beobachtete_programme=getattr(persoenlichkeit, "BEOBACHTETE_PROGRAMME", set()))
     tray = baue_tray(schalter, fenster.zurueckholen, beenden)
     if tray is None:
         log.warning("Kein Infobereich verfügbar – Tray-Icon fehlt")

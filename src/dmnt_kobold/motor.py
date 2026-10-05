@@ -57,6 +57,7 @@ class Ausgabe:
     toene: list[str] = field(default_factory=list)
     wunsch_id: int | None = None
     blinzelt: bool = False
+    zubehoer: frozenset[str] = frozenset()
 
 
 class Verhaltensmotor:
@@ -68,6 +69,23 @@ class Verhaltensmotor:
         self._naechste_id = 1
         self._nicht_stoeren = False
         self._toene: list[str] = []
+        self._zubehoer: dict[str, set[str]] = {}   # Zubehör → Quellen, die es wollen
+
+    # --- Zubehör (bleibt an, unabhängig von Wünschen) -------------------------
+    def zubehoer_setzen(self, name: str, an: bool, quelle: str = "") -> None:
+        """Mehrere Quellen können dasselbe Zubehör wollen; es bleibt an,
+        solange mindestens eine es will."""
+        quellen = self._zubehoer.setdefault(name, set())
+        if an:
+            quellen.add(quelle)
+        else:
+            quellen.discard(quelle)
+            if not quellen:
+                del self._zubehoer[name]
+
+    @property
+    def zubehoer(self) -> frozenset[str]:
+        return frozenset(self._zubehoer)
 
     # --- Steuerung ---------------------------------------------------------
     @property
@@ -104,6 +122,11 @@ class Verhaltensmotor:
     def zurueckziehen_quelle(self, quelle: str) -> None:
         self._wuensche = [w for w in self._wuensche
                           if not (w.quelle == quelle or w.quelle.startswith(quelle + ":"))]
+        for name in list(self._zubehoer):
+            self._zubehoer[name] = {q for q in self._zubehoer[name]
+                                    if not (q == quelle or q.startswith(quelle + ":"))}
+            if not self._zubehoer[name]:
+                del self._zubehoer[name]
         self._nach_entfernen()
 
     def knopf(self, wunsch_id: int, knopf: str) -> None:
@@ -152,9 +175,11 @@ class Verhaltensmotor:
         el = self.eigenleben
         if w is not None:
             blase = (w.id, w.text, w.knoepfe) if w.text else None
-            return Ausgabe(w.animation, False, el.richtung, w.ziel, blase, toene, w.id, el.blinzelt)
+            return Ausgabe(w.animation, False, el.richtung, w.ziel, blase, toene, w.id, el.blinzelt,
+                           self.zubehoer)
         anim = el.zustand
-        return Ausgabe(anim, anim == LAUFEN, el.richtung, None, None, toene, None, el.blinzelt)
+        return Ausgabe(anim, anim == LAUFEN, el.richtung, None, None, toene, None, el.blinzelt,
+                       self.zubehoer)
 
     def verdraengt_eigenleben(self) -> bool:
         return self._aktiv is not None

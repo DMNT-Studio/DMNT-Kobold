@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dmnt-kobold"
-version = "0.1.0"
+version = "0.3.0"
 description = "Desktop-Begleiter für Windows: ein kleiner Kobold lebt auf deiner Taskleiste."
 readme = "README.md"
 license = { text = "MIT" }
@@ -14,12 +14,18 @@ dependencies = ["PySide6>=6.6"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+bauen = ["pillow>=10", "numpy>=1.26", "scipy>=1.11"]
 
 [project.gui-scripts]
 dmnt-kobold = "dmnt_kobold.app:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+dmnt_kobold = ["avatare/*/*.json", "avatare/*/*.py", "avatare/*/*.txt", "avatare/*/*.png",
+               "avatare/*/*.jpg", "avatare/*/frames/*/*.png", "avatare/*/toene/*.wav",
+               "zubehoer/*.png"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

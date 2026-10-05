@@ -42,12 +42,15 @@ def test_kurze_pause_nur_anschauen():
 
 def test_star_citizen_rand_rechts_ruhig_und_zurueck():
     bus, m = aufbau()
-    bus.senden("programm.aktiv", name="starcitizen.exe", titel="Star Citizen", vorher=None)
+    bus.senden("programm.gestartet", name="starcitizen.exe")
     a = m.tick(0.1)
     assert a.ziel == "rand_rechts" and a.animation == "sitzen"
     bus.senden("tastatur.pause", sitzung_s=LANGE_SITZUNG_S + 5)   # bleibt ruhig
     assert m.tick(0.1).sprechblase is None
-    bus.senden("programm.aktiv", name="explorer.exe", titel="", vorher="starcitizen.exe")
+    # anderes Fenster vorne: er bleibt am Rand
+    bus.senden("programm.aktiv", name="sc launch configurator.exe", titel="", vorher="starcitizen.exe")
+    assert m.tick(0.1).ziel == "rand_rechts"
+    bus.senden("programm.beendet", name="starcitizen.exe")
     assert m.tick(0.1).ziel is None
 
 

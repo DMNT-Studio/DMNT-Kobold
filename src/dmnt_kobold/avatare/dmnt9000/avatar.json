@@ -1,0 +1,341 @@
+{
+  "format": 1,
+  "id": "dmnt9000",
+  "name": "DMNT 9000",
+  "skalierung": 2,
+  "rahmen": [
+    125.0,
+    132.0
+  ],
+  "anker": [
+    62.5,
+    131.0
+  ],
+  "koerper": {
+    "breite": 96.0,
+    "hoehe": 123.5
+  },
+  "blickrichtung": 1,
+  "bewegung": {
+    "art": "gehen",
+    "tempo": 55
+  },
+  "herkunft": "herkunft.jpg",
+  "portraet": "portraet.png",
+  "animationen": {
+    "ruhe": {
+      "fps": 1.5,
+      "schleife": true,
+      "bilder": [
+        "frames/ruhe/00.png",
+        "frames/ruhe/01.png",
+        "frames/ruhe/02.png",
+        "frames/ruhe/03.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ]
+      ]
+    },
+    "bewegen": {
+      "fps": 6,
+      "schleife": true,
+      "bilder": [
+        "frames/bewegen/00.png",
+        "frames/bewegen/01.png",
+        "frames/bewegen/02.png",
+        "frames/bewegen/03.png"
+      ],
+      "koepfe": [
+        [
+          56.5,
+          35.8,
+          70.0,
+          14.5
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          55.8,
+          35.5,
+          68.5,
+          14.5
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ]
+      ]
+    },
+    "anschauen": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/anschauen/00.png",
+        "frames/anschauen/01.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ]
+      ]
+    },
+    "sprechen": {
+      "fps": 8,
+      "schleife": true,
+      "bilder": [
+        "frames/sprechen/00.png",
+        "frames/sprechen/01.png",
+        "frames/sprechen/02.png",
+        "frames/sprechen/03.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ]
+      ]
+    },
+    "erschrecken": {
+      "fps": 10,
+      "schleife": true,
+      "bilder": [
+        "frames/erschrecken/00.png",
+        "frames/erschrecken/01.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ]
+      ]
+    },
+    "freuen": {
+      "fps": 6,
+      "schleife": true,
+      "bilder": [
+        "frames/freuen/00.png",
+        "frames/freuen/01.png",
+        "frames/freuen/02.png",
+        "frames/freuen/03.png"
+      ],
+      "koepfe": [
+        [
+          55.0,
+          36.0,
+          66.0,
+          15.0
+        ],
+        [
+          55.2,
+          32.0,
+          67.5,
+          11.5
+        ],
+        [
+          55.2,
+          35.8,
+          67.5,
+          15.5
+        ],
+        [
+          55.2,
+          32.0,
+          67.5,
+          11.5
+        ]
+      ]
+    },
+    "sitzen": {
+      "fps": 1,
+      "schleife": true,
+      "bilder": [
+        "frames/sitzen/00.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ]
+      ]
+    },
+    "schlafen": {
+      "fps": 0.6,
+      "schleife": true,
+      "bilder": [
+        "frames/schlafen/00.png",
+        "frames/schlafen/01.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ]
+      ]
+    },
+    "gezogen": {
+      "fps": 10,
+      "schleife": true,
+      "bilder": [
+        "frames/gezogen/00.png",
+        "frames/gezogen/01.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ],
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ]
+      ]
+    },
+    "fallen": {
+      "fps": 10,
+      "schleife": true,
+      "bilder": [
+        "frames/fallen/00.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          35.0,
+          67.5,
+          14.0
+        ]
+      ]
+    },
+    "unzufrieden": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/unzufrieden/00.png",
+        "frames/unzufrieden/01.png"
+      ],
+      "koepfe": [
+        [
+          55.2,
+          32.0,
+          67.5,
+          11.5
+        ],
+        [
+          55.2,
+          32.0,
+          67.5,
+          11.5
+        ]
+      ]
+    },
+    "zuschauen": {
+      "fps": 0.5,
+      "schleife": true,
+      "bilder": [
+        "frames/zuschauen/00.png",
+        "frames/zuschauen/01.png"
+      ],
+      "koepfe": [
+        [
+          47.2,
+          31.0,
+          64.5,
+          9.0
+        ],
+        [
+          47.2,
+          31.0,
+          64.5,
+          9.0
+        ]
+      ]
+    }
+  },
+  "toene": {
+    "sprechen": "toene/sprechen.wav",
+    "erschrecken": "toene/erschrecken.wav",
+    "freuen": "toene/freuen.wav",
+    "aufwachen": "toene/aufwachen.wav",
+    "landen": "toene/landen.wav",
+    "huepfen": "toene/huepfen.wav"
+  }
+}

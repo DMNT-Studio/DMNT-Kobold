@@ -19,7 +19,8 @@ from PySide6.QtCore import QElapsedTimer, QPoint, QPointF, Qt, QTimer
 from PySide6.QtGui import QCursor, QPainter
 from PySide6.QtWidgets import QWidget
 
-from . import blob, win32
+from . import win32
+from .avatar import Darsteller, Zustand
 from .bus import EventBus
 from .menue import Schalter, baue_menue
 from .monitore import Monitor, lese_monitore, monitor_bei, monitor_unter_fuss
@@ -30,10 +31,8 @@ from .toene import Toene
 
 log = logging.getLogger(__name__)
 
-FENSTER_B = 150
-FENSTER_H = 140
-FUSS = QPointF(FENSTER_B / 2, FENSTER_H - 8)
-AUGEN_HOEHE = 53.0
+AUGEN_ANTEIL = 0.58      # Augenhöhe als Anteil der Körperhöhe (für den Blick)
+MASKEN_CACHE = 300
 
 TAKT_SCHNELL_MS = 16     # Fallen, Ziehen, Stauchen
 TAKT_MITTEL_MS = 33      # Laufen, Anschauen, Ausdrücke
@@ -46,7 +45,8 @@ LAUFTEMPO = 60.0
 ZIELTEMPO = 140.0
 ZIEL_RAND = 24.0
 
-BEWEGTE_ANIMATIONEN = {"laufen", "anschauen", "freuen", "erschrecken", "sprechen", "gezogen", "fallen"}
+BEWEGTE_ANIMATIONEN = {"laufen", "anschauen", "freuen", "erschrecken", "sprechen", "gezogen", "fallen",
+                       "unzufrieden"}
 
 MASKE_AKTIV = os.environ.get("DMNT_KOBOLD_OHNE_MASKE") != "1"
 
@@ -84,7 +84,7 @@ def ausdruck(animation: str, t: float, blinzelt: bool) -> tuple[float, float, st
 
 class AvatarFenster(QWidget):
     def __init__(self, bus: EventBus, motor: Verhaltensmotor, schalter: Schalter,
-                 toene: Toene, beim_beenden) -> None:
+                 toene: Toene, beim_beenden, darsteller: Darsteller, lauftempo: float = LAUFTEMPO) -> None:
         super().__init__(None)
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
@@ -96,7 +96,10 @@ class AvatarFenster(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.setFixedSize(FENSTER_B, FENSTER_H)
+        self.darsteller = darsteller
+        self.fuss = darsteller.fuss
+        self.lauftempo = lauftempo
+        self.setFixedSize(darsteller.fenster_b, darsteller.fenster_h)
         self.setWindowTitle("DMNT-Kobold")
 
         self.bus = bus
@@ -104,7 +107,7 @@ class AvatarFenster(QWidget):
         self.schalter = schalter
         self.toene = toene
         self.monitore: list[Monitor] = lese_monitore()
-        self.koerper = Koerper(halbe_breite=blob.BREITE / 2 - 4, hoehe=blob.HOEHE)
+        self.koerper = Koerper(halbe_breite=darsteller.breite / 2 - 4, hoehe=darsteller.hoehe)
         self.koerper.retten(self.monitore)
 
         self.blase = Sprechblase()
@@ -131,7 +134,8 @@ class AvatarFenster(QWidget):
         self._blick = (0.0, 0.0)
         self._letzte_darstellung: tuple | None = None
         self._letzte_maske: tuple | None = None
-        self._darst: tuple = (1.0, 1.0, 1, "offen", "laecheln", (0.0, 0.0), False, True)
+        self._masken: dict[tuple, object] = {}
+        self._zustand = Zustand()
         self._topmost_rest = 0.0
 
         self._uhr = QElapsedTimer()
@@ -168,7 +172,7 @@ class AvatarFenster(QWidget):
         """Für den Maus-Beobachter: Körpermitte, None während des Ziehens."""
         if self.koerper.zustand == GEZOGEN:
             return None
-        return self.koerper.x, self.koerper.y - blob.HOEHE / 2
+        return self.koerper.x, self.koerper.y - self.darsteller.hoehe / 2
 
     # --- Takt ----------------------------------------------------------------
     def _tick(self) -> None:
@@ -182,7 +186,7 @@ class AvatarFenster(QWidget):
         # Bewegungsentscheidung (Nutzer-Eingriff hat Vorrang)
         frei = k.zustand == STEHT and not self._gedrueckt and not self._menue_offen
         laufen = False
-        k.tempo = LAUFTEMPO
+        k.tempo = self.lauftempo
         if frei and a.ziel is not None:
             ziel_x = self._ziel_x(a.ziel)
             if ziel_x is not None and abs(ziel_x - k.x) > 4:
@@ -222,7 +226,7 @@ class AvatarFenster(QWidget):
         self._blick = (0.0, 0.0)
         if animation in ("anschauen", "erschrecken") and k.zustand == STEHT:
             c = QCursor.pos()
-            dx, dy = c.x() - k.x, c.y() - (k.y - AUGEN_HOEHE)
+            dx, dy = c.x() - k.x, c.y() - (k.y - self.darsteller.hoehe * AUGEN_ANTEIL)
             if abs(dx) > 30:
                 k.richtung = 1 if dx > 0 else -1
             laenge = math.hypot(dx, dy) or 1.0
@@ -272,8 +276,8 @@ class AvatarFenster(QWidget):
         return None
 
     def _platzieren(self) -> None:
-        x = round(self.koerper.x - FUSS.x())
-        y = round(self.koerper.y - FUSS.y())
+        x = round(self.koerper.x - self.fuss.x())
+        y = round(self.koerper.y - self.fuss.y())
         if self.pos() != QPoint(x, y):
             self.move(x, y)
 
@@ -302,40 +306,55 @@ class AvatarFenster(QWidget):
             bereich = (v.links, v.oben, v.rechts, v.unten)
         else:
             bereich = (k.x - 2000, k.y - 2000, k.x + 2000, k.y + 2000)
-        sy = self._darst[1]
-        self.blase.platzieren(k.x, k.y - blob.HOEHE * sy, k.y, bereich)
+        kopf = k.y - self.darsteller.hoehe * self._zustand.sy
+        if self._zustand.zubehoer:
+            kopf -= 12
+        self.blase.platzieren(k.x, kopf, k.y, bereich)
 
     # --- Darstellung -------------------------------------------------------
     def _darstellung_aktualisieren(self, erzwingen: bool = False) -> None:
         a = self._ausgabe
         blinzelt = a.blinzelt if a else False
         sx, sy, augen, mund, zzz = ausdruck(self._animation, self._animation_t, blinzelt)
+        sprite = self.darsteller.animiert_sich_selbst
+        if sprite and self._animation == "laufen":
+            sx, sy = 1.0, 1.0                  # die Frames laufen selbst
         if self._stauch_t >= 0:
             s = math.sin(math.pi * self._stauch_t / STAUCH_DAUER)
             sx, sy = 1 + 0.14 * s, 1 - 0.16 * s
         elif self.koerper.zustand == FAELLT:
             s = min(abs(self.koerper.vy) / 1800.0, 1.0) * 0.08
             sx, sy = 1 - s * 0.6, 1 + s
-        schatten = self.koerper.zustand == STEHT
-        blick = (round(self._blick[0], 1), round(self._blick[1], 1))
-        darst = (round(sx, 3), round(sy, 3), self.koerper.richtung, augen, mund, blick, zzz, schatten)
+        if sprite:                             # grob runden → wenige Masken im Cache
+            sx, sy = round(sx * 50) / 50, round(sy * 50) / 50
+        z = Zustand(
+            animation=self._animation, t=self._animation_t, sx=sx, sy=sy,
+            richtung=self.koerper.richtung, augen=augen, mund=mund,
+            blick=(round(self._blick[0], 1), round(self._blick[1], 1)), zzz=zzz,
+            schatten=self.koerper.zustand == STEHT,
+            zubehoer=a.zubehoer if a else frozenset(),
+        )
+        schluessel = self.darsteller.masken_schluessel(z)
+        darst = (schluessel, z.augen, z.mund, z.blick, round(z.sx, 3), round(z.sy, 3))
         if erzwingen or darst != self._letzte_darstellung:
             self._letzte_darstellung = darst
-            self._darst = darst
-            if MASKE_AKTIV:
-                schluessel = (round(sx, 2), round(sy, 2), darst[2], schatten, zzz)
-                if erzwingen or schluessel != self._letzte_maske:
-                    self._letzte_maske = schluessel
-                    self.setMask(blob.maske(FUSS, sx, sy, darst[2], schatten, zzz))
+            self._zustand = z
+            if MASKE_AKTIV and (erzwingen or schluessel != self._letzte_maske):
+                self._letzte_maske = schluessel
+                maske = self._masken.get(schluessel)
+                if maske is None:
+                    if len(self._masken) > MASKEN_CACHE:
+                        self._masken.clear()
+                    maske = self._masken[schluessel] = self.darsteller.maske(z)
+                self.setMask(maske)
             self.update()
 
     def paintEvent(self, _event) -> None:  # noqa: N802 (Qt-API)
-        sx, sy, richtung, augen, mund, blick, zzz, schatten = self._darst
         p = QPainter(self)
         p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
         p.fillRect(self.rect(), Qt.GlobalColor.transparent)
         p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
-        blob.zeichne(p, FUSS, sx, sy, richtung, augen, mund, blick, zzz, schatten)
+        self.darsteller.zeichnen(p, self._zustand)
         p.end()
 
     # --- Maus ----------------------------------------------------------------

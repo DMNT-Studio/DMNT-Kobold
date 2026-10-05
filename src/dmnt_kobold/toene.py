@@ -6,6 +6,7 @@ Die Lautstärke ist in die Dateien eingerechnet.
 """
 from __future__ import annotations
 
+import hashlib
 import logging
 import math
 import struct
@@ -28,7 +29,17 @@ KLAENGE: dict[str, list[tuple[float, float, float]]] = {
 }
 
 
-def synthese(segmente: list[tuple[float, float, float]], lautstaerke: float) -> bytes:
+def _welle(phase: float, welle: str) -> float:
+    if welle == "rechteck":   # weich gerundetes Rechteck (Computer-Piepsen)
+        return math.tanh(4 * math.sin(phase)) * 0.75
+    if welle == "dreieck":
+        return 2 / math.pi * math.asin(math.sin(phase))
+    return (math.sin(phase) + 0.25 * math.sin(2 * phase)) / 1.25
+
+
+def synthese(segmente: list[tuple[float, float, float]], lautstaerke: float,
+             welle: str = "sinus") -> bytes:
+    """Segmente = (Startfrequenz, Endfrequenz, Dauer s). Frequenz 0 = Pause."""
     daten = bytearray()
     phase = 0.0
     for f0, f1, dauer in segmente:
@@ -36,12 +47,29 @@ def synthese(segmente: list[tuple[float, float, float]], lautstaerke: float) -> 
         for i in range(n):
             anteil = i / n
             f = f0 + (f1 - f0) * anteil
+            if f <= 0:
+                daten += b"\x00\x00"
+                continue
             phase += 2 * math.pi * f / RATE
             huelle = min(1.0, i / (RATE * 0.004)) * math.exp(-3.2 * anteil)
-            wert = (math.sin(phase) + 0.25 * math.sin(2 * phase)) / 1.25
+            wert = _welle(phase, welle)
             daten += struct.pack("<h", int(wert * huelle * lautstaerke * 32767))
         daten += b"\x00\x00" * int(RATE * 0.012)
     return bytes(daten)
+
+
+def lautstaerke_anpassen(quelle: Path, ziel: Path, lautstaerke: float) -> None:
+    """Kopie einer 16-bit-WAV mit eingerechneter Lautstärke."""
+    with wave.open(str(quelle), "rb") as w:
+        param = w.getparams()
+        roh = w.readframes(w.getnframes())
+    werte = struct.unpack(f"<{len(roh) // 2}h", roh)
+    neu = struct.pack(f"<{len(werte)}h", *(max(-32768, min(32767, int(v * lautstaerke))) for v in werte))
+    tmp = ziel.with_suffix(".tmp")
+    with wave.open(str(tmp), "wb") as w:
+        w.setparams(param)
+        w.writeframes(neu)
+    tmp.replace(ziel)
 
 
 def schreibe_wav(pfad: Path, pcm: bytes) -> None:
@@ -55,9 +83,14 @@ def schreibe_wav(pfad: Path, pcm: bytes) -> None:
 
 
 class Toene:
-    def __init__(self, ordner: Path, lautstaerke: float = 0.35) -> None:
+    """Spielt Avatar-Töne. ``avatar_toene`` = Name → WAV-Datei des Avatars;
+    fehlende Namen fallen auf die eingebauten Klänge zurück."""
+
+    def __init__(self, ordner: Path, lautstaerke: float = 0.35,
+                 avatar_toene: dict[str, Path] | None = None) -> None:
         self.ordner = ordner
         self.stumm = False
+        self.avatar_toene = dict(avatar_toene or {})
         self._dateien: dict[str, Path] = {}
         self.lautstaerke_setzen(lautstaerke)
 
@@ -71,7 +104,13 @@ class Toene:
                 if not pfad.exists():
                     schreibe_wav(pfad, synthese(segmente, self.lautstaerke))
                 self._dateien[name] = pfad
-        except OSError:
+            for name, quelle in self.avatar_toene.items():
+                kennung = hashlib.md5(quelle.read_bytes()).hexdigest()[:10]
+                pfad = self.ordner / f"avatar_{kennung}_{stufe}.wav"
+                if not pfad.exists():
+                    lautstaerke_anpassen(quelle, pfad, self.lautstaerke)
+                self._dateien[name] = pfad
+        except (OSError, wave.Error, struct.error):
             log.exception("Töne konnten nicht erzeugt werden")
 
     def spielen(self, name: str) -> None:

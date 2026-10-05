@@ -41,6 +41,10 @@ class Modul:
         else:
             self.motor.zurueckziehen_quelle(f"{self.name}:{unter}" if unter else self.name)
 
+    def zubehoer(self, name: str, an: bool = True) -> None:
+        """Zubehör an/aus (z. B. "kopfhoerer"). Bleibt, bis das Modul es abnimmt."""
+        self.motor.zubehoer_setzen(name, an, self.name)
+
     # --- intern ------------------------------------------------------------
     def _empfangen(self, e: Ereignis) -> None:
         if self.aktiv:

@@ -8,8 +8,10 @@ Ereignisse:
   maus.nah_am_avatar (entfernung), maus.weg, maus.wackelt
   tastatur.tippt, tastatur.schnell, tastatur.pause (sitzung_s)
   leerlauf.<minuten> (minuten), leerlauf.ende (minuten)
-  programm.aktiv (name, titel, vorher)   – titel wird nie geloggt
+  programm.aktiv (name, titel, vorher)   – Vordergrund; titel wird nie geloggt
+  programm.gestartet / programm.beendet (name) – nur für beobachtete Programme
   uhrzeit.<hh:mm>, tageszeit.<morgens|mittags|abends|nachts>
+  audio.laeuft, audio.still   – aus dem Lautstärkepegel, nicht aus dem Inhalt
 
 Die Analyse-Klassen sind reine Logik (testbar), ``Beobachter`` pollt per QTimer.
 """
@@ -146,6 +148,40 @@ class LeerlaufAnalyse:
         return []
 
 
+class AudioAnalyse:
+    """Pegel 0..1 alle 100 ms → „läuft“ nach einigen Sekunden Ton, „still“ nach Pause.
+    Kurze Lücken (Liedwechsel, leise Stellen) zählen nicht als Ende."""
+
+    SCHWELLE = 0.015
+    START_S = 6.0
+    LUECKE_S = 1.5
+    ENDE_S = 6.0
+
+    def __init__(self) -> None:
+        self.laeuft = False
+        self._seit: float | None = None
+        self._laut: float | None = None
+
+    def update(self, t: float, pegel: float) -> list[tuple[str, dict]]:
+        if pegel >= self.SCHWELLE:
+            self._laut = t
+            if self._seit is None:
+                self._seit = t
+        if self._laut is None:
+            return []
+        if not self.laeuft:
+            if t - self._laut > self.LUECKE_S:
+                self._seit = None
+            elif self._seit is not None and t - self._seit >= self.START_S:
+                self.laeuft = True
+                return [("audio.laeuft", {})]
+        elif t - self._laut > self.ENDE_S:
+            self.laeuft = False
+            self._seit = None
+            return [("audio.still", {})]
+        return []
+
+
 # --- Polling (Qt) -----------------------------------------------------------
 
 NAH_PX = 170
@@ -156,7 +192,8 @@ class Beobachter:
     """Pollt alle 100 ms. ``avatar_mitte()`` liefert (x, y) logisch oder None
     (während der Avatar gezogen wird)."""
 
-    def __init__(self, bus, avatar_mitte, eigene_pid: int, parent=None) -> None:
+    def __init__(self, bus, avatar_mitte, eigene_pid: int, parent=None,
+                 beobachtete_programme: set[str] | None = None) -> None:
         from PySide6.QtCore import QTimer
 
         from . import win32
@@ -168,11 +205,16 @@ class Beobachter:
         self.tipp = TippAnalyse()
         self.wackel = WackelAnalyse()
         self.leerlauf = LeerlaufAnalyse()
+        self.audio = AudioAnalyse()
+        self._pegel = win32.Pegelmesser()
         self._nah = False
         self._letzte_eingabe = win32.letzte_eingabe_ms()
         self._letzte_maus: tuple[int, int] | None = None
         self._programm: str | None = None
         self._programm_takt = 0
+        self.beobachtete_programme = {n.lower() for n in (beobachtete_programme or set())}
+        self._laufend: set[str] = set()
+        self._prozess_takt = 0
         self._minute = ""
         self._tageszeit = ""
 
@@ -222,6 +264,7 @@ class Beobachter:
             tastatur = neu and maus == self._letzte_maus and not self.win.maustaste_gedrueckt()
             self._senden(self.tipp.update(t, tastatur))
             self._senden(self.leerlauf.update(self.win.leerlauf_s()))
+            self._senden(self.audio.update(t, self._pegel.pegel(0.1)))
         self._letzte_maus = maus
 
         # Programm im Vordergrund (2× pro Sekunde)
@@ -231,6 +274,16 @@ class Beobachter:
             if fg is not None and fg[2] != self.eigene_pid and fg[0] and fg[0] != self._programm:
                 vorher, self._programm = self._programm, fg[0]
                 self.bus.senden("programm.aktiv", name=fg[0], titel=fg[1], vorher=vorher)
+
+        # Beobachtete Programme laufen? (alle 5 s, unabhängig vom Vordergrund)
+        self._prozess_takt = (self._prozess_takt + 1) % 50
+        if self._prozess_takt == 1 and self.beobachtete_programme:
+            jetzt_laufend = self.win.laufende_programme() & self.beobachtete_programme
+            for name in sorted(jetzt_laufend - self._laufend):
+                self.bus.senden("programm.gestartet", name=name)
+            for name in sorted(self._laufend - jetzt_laufend):
+                self.bus.senden("programm.beendet", name=name)
+            self._laufend = jetzt_laufend
 
         # Uhrzeit / Tageszeit
         jetzt = datetime.now()

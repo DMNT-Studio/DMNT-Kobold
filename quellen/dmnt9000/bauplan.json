@@ -1,0 +1,357 @@
+{
+  "id": "dmnt9000",
+  "name": "DMNT 9000",
+  "skalierung": 2,
+  "hoehe": 124,
+  "blickrichtung": 1,
+  "bewegung": {
+    "art": "gehen",
+    "tempo": 55
+  },
+  "quellen": {
+    "gehen": {
+      "datei": "gehen.png",
+      "hintergrund": "schwarz",
+      "bilder": 3
+    },
+    "daumen": {
+      "datei": "gehen_daumen.png",
+      "bilder": 3
+    },
+    "seite": {
+      "datei": "seite.png",
+      "bilder": 1
+    }
+  },
+  "referenz": [
+    "gehen",
+    1
+  ],
+  "animationen": {
+    "ruhe": {
+      "fps": 1.5,
+      "bilder": [
+        [
+          "gehen",
+          1,
+          "normal"
+        ],
+        [
+          "gehen",
+          1,
+          "puls"
+        ],
+        [
+          "gehen",
+          1,
+          "hell"
+        ],
+        [
+          "gehen",
+          1,
+          "puls"
+        ]
+      ]
+    },
+    "bewegen": {
+      "fps": 6,
+      "bilder": [
+        [
+          "gehen",
+          0,
+          "normal"
+        ],
+        [
+          "gehen",
+          1,
+          "normal"
+        ],
+        [
+          "gehen",
+          2,
+          "normal"
+        ],
+        [
+          "gehen",
+          1,
+          "normal"
+        ]
+      ]
+    },
+    "anschauen": {
+      "fps": 2,
+      "bilder": [
+        [
+          "gehen",
+          1,
+          "hell"
+        ],
+        [
+          "gehen",
+          1,
+          "grell"
+        ]
+      ]
+    },
+    "sprechen": {
+      "fps": 8,
+      "bilder": [
+        [
+          "gehen",
+          1,
+          "hell"
+        ],
+        [
+          "gehen",
+          1,
+          "normal"
+        ],
+        [
+          "gehen",
+          1,
+          "grell"
+        ],
+        [
+          "gehen",
+          1,
+          "puls"
+        ]
+      ]
+    },
+    "erschrecken": {
+      "fps": 10,
+      "bilder": [
+        [
+          "gehen",
+          1,
+          "grell"
+        ],
+        [
+          "gehen",
+          1,
+          "hell"
+        ]
+      ]
+    },
+    "freuen": {
+      "fps": 6,
+      "bilder": [
+        [
+          "daumen",
+          0,
+          "hell"
+        ],
+        [
+          "daumen",
+          1,
+          "hell"
+        ],
+        [
+          "daumen",
+          2,
+          "hell"
+        ],
+        [
+          "daumen",
+          1,
+          "grell"
+        ]
+      ]
+    },
+    "sitzen": {
+      "fps": 1,
+      "bilder": [
+        [
+          "gehen",
+          1,
+          "dunkel"
+        ]
+      ]
+    },
+    "schlafen": {
+      "fps": 0.6,
+      "bilder": [
+        [
+          "gehen",
+          1,
+          "aus"
+        ],
+        [
+          "gehen",
+          1,
+          "dunkel"
+        ]
+      ]
+    },
+    "gezogen": {
+      "fps": 10,
+      "bilder": [
+        [
+          "gehen",
+          1,
+          "grell"
+        ],
+        [
+          "gehen",
+          1,
+          "hell"
+        ]
+      ]
+    },
+    "fallen": {
+      "fps": 10,
+      "bilder": [
+        [
+          "gehen",
+          1,
+          "grell"
+        ]
+      ]
+    },
+    "unzufrieden": {
+      "fps": 2,
+      "bilder": [
+        [
+          "daumen",
+          1,
+          "dunkel",
+          "daumen_runter"
+        ],
+        [
+          "daumen",
+          1,
+          "normal",
+          "daumen_runter"
+        ]
+      ]
+    },
+    "zuschauen": {
+      "fps": 0.5,
+      "bilder": [
+        [
+          "seite",
+          0,
+          "normal"
+        ],
+        [
+          "seite",
+          0,
+          "puls"
+        ]
+      ]
+    }
+  },
+  "portraet": {
+    "datei": "vorne.png",
+    "hoehe": 360
+  },
+  "herkunft": {
+    "hintergrund": "herkunft_asteroiden.jpg",
+    "groesse": 768,
+    "ebenen": [
+      {
+        "datei": "herkunft_schiff.png",
+        "x": 0.52,
+        "y": 0.47,
+        "breite": 1.05
+      }
+    ]
+  },
+  "toene": {
+    "sprechen": {
+      "welle": "rechteck",
+      "segmente": [
+        [
+          1320,
+          1320,
+          0.04
+        ],
+        [
+          0,
+          0,
+          0.02
+        ],
+        [
+          1760,
+          1760,
+          0.04
+        ],
+        [
+          0,
+          0,
+          0.02
+        ],
+        [
+          1480,
+          1480,
+          0.05
+        ]
+      ]
+    },
+    "erschrecken": {
+      "welle": "rechteck",
+      "segmente": [
+        [
+          980,
+          980,
+          0.08
+        ],
+        [
+          660,
+          660,
+          0.12
+        ]
+      ]
+    },
+    "freuen": {
+      "welle": "rechteck",
+      "segmente": [
+        [
+          880,
+          880,
+          0.05
+        ],
+        [
+          1175,
+          1175,
+          0.05
+        ],
+        [
+          1568,
+          1568,
+          0.09
+        ]
+      ]
+    },
+    "aufwachen": {
+      "welle": "dreieck",
+      "segmente": [
+        [
+          180,
+          1200,
+          0.28
+        ]
+      ]
+    },
+    "landen": {
+      "welle": "sinus",
+      "segmente": [
+        [
+          170,
+          80,
+          0.09
+        ]
+      ]
+    },
+    "huepfen": {
+      "welle": "dreieck",
+      "segmente": [
+        [
+          600,
+          1100,
+          0.07
+        ]
+      ]
+    }
+  }
+}
