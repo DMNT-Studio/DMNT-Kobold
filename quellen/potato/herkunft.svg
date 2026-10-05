@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
+  <title>Potatos Herkunft: Kartoffelacker von oben</title>
+  <defs>
+    <linearGradient id="erde" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#B89574"/>
+      <stop offset="1" stop-color="#9C7A5A"/>
+    </linearGradient>
+  </defs>
+  <rect width="768" height="768" fill="url(#erde)"/>
+  <rect x="0" y="40" width="768" height="54" rx="27" fill="#8A6A4D" fill-opacity="0.55"/>
+  <rect x="0" y="190" width="768" height="54" rx="27" fill="#8A6A4D" fill-opacity="0.55"/>
+  <rect x="0" y="340" width="768" height="54" rx="27" fill="#8A6A4D" fill-opacity="0.55"/>
+  <rect x="0" y="490" width="768" height="54" rx="27" fill="#8A6A4D" fill-opacity="0.55"/>
+  <rect x="0" y="640" width="768" height="54" rx="27" fill="#8A6A4D" fill-opacity="0.55"/>
+  <g transform="translate(70,140)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(230,146)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(400,138)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(560,144)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(715,140)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(150,292)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(320,286)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(640,290)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(70,440)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(590,446)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(720,438)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(160,592)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(330,588)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(500,594)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(660,590)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(80,735)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <g transform="translate(420,740)">
+    <ellipse cx="0" cy="-14" rx="11" ry="20" fill="#7FA36A"/>
+    <ellipse cx="14" cy="4" rx="11" ry="19" transform="rotate(70 14 4)" fill="#6F965C"/>
+    <ellipse cx="-14" cy="5" rx="11" ry="19" transform="rotate(-70 -14 5)" fill="#86AA70"/>
+    <ellipse cx="0" cy="13" rx="9" ry="15" fill="#769D62"/>
+    <circle cx="0" cy="0" r="5" fill="#E9E3C9"/>
+  </g>
+  <ellipse cx="452" cy="300" rx="20" ry="15" transform="rotate(-18 452 300)" fill="#D9B07A"/>
+  <ellipse cx="484" cy="312" rx="14" ry="11" transform="rotate(12 484 312)" fill="#D9B07A"/>
+  <ellipse cx="236" cy="452" rx="18" ry="13" transform="rotate(24 236 452)" fill="#D9B07A"/>
+  <ellipse cx="402" cy="456" rx="16" ry="12" fill="#D9B07A"/>
+</svg>

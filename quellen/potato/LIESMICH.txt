@@ -1,0 +1,17 @@
+Potato - der erste Avatar aus M1, wieder da
+==========================================
+
+Was er ist:
+  Der braune Tropfen-Blob aus blob.py (Meilenstein M1), jetzt als echter Avatar mit
+  Rig aus SVG-Teilen - genau wie Kiesel. Form, Farben, Augen, Mund und Wangen sind
+  1:1 aus blob.py uebernommen.
+
+Bewegung:  gehen (kleine Watschel-Animation "bewegen")
+Verhalten: keine eigene verhalten.json -> es gilt standard_verhalten.json
+Toene:     keine eigenen -> Standard-Toene des Sockels
+
+Farbe aendern:
+  teile/koerper.svg  (#F2B66D Koerper, #E59E4D Schattenseite, #EE9A86 Wangen)
+
+Neu bauen (lokal am PC, PowerShell im Ordner dmnt-kobold):
+  .venv\Scripts\python.exe werkzeuge\avatar_bauen.py quellen\potato

@@ -1,0 +1,8 @@
+Potato - Avatar fuer DMNT-Kobold
+
+Copyright (c) 2026 Stefan Rohrbach
+
+Figur (teile/*.svg), herkunft.svg und bauplan.json:
+  Eigenentwicklung fuer DMNT-Kobold. Geometrie und Farben aus dem ersten
+  Platzhalter-Blob (src/dmnt_kobold/blob.py, Meilenstein M1). Frei erfunden.
+  Lizenz: MIT (wie das Projekt).

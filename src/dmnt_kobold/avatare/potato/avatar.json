@@ -1,0 +1,756 @@
+{
+  "format": 1,
+  "id": "potato",
+  "name": "Potato",
+  "skalierung": 2,
+  "rahmen": [
+    114.0,
+    114.0
+  ],
+  "anker": [
+    57.0,
+    113.0
+  ],
+  "koerper": {
+    "breite": 97.5,
+    "hoehe": 95.0
+  },
+  "blickrichtung": 1,
+  "bewegung": {
+    "art": "gehen"
+  },
+  "herkunft": "herkunft.jpg",
+  "portraet": "portraet.png",
+  "animationen": {
+    "ruhe": {
+      "fps": 6,
+      "schleife": true,
+      "bilder": [
+        "frames/ruhe/00.png",
+        "frames/ruhe/01.png",
+        "frames/ruhe/02.png",
+        "frames/ruhe/03.png",
+        "frames/ruhe/04.png",
+        "frames/ruhe/05.png",
+        "frames/ruhe/06.png",
+        "frames/ruhe/07.png",
+        "frames/ruhe/08.png",
+        "frames/ruhe/09.png",
+        "frames/ruhe/10.png",
+        "frames/ruhe/11.png",
+        "frames/ruhe/12.png",
+        "frames/ruhe/13.png",
+        "frames/ruhe/14.png",
+        "frames/ruhe/15.png",
+        "frames/ruhe/16.png",
+        "frames/ruhe/17.png",
+        "frames/ruhe/18.png",
+        "frames/ruhe/19.png",
+        "frames/ruhe/20.png",
+        "frames/ruhe/21.png",
+        "frames/ruhe/22.png",
+        "frames/ruhe/23.png",
+        "frames/ruhe/24.png",
+        "frames/ruhe/25.png",
+        "frames/ruhe/26.png",
+        "frames/ruhe/27.png",
+        "frames/ruhe/28.png",
+        "frames/ruhe/29.png",
+        "frames/ruhe/30.png",
+        "frames/ruhe/31.png",
+        "frames/ruhe/32.png",
+        "frames/ruhe/33.png",
+        "frames/ruhe/34.png",
+        "frames/ruhe/35.png",
+        "frames/ruhe/36.png",
+        "frames/ruhe/37.png",
+        "frames/ruhe/38.png",
+        "frames/ruhe/39.png",
+        "frames/ruhe/40.png",
+        "frames/ruhe/41.png",
+        "frames/ruhe/42.png",
+        "frames/ruhe/43.png",
+        "frames/ruhe/44.png",
+        "frames/ruhe/45.png",
+        "frames/ruhe/46.png",
+        "frames/ruhe/47.png",
+        "frames/ruhe/48.png",
+        "frames/ruhe/49.png",
+        "frames/ruhe/50.png",
+        "frames/ruhe/51.png",
+        "frames/ruhe/52.png",
+        "frames/ruhe/53.png",
+        "frames/ruhe/54.png",
+        "frames/ruhe/55.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          49.1,
+          96.5,
+          16.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ],
+        [
+          56.8,
+          51.4,
+          98.5,
+          19.5
+        ]
+      ],
+      "posen": [
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_b:0",
+        "ruhe_c:0",
+        "ruhe_zu:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0"
+      ]
+    },
+    "bewegen": {
+      "fps": 8,
+      "schleife": true,
+      "bilder": [
+        "frames/bewegen/00.png",
+        "frames/bewegen/01.png",
+        "frames/bewegen/02.png",
+        "frames/bewegen/03.png"
+      ],
+      "koepfe": [
+        [
+          57.2,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          57.2,
+          52.0,
+          99.5,
+          20.5
+        ],
+        [
+          57.2,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          57.2,
+          48.4,
+          95.5,
+          15.0
+        ]
+      ],
+      "posen": [
+        "gehen_1:0",
+        "gehen_2:0",
+        "gehen_1:0",
+        "gehen_3:0"
+      ]
+    },
+    "anschauen": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/anschauen/00.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ]
+      ],
+      "posen": [
+        "anschauen:0"
+      ]
+    },
+    "sprechen": {
+      "fps": 8,
+      "schleife": true,
+      "bilder": [
+        "frames/sprechen/00.png",
+        "frames/sprechen/01.png",
+        "frames/sprechen/02.png",
+        "frames/sprechen/03.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ]
+      ],
+      "posen": [
+        "sprechen_1:0",
+        "sprechen_2:0",
+        "sprechen_3:0",
+        "sprechen_2:0"
+      ]
+    },
+    "freuen": {
+      "fps": 4,
+      "schleife": true,
+      "bilder": [
+        "frames/freuen/00.png",
+        "frames/freuen/01.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          47.8,
+          94.5,
+          14.0
+        ]
+      ],
+      "posen": [
+        "freuen_1:0",
+        "freuen_2:0"
+      ]
+    },
+    "erschrecken": {
+      "fps": 16,
+      "schleife": false,
+      "bilder": [
+        "frames/erschrecken/00.png",
+        "frames/erschrecken/01.png",
+        "frames/erschrecken/02.png",
+        "frames/erschrecken/03.png",
+        "frames/erschrecken/04.png"
+      ],
+      "koepfe": [
+        [
+          58.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          54.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          58.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          54.8,
+          50.4,
+          97.5,
+          18.0
+        ],
+        [
+          56.8,
+          50.4,
+          97.5,
+          18.0
+        ]
+      ],
+      "posen": [
+        "erschrecken_1:0",
+        "erschrecken_2:0",
+        "erschrecken_1:0",
+        "erschrecken_2:0",
+        "erschrecken_3:0"
+      ]
+    },
+    "sitzen": {
+      "fps": 1,
+      "schleife": true,
+      "bilder": [
+        "frames/sitzen/00.png"
+      ],
+      "koepfe": [
+        [
+          57.0,
+          56.7,
+          103.0,
+          27.5
+        ]
+      ],
+      "posen": [
+        "sitzen:0"
+      ]
+    },
+    "schlafen": {
+      "fps": 1,
+      "schleife": true,
+      "bilder": [
+        "frames/schlafen/00.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          57.7,
+          104.5,
+          29.0
+        ]
+      ],
+      "posen": [
+        "schlafen:0"
+      ]
+    },
+    "gezogen": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/gezogen/00.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          42.9,
+          87.5,
+          6.5
+        ]
+      ],
+      "posen": [
+        "gezogen:0"
+      ]
+    },
+    "fallen": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/fallen/00.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          42.9,
+          87.5,
+          6.5
+        ]
+      ],
+      "posen": [
+        "fallen:0"
+      ]
+    },
+    "landen": {
+      "fps": 4,
+      "schleife": true,
+      "bilder": [
+        "frames/landen/00.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          60.3,
+          110.5,
+          33.0
+        ]
+      ],
+      "posen": [
+        "landen:0"
+      ]
+    }
+  },
+  "toene": {},
+  "outfits": {},
+  "outfit": null,
+  "zubehoer": {}
+}
