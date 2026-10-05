@@ -898,6 +898,11 @@ class VerhaltenTab(QWidget):
         self.status = QLabel()
         self.status.setWordWrap(True)
         kopf.addWidget(self.status, 1)
+        zurueck = QPushButton("Zurücksetzen …")
+        zurueck.setToolTip("Regeln und Werte auf den Stand im Repo, das Standard-Verhalten "
+                           "oder eine frühere Fassung aus dem Verlauf zurücksetzen")
+        zurueck.clicked.connect(self.zuruecksetzen)
+        kopf.addWidget(zurueck)
         lay.addLayout(kopf)
         self.unter = QTabWidget()
         self.werte = WerteBereich(self)
@@ -952,6 +957,22 @@ class VerhaltenTab(QWidget):
             self.editor._beobachten()          # noqa: SLF001 – neue Datei mit beobachten
         if pr.verhalten is not vorher:          # fremde Änderung wurde eingemischt
             self.aufbauen()
+        self.editor.geaendert()
+
+    def zuruecksetzen(self) -> None:
+        from editor_zuruecksetzen import fragen_und_zuruecksetzen  # noqa: PLC0415
+
+        if self._timer.isActive():                # offene Änderung erst speichern (kommt so in den Verlauf)
+            self.speichern_jetzt()
+        neu_angelegt = not (self.editor.projekt.ordner / "verhalten.json").exists()
+        stand = fragen_und_zuruecksetzen(self, self.editor.projekt, "verhalten")
+        if stand is None:
+            return
+        if neu_angelegt:
+            self.editor._beobachten()          # noqa: SLF001 – neue Datei mit beobachten
+        self.editor.meldung(f"Verhalten zurückgesetzt auf: {stand.name} {stand.zeit}".strip()
+                            + ". Der vorige Stand liegt im Verlauf.")
+        self.aufbauen()
         self.editor.geaendert()
 
     def pruefen(self) -> None:

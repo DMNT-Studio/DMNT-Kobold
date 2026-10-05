@@ -254,9 +254,16 @@ class HerkunftToeneTab(QWidget):
         karte.setObjectName("karte")
         v = QVBoxLayout(karte)
         v.setContentsMargins(18, 16, 18, 16)
+        kopf = QHBoxLayout()
         titel = QLabel("Töne des Körpers")
         titel.setStyleSheet("font-weight: 800; font-size: 16px;")
-        v.addWidget(titel)
+        kopf.addWidget(titel)
+        kopf.addStretch(1)
+        zurueck = QPushButton("Töne zurücksetzen …")
+        zurueck.setToolTip("Auf den Stand im Repo oder eine frühere Fassung aus dem Verlauf zurück")
+        zurueck.clicked.connect(self._toene_zuruecksetzen)
+        kopf.addWidget(zurueck)
+        v.addLayout(kopf)
         erkl = QLabel("Zu jedem Moment kann ein Ton kommen. Mehrere Dateien = jedes Mal eine zufällige. "
                       "Streuung = Tonhöhe schwankt um ± so viel (0,08 = 8 %). Wiederholen = 1 bis n Mal hintereinander "
                       "(z. B. Piepsen beim Sprechen). Laut oder leise regelt nur der Nutzer.")
@@ -373,6 +380,17 @@ class HerkunftToeneTab(QWidget):
     def _ton_entfernen(self, moment: str, rel: str) -> None:
         ton_entfernen(self.projekt, moment, rel)
         self.editor.meldung(f"{Path(rel).name} aus {moment} entfernt (Datei bleibt in toene/).")
+        self.aufbauen()
+        self.editor.geaendert()
+
+    def _toene_zuruecksetzen(self) -> None:
+        from editor_zuruecksetzen import fragen_und_zuruecksetzen  # noqa: PLC0415
+
+        stand = fragen_und_zuruecksetzen(self, self.projekt, "toene")
+        if stand is None:
+            return
+        self.editor.meldung(f"Töne zurückgesetzt auf: {stand.name} {stand.zeit}".strip()
+                            + ". Der vorige Stand liegt im Verlauf.")
         self.aufbauen()
         self.editor.geaendert()
 
