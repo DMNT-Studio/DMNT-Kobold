@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 import math
 import os
+import random
 import time
 from collections import deque
 
@@ -139,6 +140,7 @@ class AvatarFenster(QWidget):
         self._ausgabe: Ausgabe | None = None
         self._animation = "ruhe"
         self._animation_t = 0.0
+        self._variante = "ruhe"
         self._stauch_t = -1.0
         self._blick = (0.0, 0.0)
         self._letzte_darstellung: tuple | None = None
@@ -234,6 +236,7 @@ class AvatarFenster(QWidget):
         if animation != self._animation:
             self._animation = animation
             self._animation_t = 0.0
+            self._variante = random.choice(self.darsteller.varianten(animation))
         else:
             self._animation_t += dt
 
@@ -400,7 +403,7 @@ class AvatarFenster(QWidget):
         if sprite:                             # grob runden → wenige Masken im Cache
             sx, sy = round(sx * 50) / 50, round(sy * 50) / 50
         z = Zustand(
-            animation=self._animation, t=self._animation_t, sx=sx, sy=sy,
+            animation=self._variante, t=self._animation_t, sx=sx, sy=sy,
             richtung=self.koerper.richtung, augen=augen, mund=mund,
             blick=(round(self._blick[0], 1), round(self._blick[1], 1)), zzz=zzz,
             schatten=self.koerper.zustand == STEHT and self._fuehrung is None,

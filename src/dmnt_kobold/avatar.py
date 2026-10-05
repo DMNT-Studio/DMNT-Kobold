@@ -115,6 +115,11 @@ class Darsteller:
     def masken_schluessel(self, z: Zustand) -> tuple:
         return (round(z.sx, 2), round(z.sy, 2), z.richtung, z.schatten, z.zzz, z.zubehoer)
 
+    def varianten(self, animation: str) -> list[str]:
+        """Namen aller Varianten einer Animation (``sprechen``, ``sprechen~2`` …).
+        Das Overlay wählt bei jedem Beginn zufällig eine."""
+        return [animation]
+
 
 class BlobDarsteller(Darsteller):
     name = "Blob"
@@ -251,6 +256,12 @@ class SpriteDarsteller(Darsteller):
         p.restore()
         if z.zzz:
             _zzz(p, QPointF(self.fuss.x() + self.breite * 0.25, RAND_OBEN - 2))
+
+    def varianten(self, animation: str) -> list[str]:
+        name = NAMEN.get(animation, animation)
+        namen = [n for n in self.avatar.animationen
+                 if "@" not in n and (n == name or n.startswith(name + "~"))]
+        return sorted(namen) or [animation]
 
     def masken_schluessel(self, z: Zustand) -> tuple:
         i, a, _ = self._frame(z)

@@ -109,3 +109,12 @@ def test_eigene_zubehoer_frames_haben_vorrang(qapp):
     avatar.animationen["bewegen@kopfhoerer"] = avatar.animationen["freuen"]
     _, a, rest = darsteller._frame(z)
     assert a is avatar.animationen["freuen"] and rest == frozenset()
+
+
+def test_varianten(qapp):
+    from dmnt_kobold.avatar import avatar_laden
+
+    darsteller, avatar = avatar_laden("dmnt9000")
+    assert darsteller.varianten("laufen") == ["bewegen"]
+    assert darsteller.varianten("gibtsnicht") == ["gibtsnicht"]
+    assert "sprechen" in darsteller.varianten("sprechen")

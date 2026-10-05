@@ -379,6 +379,42 @@
           32.5
         ]
       ]
+    },
+    "sprechen~2": {
+      "fps": 8,
+      "schleife": true,
+      "bilder": [
+        "frames/sprechen~2/00.png",
+        "frames/sprechen~2/01.png",
+        "frames/sprechen~2/02.png",
+        "frames/sprechen~2/03.png"
+      ],
+      "koepfe": [
+        [
+          72.8,
+          42.2,
+          89.5,
+          20.0
+        ],
+        [
+          72.8,
+          42.2,
+          89.5,
+          20.0
+        ],
+        [
+          72.8,
+          42.2,
+          89.5,
+          20.0
+        ],
+        [
+          72.8,
+          42.2,
+          89.5,
+          20.0
+        ]
+      ]
     }
   },
   "toene": {

@@ -40,6 +40,10 @@
     "fallen": {
       "datei": "fallen.png",
       "bilder": 1
+    },
+    "front": {
+      "datei": "front.png",
+      "bilder": 1
     }
   },
   "referenz": [
@@ -287,6 +291,31 @@
         ],
         [
           "sprung",
+          0,
+          "puls"
+        ]
+      ]
+    },
+    "sprechen~2": {
+      "fps": 8,
+      "bilder": [
+        [
+          "front",
+          0,
+          "hell"
+        ],
+        [
+          "front",
+          0,
+          "normal"
+        ],
+        [
+          "front",
+          0,
+          "grell"
+        ],
+        [
+          "front",
           0,
           "puls"
         ]
