@@ -41,6 +41,7 @@ WURZEL = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WURZEL / "src"))
 from dmnt_kobold import stil  # noqa: E402
 from dmnt_kobold.regeln import standard_verhalten  # noqa: E402
+from editor_herkunft import HerkunftToeneTab  # noqa: E402
 from editor_verhalten import VerhaltenTab  # noqa: E402
 
 QUELLEN = WURZEL / "quellen"
@@ -1487,10 +1488,12 @@ class Editor(QMainWindow):
         self.animationen = AnimationenTab(self)
         self.zubehoer = ZubehoerTab(self)
         self.verhalten = VerhaltenTab(self)
+        self.herkunft = HerkunftToeneTab(self)
         self.tabs.addTab(self.bilder, "Bilder")
         self.tabs.addTab(self.animationen, "Animationen")
         self.tabs.addTab(self.zubehoer, "Zubehör")
         self.tabs.addTab(self.verhalten, "Verhalten")
+        self.tabs.addTab(self.herkunft, "Herkunft && Töne")
         mitte = QWidget()
         ml = QVBoxLayout(mitte)
         ml.addWidget(self.tabs, 1)
@@ -1525,6 +1528,7 @@ class Editor(QMainWindow):
         self.animationen.aufbauen()
         self.zubehoer.aufbauen()
         self.verhalten.aufbauen()
+        self.herkunft.aufbauen()
         self._beobachten()
 
     def _beobachten(self) -> None:
@@ -1559,6 +1563,7 @@ class Editor(QMainWindow):
             self.animationen.aufbauen()
             self.zubehoer.aufbauen()
             self.verhalten.aufbauen()
+            self.herkunft.aufbauen()
             self.geaendert()
 
     def _avatar_wechseln(self) -> None:
