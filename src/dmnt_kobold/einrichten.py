@@ -42,6 +42,8 @@ T_ZU_BUEHNE = (0.15, 0.55)
 T_ZU_DIMMEN = (0.3, 0.9)
 T_SPRUNG_START = 0.35
 T_SPRUNG = 0.85
+T_MISCHEN = 0.9                # Herkunft des alten Kobolds verwischt in die des neuen
+T_WECHSEL = 0.95               # so lange sind die Pfeile nach einem Wechsel gesperrt
 
 ABDUNKELN = QColor(10, 30, 24)
 ABDUNKELN_ALPHA = 128          # ca. 50 %
@@ -88,7 +90,22 @@ class Dienste:
     umbenannt: Callable[[str], None] = lambda name: None
     lautstaerke_geaendert: Callable[[float], None] = lambda w: None
     programme_geaendert: Callable[[], None] = lambda: None
+    # Avatar sofort wechseln (Pfeile am Sockel, Adoptieren): startet Hüpfer und Überblenden,
+    # liefert (Standardname, Herkunft) des neuen Avatars oder None, wenn er nicht ladbar ist.
+    avatar_wechseln: Callable[[str], tuple[str, Path | None] | None] = lambda aid: None
     extra: dict = field(default_factory=dict)
+
+
+def kobold_name(einstellungen, avatar_id: str, standard: str) -> str:
+    """Name, den der Nutzer diesem Kobold gegeben hat – jeder Kobold behält seinen eigenen."""
+    namen = einstellungen.get("namen") or {}
+    return namen.get(avatar_id) or standard
+
+
+def kobold_benennen(einstellungen, avatar_id: str, name: str) -> None:
+    namen = dict(einstellungen.get("namen") or {})
+    namen[avatar_id] = name
+    einstellungen["namen"] = namen
 
 
 # --- kleine Bausteine -----------------------------------------------------------
@@ -160,6 +177,40 @@ class KategorieKnopf(QPushButton):
         p.setFont(f)
         p.drawText(r.adjusted(46, 0, -10, 0), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft,
                    self.text())
+        p.end()
+
+
+class PfeilKnopf(QPushButton):
+    """Runder Milchglas-Knopf mit Linien-Pfeil neben dem Sockel: anderen Kobold holen."""
+
+    GROESSE = 46
+
+    def __init__(self, richtung: int, parent: QWidget) -> None:
+        super().__init__(parent)
+        self.richtung = richtung
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setFixedSize(QSize(self.GROESSE, self.GROESSE + 6))
+        self.setToolTip("Nächster Kobold" if richtung > 0 else "Vorheriger Kobold")
+        self.setStyleSheet("QPushButton { background: transparent; border: none; }")
+
+    def paintEvent(self, _e) -> None:  # noqa: N802
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        r = QRectF(4, 2, self.GROESSE - 8, self.GROESSE - 8)
+        hover = self.underMouse() and self.isEnabled()
+        schatten_karte_malen(p, r, radius=r.height() / 2, schatten=8,
+                             farbe=stil.AKZENT_HELL if hover else stil.FLAECHE)
+        farbe = QColor(stil.AKZENT)
+        if not self.isEnabled():
+            farbe.setAlpha(90)
+        p.setPen(QPen(farbe, 2.4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+        c = r.center()
+        d = 5.0 * self.richtung
+        pfad = QPainterPath()
+        pfad.moveTo(c + QPointF(-d * 0.6, -8))
+        pfad.lineTo(c + QPointF(d * 0.9, 0))
+        pfad.lineTo(c + QPointF(-d * 0.6, 8))
+        p.drawPath(pfad)
         p.end()
 
 
@@ -248,6 +299,14 @@ class Namensschild(QWidget):
         lay.addWidget(self.stift)
         self._anpassen()
 
+    def name_setzen(self, name: str) -> None:
+        """Anderer Kobold: sein Name aufs Schild (offenes Umbenennen wird verworfen)."""
+        self.feld.hide()
+        self.label.setText(name)
+        self.label.show()
+        self.stift.show()
+        self._anpassen()
+
     def _anpassen(self) -> None:
         self.adjustSize()
         self.setFixedWidth(max(180, self.sizeHint().width()))
@@ -309,13 +368,21 @@ class Einrichten(QWidget):
         self.fuss_y = self.mitte.y() + self.radius * 0.58          # Avatar steht hier (Sockel-Oberseite)
 
         self._herkunft = QPixmap(str(dienste.herkunft)) if dienste.herkunft else QPixmap()
+        self._herkunft_alt: QPixmap | None = None     # beim Wechsel: verwischt ins neue Bild
+        self._misch_t0: float | None = None
+        self._wechsel_bis = 0.0
+        self._adopt_liste = False                     # rechte Kachel zeigt gerade die Kobold-Liste
         self._t0 = time.monotonic()
         self._zu_t0: float | None = None
         self._sprung_gesendet = False
 
         # Teile
-        name = dienste.einstellungen.get("name") or dienste.avatar_name
+        name = kobold_name(dienste.einstellungen, dienste.aktueller_avatar, dienste.avatar_name)
         self.schild = Namensschild(name, self._umbenennen, self)
+        self.pfeile = [PfeilKnopf(-1, self), PfeilKnopf(1, self)]
+        for pf in self.pfeile:
+            pf.clicked.connect(lambda _=False, r=pf.richtung: self.wechseln(r))
+        self._mit_pfeilen = len(dienste.avatare()) > 1
         self.kategorien: dict[str, KategorieKnopf] = {}
         for schluessel, text, *_ in KATEGORIEN:
             k = KategorieKnopf(schluessel, text, self)
@@ -331,7 +398,12 @@ class Einrichten(QWidget):
             k.hide()
 
         self._effekte: list[QGraphicsOpacityEffect] = []
-        for w in [self.schild, self.fertig_knopf, *self.kategorien.values()]:
+        for pf in self.pfeile:
+            pf.hide()
+        teile = [self.schild, self.fertig_knopf, *self.kategorien.values()]
+        if self._mit_pfeilen:                       # nur ein Kobold da: keine Pfeile
+            teile += self.pfeile
+        for w in teile:
             eff = QGraphicsOpacityEffect(w)
             eff.setOpacity(0.0)
             w.setGraphicsEffect(eff)
@@ -442,21 +514,68 @@ class Einrichten(QWidget):
         pfad = QPainterPath()
         pfad.addEllipse(kreis)
         p.setClipPath(pfad)
-        if not self._herkunft.isNull():
-            pm = self._herkunft
-            s = max(kreis.width() / pm.width(), kreis.height() / pm.height())
+        misch = self._mischung()
+        if self._herkunft_alt is not None and misch < 1.0:
+            # Verwischen: der alte Hintergrund wird unscharf und blasst aus, der neue
+            # kommt unscharf herein und wird in der zweiten Hälfte scharf.
+            scharf_alt = max(0.0, 1.0 - 2 * misch)
+            scharf_neu = max(0.0, 2 * misch - 1.0)
+            zoom_alt, zoom_neu = 1.0 + 0.1 * misch, 1.1 - 0.1 * misch
+            self._herkunft_fuellen(p, self._weich_alt, kreis, a * (1 - misch), zoom_alt)
+            self._herkunft_fuellen(p, self._herkunft_alt, kreis, a * scharf_alt, zoom_alt)
+            self._herkunft_fuellen(p, self._weich_neu, kreis, a * misch, zoom_neu)
+            self._herkunft_fuellen(p, self._herkunft, kreis, a * scharf_neu, zoom_neu)
+        else:
+            self._herkunft_fuellen(p, self._herkunft, kreis, a, 1.0)
+        p.setClipping(False)
+        p.setPen(QPen(QColor(255, 255, 255, 200), 3))
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.drawEllipse(kreis)
+        p.restore()
+
+    @staticmethod
+    def _weich(pm: QPixmap) -> QPixmap:
+        """Unscharfe Fassung (klein rechnen, weich wieder hoch) – leer bleibt leer."""
+        if pm.isNull():
+            return pm
+        klein = pm.scaled(max(1, pm.width() // 14), max(1, pm.height() // 14),
+                          Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        return klein.scaled(pm.width() // 2, pm.height() // 2, Qt.AspectRatioMode.IgnoreAspectRatio,
+                            Qt.TransformationMode.SmoothTransformation)
+
+    def herkunft_wechseln(self, pfad: Path | None) -> None:
+        """Neuer Kobold: sein Hintergrund verwischt aus dem alten heraus (``T_MISCHEN``)."""
+        neu = QPixmap(str(pfad)) if pfad else QPixmap()
+        self._herkunft_alt, self._herkunft = self._herkunft, neu
+        self._weich_alt, self._weich_neu = self._weich(self._herkunft_alt), self._weich(neu)
+        self._misch_t0 = time.monotonic()
+        self.update()
+
+    def _mischung(self) -> float:
+        """0 → nur alter Hintergrund, 1 → nur neuer (Wechsel abgeschlossen)."""
+        if self._misch_t0 is None:
+            return 1.0
+        u = _glatt(0.0, T_MISCHEN, time.monotonic() - self._misch_t0)
+        if u >= 1.0:
+            self._misch_t0, self._herkunft_alt = None, None
+        return u
+
+    def _herkunft_fuellen(self, p: QPainter, pm: QPixmap, kreis: QRectF, deckkraft: float,
+                          zoom: float) -> None:
+        if deckkraft <= 0.003:
+            return
+        p.save()
+        p.setOpacity(deckkraft)
+        if not pm.isNull():
+            s = max(kreis.width() / pm.width(), kreis.height() / pm.height()) * zoom
             ziel = QRectF(0, 0, pm.width() * s, pm.height() * s)
-            ziel.moveCenter(c)
+            ziel.moveCenter(kreis.center())
             p.drawPixmap(ziel, pm, QRectF(pm.rect()))
         else:
             g = QLinearGradient(kreis.topLeft(), kreis.bottomRight())
             g.setColorAt(0, QColor(stil.AKZENT_HELL))
             g.setColorAt(1, QColor(stil.AKZENT))
             p.fillRect(kreis, QBrush(g))
-        p.setClipping(False)
-        p.setPen(QPen(QColor(255, 255, 255, 200), 3))
-        p.setBrush(Qt.BrushStyle.NoBrush)
-        p.drawEllipse(kreis)
         p.restore()
 
     def _sockel_malen(self, p: QPainter, a: float) -> None:
@@ -499,6 +618,14 @@ class Einrichten(QWidget):
         s.move(int(c.x() - s.width() / 2), int(c.y() - r - s.height() - 14))
         f = self.fertig_knopf
         f.move(int(c.x() - f.width() / 2), int(self.fuss_y + r * 0.5))
+        # Pfeile sitzen an den Enden des Sockels – nah genug, dass sie nie mit den
+        # Kategorien bei 4 und 8 Uhr kollidieren, auch bei kleinem Kreis
+        breite = self.radius * 1.15
+        mitte_sockel = self.fuss_y + breite * 0.2 * 0.35
+        for pf in self.pfeile:
+            kreis_mitte_x = 4 + (PfeilKnopf.GROESSE - 8) / 2
+            x = c.x() + pf.richtung * (breite / 2 + 4) - kreis_mitte_x
+            pf.move(int(x), int(mitte_sockel - 2 - (PfeilKnopf.GROESSE - 8) / 2))
         self._wippen(self.jetzt())
         self._kacheln_platzieren()
 
@@ -558,6 +685,8 @@ class Einrichten(QWidget):
         seite = next(si for s, _t, _u, si, *_ in KATEGORIEN if s == schluessel)
         kachel = self.kacheln[seite]
         kachel.leeren()
+        if seite == "rechts":
+            self._adopt_liste = False
         titel = next(t for s, t, *_ in KATEGORIEN if s == schluessel)
         kachel.lay.addWidget(_label(titel, "titel"))
         getattr(self, f"_kachel_{schluessel}")(kachel.lay)
@@ -802,6 +931,7 @@ class Einrichten(QWidget):
             return
         kachel = self.kacheln["rechts"]
         kachel.leeren()
+        self._adopt_liste = False
         kachel.lay.addWidget(_label("Daten laden?", "titel"))
         kachel.lay.addWidget(_label(
             f"Alle Erinnerungen, Tricks und Einstellungen werden durch „{Path(datei).name}“ ersetzt. "
@@ -827,6 +957,7 @@ class Einrichten(QWidget):
     def _adoptieren_zeigen(self) -> None:
         kachel = self.kacheln["rechts"]
         kachel.leeren()
+        self._adopt_liste = True
         kachel.lay.addWidget(_label("Anderen Kobold adoptieren", "titel"))
         for aid, name, portraet in self.d.avatare():
             bild = QLabel()
@@ -845,12 +976,41 @@ class Einrichten(QWidget):
         self._kachel_gewechselt(kachel)
 
     def _adoptieren(self, aid: str) -> None:
-        self.d.einstellungen["avatar"] = aid
-        self._neu_bauen("system")
-        self._system_meldung("Der neue Kobold zieht beim nächsten Start ein.")
+        self.avatar_wechseln_zu(aid)         # die Liste zeigt danach „Wohnt hier“ beim neuen
+
+    # --- Kobold wechseln (Pfeile am Sockel) --------------------------------------
+    def wechseln(self, richtung: int) -> None:
+        """Vorheriger (-1) oder nächster (+1) Kobold, ringsum."""
+        ids = [a[0] for a in self.d.avatare()]
+        if len(ids) < 2:
+            return
+        i = ids.index(self.d.aktueller_avatar) if self.d.aktueller_avatar in ids else -1
+        self.avatar_wechseln_zu(ids[(i + richtung) % len(ids)])
+
+    def avatar_wechseln_zu(self, aid: str) -> bool:
+        """Sofort wechseln: Avatar hüpft und blendet über, Hintergrund verwischt, Schild
+        zeigt den Namen des neuen Kobolds. Während eines Wechsels gesperrt."""
+        if aid == self.d.aktueller_avatar or self._zu_t0 is not None or time.monotonic() < self._wechsel_bis:
+            return False
+        ergebnis = self.d.avatar_wechseln(aid)
+        if ergebnis is None:
+            log.warning("Kein Wechsel zu %s (lädt nicht oder ein Wechsel läuft noch)", aid)
+            return False
+        standardname, herkunft = ergebnis
+        self._wechsel_bis = time.monotonic() + T_WECHSEL
+        self.d.aktueller_avatar, self.d.avatar_name, self.d.herkunft = aid, standardname, herkunft
+        self.herkunft_wechseln(herkunft)
+        self.schild.name_setzen(kobold_name(self.d.einstellungen, aid, standardname))
+        self.teile_platzieren()
+        if self._adopt_liste and self.offen["rechts"] == "system":   # „Wohnt hier“ wandert mit
+            self._adoptieren_zeigen()
+        elif self.offen["rechts"] == "system":
+            self._neu_bauen("system")
+        log.info("Kobold gewechselt: %s", aid)
+        return True
 
     def _umbenennen(self, name: str) -> None:
-        self.d.einstellungen["name"] = name
+        kobold_benennen(self.d.einstellungen, self.d.aktueller_avatar, name)
         self.d.umbenannt(name)
 
     def mousePressEvent(self, e) -> None:  # noqa: N802

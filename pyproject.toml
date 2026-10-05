@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dmnt-kobold"
-version = "0.6.2"
+version = "0.6.3"
 description = "Desktop-Begleiter für Windows: ein kleiner Kobold lebt auf deiner Taskleiste."
 readme = "README.md"
 license = { text = "MIT" }

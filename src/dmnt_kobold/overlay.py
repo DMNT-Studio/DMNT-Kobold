@@ -747,6 +747,9 @@ class AvatarFenster(QWidget):
             e = s * s * (3 - 2 * s)
             k.x = x0 + (x1 - x0) * e
             k.y = y0 + (y1 - y0) * e - math.sin(math.pi * s) * 24
+        elif f["art"] == "buehnenhupf":          # Hüpfer auf dem Sockel (Avatar wechseln)
+            k.x = x0 + (x1 - x0) * s
+            k.y = y0 + (y1 - y0) * s - f["hoehe"] * 4 * s * (1 - s)
         else:
             hoehe = 70 + 0.12 * abs(y1 - y0)
             k.x = x0 + (x1 - x0) * s
@@ -768,9 +771,47 @@ class AvatarFenster(QWidget):
             k.pruefe_monitore(self.monitore)    # Monitor inzwischen weg → Hauptmonitor
         else:
             self._festgehalten = True
+            if f["art"] == "buehnenhupf":
+                self._stauch_t = 0.0             # kurz stauchen, bleibt auf dem Sockel
+                self._moment("landen")
         if fertig:
             fertig()
         return []
+
+    def buehnenhupf(self, hoehe: float = 34.0, dauer: float = 0.42, fertig=None) -> None:
+        """Kleiner Hüpfer auf der Stelle, Physik bleibt aus (Einrichten-Bühne)."""
+        x, y = self.position()
+        self._fuehrung_starten("buehnenhupf", x, y, dauer, fertig)
+        self._fuehrung["hoehe"] = hoehe
+        self.toene.spielen("huepfen")
+
+    def avatar_tauschen(self, darsteller: Darsteller, lauftempo: float, zieltempo: float,
+                        werte: katalog.Werte) -> None:
+        """Anderen Avatar übernehmen, ohne Neustart. Fußpunkt und Zustand der Physik bleiben."""
+        self.darsteller = darsteller
+        self.fuss = darsteller.fuss
+        self.lauftempo = lauftempo
+        self.zieltempo = zieltempo
+        self.werte = werte
+        self.huepft = darsteller.bewegung.get("art") == "huepfen"
+        self.hocken_s = float(darsteller.bewegung.get("hocken_ms", katalog.HUEPF_STANDARD["hocken_ms"])) / 1000
+        self.setFixedSize(darsteller.fenster_b, darsteller.fenster_h)
+        self.koerper.halbe_breite = darsteller.breite / 2 - 4
+        self.koerper.hoehe = darsteller.hoehe
+        self._phase, self._freude, self._nach, self._antippen = "", None, None, False
+        self._drehung = None
+        self._partikel = []
+        self.partikel_fenster.verstecken()
+        self._innen_variante, self._innen_pos, self._innen_v = None, None, [0.0, 0.0]
+        self._innen_spur.clear()
+        self._innen_versatz = (0.0, 0.0)
+        self._animation, self._animation_t = "", 0.0       # nächster Takt wählt neu
+        self._variante = "ruhe"
+        self._masken.clear()
+        self._letzte_maske = None
+        self._platzieren()
+        self._darstellung_aktualisieren(erzwingen=True)
+        self.update()
 
     # --- Sprechblase ---------------------------------------------------------
     def _sprechblase(self, a: Ausgabe) -> None:

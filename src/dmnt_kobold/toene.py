@@ -158,6 +158,15 @@ class Toene:
         self._platz = 0
         self.lautstaerke_setzen(lautstaerke)
 
+    def avatar_setzen(self, avatar_toene: dict[str, Path] | None,
+                      koerper_toene: dict[str, KoerperTon] | None) -> None:
+        """Anderer Avatar: seine Töne übernehmen, eingebaute Klänge bleiben Rückfall."""
+        self.avatar_toene = dict(avatar_toene or {})
+        self.koerper_toene = {n: t for n, t in (koerper_toene or {}).items() if t.dateien}
+        self._dateien = {}
+        self._quellen = {}
+        self.lautstaerke_setzen(self.lautstaerke)
+
     def lautstaerke_setzen(self, lautstaerke: float) -> None:
         self.lautstaerke = max(0.0, min(1.0, lautstaerke))
         stufe = round(self.lautstaerke * 100)

@@ -230,6 +230,25 @@ class Beobachter:
         self._timer = QTimer(parent)
         self._timer.timeout.connect(self._takt)
         self._timer.start(100)
+        self._wackel_timer_anlegen(parent)
+
+    def werte_setzen(self, werte: katalog.Werte, beobachtete_programme: set[str]) -> None:
+        """Avatar gewechselt: neue Schwellen und Programme. Laufende Programme und das
+        aktive Fenster werden neu gemeldet, damit der neue Avatar darauf reagieren kann."""
+        self.werte = werte
+        self.nah_px = werte["maus_nah_px"]
+        self.weg_px = max(werte["maus_weg_px"], self.nah_px)
+        self.tipp = TippAnalyse(werte)
+        self.wackel = WackelAnalyse(werte)
+        self.audio = AudioAnalyse(werte)
+        self.beobachtete_programme = {n.lower() for n in beobachtete_programme}
+        self._laufend = set()
+        self._programm = None
+        self._nah = False
+
+    def _wackel_timer_anlegen(self, parent) -> None:
+        from PySide6.QtCore import QTimer
+
         # Wackeln braucht feinere Abtastung: 30 Hz, aber nur solange die Maus nah ist
         self._wackel_timer = QTimer(parent)
         self._wackel_timer.timeout.connect(self._wackel_takt)

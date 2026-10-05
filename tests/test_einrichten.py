@@ -58,7 +58,50 @@ def test_umbenennen_wird_gespeichert(tmp_path, qapp):
     b.schild._bearbeiten()
     b.schild.feld.setText("  Hal  ")
     b.schild._fertig()
-    assert d.einstellungen["name"] == "Hal"
+    from dmnt_kobold.einrichten import kobold_name
+    assert kobold_name(d.einstellungen, d.aktueller_avatar, "DMNT 9000") == "Hal"
+
+
+def test_pfeile_wechseln_ringsum_mit_eigenem_namen(tmp_path, qapp):
+    """Pfeile am Sockel: sofort wechseln, ringsum; jeder Kobold behält seinen Namen,
+    der Hintergrund verwischt, während eines Wechsels sind die Pfeile gesperrt."""
+    import time
+
+    from dmnt_kobold import einrichten
+    from dmnt_kobold.einrichten import kobold_benennen
+
+    b, d = buehne(tmp_path, qapp)
+    gewechselt = []
+    d.avatare = lambda: [("dmnt9000", "DMNT 9000", None), ("kiesel", "Kiesel", None), ("sulfi", "Sulfi", None)]
+    d.aktueller_avatar = "kiesel"
+    d.avatar_wechseln = lambda aid: (gewechselt.append(aid), (aid.title(), None))[1]
+    kobold_benennen(d.einstellungen, "sulfi", "Würfelchen")
+    b2 = einrichten.Einrichten(b.geometry(), d)
+    b2.show()
+    b2._t0 -= 2.0
+    b2._tick()
+    assert all(p.isVisible() for p in b2.pfeile)
+    links, rechts = b2.pfeile
+    assert links.x() < b2.mitte.x() < rechts.x()
+    rechts.click()
+    assert gewechselt == ["sulfi"] and b2.schild.label.text() == "Würfelchen"
+    assert b2._herkunft_alt is not None and b2._mischung() < 1.0          # Hintergrund verwischt
+    rechts.click()                                                         # gesperrt während des Wechsels
+    assert gewechselt == ["sulfi"]
+    b2._wechsel_bis = time.monotonic() - 1
+    rechts.click()                                                         # ringsum: nach Sulfi kommt DMNT 9000
+    assert gewechselt == ["sulfi", "dmnt9000"] and b2.schild.label.text() == "Dmnt9000"
+    b2._wechsel_bis = time.monotonic() - 1
+    links.click()
+    assert gewechselt[-1] == "sulfi"
+
+
+def test_keine_pfeile_bei_nur_einem_kobold(tmp_path, qapp):
+    b, _ = buehne(tmp_path, qapp)
+    b.show()
+    b._t0 -= 2.0
+    b._tick()
+    assert not any(p.isVisible() for p in b.pfeile)
 
 
 def test_schliessen_laeuft_durch(tmp_path, qapp):

@@ -14,7 +14,7 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-from PySide6.QtCore import QLockFile, QPoint, QRect, Qt, QTimer
+from PySide6.QtCore import QEasingCurve, QLockFile, QPoint, QRect, Qt, QTimer, QVariantAnimation
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication
 
@@ -86,7 +86,7 @@ def main() -> int:
     from .daten import Datenablage, Sicherung
     from .eigenleben import Eigenleben
     from .katalog import Werte
-    from .einrichten import Dienste, Einrichten
+    from .einrichten import Dienste, Einrichten, kobold_benennen, kobold_name
     from .erster_start import ErsterStart
     from .hotkeys import Hotkeys
     from .menue import Schalter
@@ -129,7 +129,14 @@ def main() -> int:
                   avatar_toene=avatar.toene if avatar else None,
                   koerper_toene=avatar.koerper_toene if avatar else None)
     lauftempo = avatar.lauftempo if avatar else werte["laufgeschwindigkeit"]
-    name = lambda: einstellungen.get("name") or (avatar.name if avatar else "DMNT-Kobold")  # noqa: E731
+    # Was gerade wohnt – ändert sich beim Wechsel im Einrichten (ohne Neustart)
+    aktiv: dict = {"avatar": avatar}
+    if einstellungen.get("name") and not einstellungen.get("namen"):     # alter Einzel-Name → dieser Kobold
+        kobold_benennen(einstellungen, avatar.id if avatar else "", einstellungen["name"])
+
+    def name() -> str:
+        a = aktiv["avatar"]
+        return kobold_name(einstellungen, a.id if a else "", a.name if a else "DMNT-Kobold")
 
     def beenden() -> None:
         log.info("Beenden über Menü")
@@ -151,6 +158,7 @@ def main() -> int:
         k.pruefe_monitore(fenster.monitore)
 
     persoenlichkeiten = persoenlichkeiten_laden(avatar, bus, motor, werte)
+    aktiv["persoenlichkeiten"] = persoenlichkeiten
     log.info("Verhalten: %s%s", ", ".join(type(p).__name__ for p in persoenlichkeiten),
              " (ohne Code)" if avatar is not None and avatar.ohne_code else "")
     beobachter = Beobachter(bus, fenster.kopf_mitte, os.getpid(), parent=app,
@@ -167,7 +175,7 @@ def main() -> int:
 
     def karten_punkt() -> QPoint:
         x, y = fenster.position()
-        return QPoint(int(x), int(y - darsteller.hoehe - 16))
+        return QPoint(int(x), int(y - fenster.darsteller.hoehe - 16))
     verwaltung.karten_punkt = karten_punkt
     verwaltung.alle_starten()
     sekunde = QTimer(app)
@@ -192,17 +200,94 @@ def main() -> int:
         schalter.setze_monitor_bleiben(bool(einstellungen.get("monitor_bleiben", False)))
         umbenannt(name())
 
+    # --- Kobold wechseln, ohne Neustart (Pfeile am Sockel, Adoptieren) -------------
+    wechsel: dict = {"offen": None, "animation": None}
+
+    def uebernehmen(neu_darsteller, neu) -> None:
+        """Alles, was am Avatar hängt, auf den neuen umstellen."""
+        alt = aktiv["avatar"]
+        for p in aktiv.get("persoenlichkeiten", []):
+            p.abschalten()
+        for teil in (alt.zubehoer_immer if alt else []):
+            motor.zubehoer_setzen(teil, False, "avatar")
+        w = neu.werte
+        motor.eigenleben.werte = w
+        motor.max_warten_s = w["wunsch_verfaellt_s"]
+        motor.eigenleben.zuruecksetzen()
+        toene.avatar_setzen(neu.toene, neu.koerper_toene)
+        fenster.avatar_tauschen(neu_darsteller, neu.lauftempo, w["zieltempo"], w)
+        for teil in neu.zubehoer_immer:
+            motor.zubehoer_setzen(teil, True, "avatar")
+        pers = persoenlichkeiten_laden(neu, bus, motor, w)
+        beobachter.werte_setzen(w, beobachtete_programme(pers))
+        aktiv.update(avatar=neu, persoenlichkeiten=pers)
+        neues_icon = avatar_icon(neu) or blob.icon()
+        app.setWindowIcon(neues_icon)
+        if tray is not None:
+            tray.setIcon(neues_icon)
+            tray.setToolTip(name())
+        log.info("Kobold %s wohnt jetzt hier (%s)", neu.id, ", ".join(type(p).__name__ for p in pers))
+
+    def deckkraft(von: float, bis: float, ms: int, fertig=None) -> None:
+        ani = QVariantAnimation(app)
+        ani.setStartValue(von)
+        ani.setEndValue(bis)
+        ani.setDuration(ms)
+        ani.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        ani.valueChanged.connect(lambda v: fenster.setWindowOpacity(float(v)))
+        if fertig:
+            ani.finished.connect(fertig)
+        wechsel["animation"] = ani
+        ani.start(QVariantAnimation.DeletionPolicy.DeleteWhenStopped)
+
+    def wechsel_abschliessen() -> None:
+        """Einrichten schließt mitten im Wechsel: sofort fertig machen, sichtbar bleiben."""
+        ani, wechsel["animation"] = wechsel["animation"], None
+        if ani is not None:
+            try:
+                ani.stop()
+            except RuntimeError:            # schon gelöscht
+                pass
+        offen, wechsel["offen"] = wechsel["offen"], None
+        if offen is not None:
+            uebernehmen(*offen)
+        fenster.setWindowOpacity(1.0)
+
+    def avatar_wechseln(aid: str):
+        """Hüpfer + Ausblenden, Tausch bei der Landung, Einblenden mit kleinem Hüpfer."""
+        if wechsel["offen"] is not None:
+            return None
+        neu_darsteller, neu = avatar_laden(aid)
+        if neu is None:
+            return None
+        einstellungen["avatar"] = aid
+        wechsel["offen"] = (neu_darsteller, neu)
+
+        def tauschen() -> None:
+            offen, wechsel["offen"] = wechsel["offen"], None
+            if offen is None:                # schon abgeschlossen (Einrichten zu)
+                return
+            uebernehmen(*offen)
+            fenster.buehnenhupf(hoehe=20, dauer=0.34)
+            deckkraft(0.0, 1.0, 380, lambda: wechsel.__setitem__("animation", None))
+
+        fenster.buehnenhupf(hoehe=34, dauer=0.42, fertig=tauschen)
+        deckkraft(1.0, 0.0, 380)
+        return neu.name, neu.herkunft
+
     def dienste() -> Dienste:
+        a = aktiv["avatar"]
         return Dienste(
             einstellungen=einstellungen, verwaltung=verwaltung, toene=toene, sicherung=sicherung,
-            version=__version__, avatar_name=avatar.name if avatar else "DMNT-Kobold",
-            herkunft=avatar.herkunft if avatar else None,
+            version=__version__, avatar_name=a.name if a else "DMNT-Kobold",
+            herkunft=a.herkunft if a else None,
             autostart_an=autostart.ist_an, autostart_setzen=autostart.setzen,
             zuletzt_programme=lambda: [p for p in beobachter.zuletzt if p not in SYSTEM_PROGRAMME],
-            avatare=avatar_liste, aktueller_avatar=avatar.id if avatar else "",
+            avatare=avatar_liste, aktueller_avatar=a.id if a else "",
             nach_import=nach_import, umbenannt=umbenannt,
             lautstaerke_geaendert=toene.lautstaerke_setzen,
             programme_geaendert=programme_uebernehmen,
+            avatar_wechseln=avatar_wechseln,
         )
 
     def einrichten_oeffnen() -> None:
@@ -229,6 +314,7 @@ def main() -> int:
         log.info("Einrichten auf")
 
         def zurueck() -> None:
+            wechsel_abschliessen()
             fenster.springen_nach(x, y, 0.85)
 
         def zu() -> None:
