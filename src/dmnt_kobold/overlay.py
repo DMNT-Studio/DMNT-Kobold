@@ -38,7 +38,7 @@ from .bus import EventBus
 from .menue import Schalter, baue_menue
 from .monitore import Monitor, lese_monitore, monitor_bei, monitor_unter_fuss
 from .motor import Ausgabe, Verhaltensmotor
-from .physik import FAELLT, GEDREHT, GELANDET, GERETTET, GEZOGEN, STEHT, Koerper
+from .physik import FAELLT, GEDREHT, GELANDET, GERETTET, GEZOGEN, STEHT, Koerper, nachhupf
 from .sprechblase import Sprechblase
 from .toene import Toene
 
@@ -256,6 +256,9 @@ class AvatarFenster(QWidget):
         self._pause_s = 0.0
         self._hupf_weite = 0.0
         self._freude: dict | None = None     # {"wid", "rest", "phi"} – freuen_huepfend
+        self._nach: dict | None = None       # {"h0", "verh", "stufe"} – Nachfedern wie ein Ball
+        self._hupf_letzt = (0.0, 0.0)        # (Höhe, Weite) des letzten Hüpfers
+        self._lande_art = ""                 # hupf | nachhupf | fall – letzte Landung
         self._drehung: float | None = None
         self._partikel: list[dict] = []
         self.partikel_fenster = PartikelFenster()
@@ -339,8 +342,11 @@ class AvatarFenster(QWidget):
         if GELANDET in ereignisse:
             if not self.huepft:
                 self._stauch_t = 0.0
-            self._moment("landen")
             art, hoehe = k.landung
+            if art == "nachhupf" and self._nach is not None:   # kleinere Spritzer, höherer Ton
+                self._moment("landen", staerke=self._nach["verh"], hoeher=0.05 * self._nach["stufe"])
+            else:
+                self._moment("landen")
             self.bus.senden("avatar.gelandet", art=art, fallhoehe_px=round(hoehe))
         if GERETTET in ereignisse:
             log.info("Avatar ins Nichts gefallen → Hauptmonitor")
@@ -458,16 +464,16 @@ class AvatarFenster(QWidget):
             self._freude = None
 
         if k.zustand == GEZOGEN:
-            self._phase, self._freude, self._antippen = "", None, False
+            self._phase, self._freude, self._antippen, self._nach = "", None, False, None
             return []
         if self._gedrueckt and self._phase in ("", "hocken", "pause"):   # Maus drückt: stillhalten
             self._phase = ""
             return k.schritt(dt, self.monitore)
         if k.zustand == FAELLT and not k.hupf_flug:          # geworfen oder heruntergefallen
-            self._phase = ""
+            self._phase, self._nach = "", None
             ereignisse = k.schritt(dt, self.monitore)
             if GELANDET in ereignisse:
-                self._phase, self._phase_t = "landen", 0.0
+                self._phase, self._phase_t, self._lande_art = "landen", 0.0, "fall"
             return ereignisse
 
         self._phase_t += dt
@@ -487,14 +493,17 @@ class AvatarFenster(QWidget):
         elif phase == "hocken":
             if self._phase_t >= self.hocken_s:
                 weite, ereignisse = k.hupf_weite(self._hupf_weite, self.monitore, self.schalter.monitor_bleiben)
-                k.hupf_ab(weite, float(self.werte["sprunghoehe_px"]))
+                hoehe = float(self.werte["sprunghoehe_px"])
+                k.hupf_ab(weite, hoehe)
+                self._hupf_letzt, self._nach = (hoehe, weite), None
                 self._phase, self._phase_t = "absprung", 0.0
                 if self._freude is not None:
                     self._freude["rest"] -= 1
             else:
                 ereignisse = k.schritt(dt, self.monitore)
         elif phase in ("absprung", "flug"):
-            if phase == "absprung" and self._phase_t >= katalog.ABSPRUNG_S:
+            absprung_s = katalog.NACH_ABSPRUNG_S if self._nach is not None else katalog.ABSPRUNG_S
+            if phase == "absprung" and self._phase_t >= absprung_s:
                 self._phase = "flug"
             ereignisse = k.schritt(dt, self.monitore)
             if self._freude is not None:      # eine volle Drehung, verteilt auf die Flüge
@@ -503,13 +512,20 @@ class AvatarFenster(QWidget):
                 self._freude["phi"] = min(bis, self._freude["phi"] + schritt * dt)
             if GELANDET in ereignisse:
                 self._phase, self._phase_t = "landen", 0.0
+                if self._nach is not None and k.landung[0] == "hupf":
+                    k.landung = ("nachhupf", k.landung[1])
+                self._lande_art = k.landung[0]
                 if self._freude is not None:
                     self._freude["phi"] = 360 * (FREUDE_HUEPFER - self._freude["rest"]) / FREUDE_HUEPFER
             elif k.zustand == STEHT:          # Flug abgebrochen (z. B. Monitor weg)
                 self._phase = ""
         elif phase == "landen":
-            if self._phase_t >= katalog.LANDEN_S:
-                self._phase, self._phase_t = "pause", 0.0
+            landen_s = katalog.NACH_LANDEN_S if self._nach is not None else katalog.LANDEN_S
+            if self._phase_t >= landen_s:
+                nach = self._nachfedern(a)
+                if nach is not None:                  # federt direkt wieder ab, ohne Hocken
+                    return nach
+                self._phase, self._phase_t, self._nach = "pause", 0.0, None
                 if self._freude is not None:
                     self._pause_s = FREUDE_PAUSE_S
                 else:
@@ -518,23 +534,63 @@ class AvatarFenster(QWidget):
             ereignisse = k.schritt(dt, self.monitore)
         return ereignisse
 
+    def _nachfedern(self, a: Ausgabe) -> list[str] | None:
+        """Nach einer Hüpf-Landung wie ein Ball nachfedern (Wert ``nachhuepfen``).
+        Startet den nächsten, kleineren Nachhüpfer → Ereignisse, sonst None = Ende.
+        Nur nach Hüpfern (nicht nach Fällen), in Ketten nur nach dem letzten Hüpfer."""
+        k = self.koerper
+        faktor = float(self.werte["nachhuepfen"])
+        if faktor <= 0 or self._lande_art not in ("hupf", "nachhupf") or k.zustand != STEHT \
+                or self._gedrueckt or self._menue_offen:
+            return None
+        if self._freude is not None and self._freude["rest"] > 0:      # Kette geht weiter
+            return None
+        ziel_x = self._ziel_x(a.ziel) if a.ziel is not None else None
+        if self._freude is None and ziel_x is not None and abs(ziel_x - k.x) > 4:
+            return None
+        schon = self._nach["stufe"] if self._nach is not None else 0
+        hoehe, weite = self._hupf_letzt
+        naechster = nachhupf(hoehe, weite, faktor, schon)
+        if naechster is None:
+            return None
+        h, w = naechster
+        if a.ziel is not None:            # am Ziel: senkrecht nachfedern, nicht drüber hinaus
+            w = 0.0
+        w, ereignisse = k.hupf_weite(w, self.monitore, self.schalter.monitor_bleiben)
+        k.hupf_ab(w, h)
+        h0 = self._nach["h0"] if self._nach is not None else hoehe
+        self._hupf_letzt = (h, w)
+        self._nach = {"h0": h0, "verh": h / h0 if h0 > 0 else 0.0, "stufe": schon + 1}
+        self._phase, self._phase_t = "absprung", 0.0
+        return ereignisse
+
     # --- Momente: Partikel und Körper-Töne --------------------------------------
-    def _moment(self, name: str, ton: bool = True) -> None:
-        if ton:
+    def _moment(self, name: str, ton: bool = True, staerke: float = 1.0, hoeher: float = 0.0) -> None:
+        """Partikel und Körper-Ton eines Moments. ``staerke`` < 1 (Nachhüpfer): weniger und
+        kürzere Spritzer, unter ``katalog.NACH_TON_AB`` kein Ton; ``hoeher`` hebt die Tonhöhe."""
+        if ton and staerke >= katalog.NACH_TON_AB:
             if name == "landen":
-                self.toene.spielen("landen")
+                if hoeher:
+                    self.toene.spielen("landen", hoeher=hoeher)
+                else:
+                    self.toene.spielen("landen")
             else:
                 self.toene.moment(name)
         d = self.darsteller.partikel.get(name)
         if not d:
             return
+        anzahl = self._rng.randint(int(d["anzahl"][0]), int(d["anzahl"][1]))
+        if staerke < 1.0:
+            anzahl = round(anzahl * staerke)
+            if anzahl < 2:
+                return
         k = self.koerper
         unten = name in ("landen", "hocken", "absprung")
         y0 = k.y if unten else k.y - self.darsteller.hoehe * 0.5
         dauer = max(0.05, float(d["dauer_ms"]) / 1000)
-        weite = float(d["reichweite_px"])
+        weite = float(d["reichweite_px"]) * min(1.0, staerke)
         farbe = QColor(d["farbe"])
-        for _ in range(self._rng.randint(int(d["anzahl"][0]), int(d["anzahl"][1]))):
+        for _ in range(anzahl):
             seite = self._rng.choice((-1, 1))
             self._partikel.append({
                 "x": k.x + seite * self._rng.uniform(0.1, 0.4) * self.darsteller.breite / 2, "y": y0 - 1,
@@ -666,7 +722,7 @@ class AvatarFenster(QWidget):
             k.richtung = 1 if x > k.x else -1
         self._gedrueckt = False
         self._stauch_t = -1.0
-        self._phase, self._freude = "", None
+        self._phase, self._freude, self._nach, self._lande_art = "", None, None, ""
         self._fuehrung = {"art": art, "von": (k.x, k.y), "nach": (x, y), "t": 0.0,
                           "dauer": max(0.05, dauer), "fertig": fertig}
         self._takt.setInterval(TAKT_SCHNELL_MS)
@@ -738,7 +794,20 @@ class AvatarFenster(QWidget):
         sprite = self.darsteller.animiert_sich_selbst
         if sprite and self._animation == "laufen":
             sx, sy = 1.0, 1.0                  # die Frames laufen selbst
-        if self.huepft and self._phase in HUEPF_PHASEN:
+        if self.huepft and self._phase in HUEPF_PHASEN and self._nach is not None:
+            # Nachhüpfer: schwächer gestaucht/gestreckt; Absprung direkt aus dem Stand ins Strecken
+            b = self.darsteller.bewegung
+            if self._phase == "absprung":
+                u = min(1.0, self._phase_t / katalog.NACH_ABSPRUNG_S)
+                sx, sy = huepf_form("flug", FLUG_ENTSPANNEN_S * (1 - u), b, self.hocken_s)
+            elif self._phase == "landen":
+                sx, sy = huepf_form("landen", self._phase_t * katalog.LANDEN_S / katalog.NACH_LANDEN_S,
+                                    b, self.hocken_s)
+            else:
+                sx, sy = huepf_form(self._phase, self._phase_t, b, self.hocken_s)
+            s = self._nach["verh"]
+            sx, sy = 1 + (sx - 1) * s, 1 + (sy - 1) * s
+        elif self.huepft and self._phase in HUEPF_PHASEN:
             sx, sy = huepf_form(self._phase, self._phase_t, self.darsteller.bewegung, self.hocken_s)
         elif self._stauch_t >= 0:
             s = math.sin(math.pi * self._stauch_t / STAUCH_DAUER)

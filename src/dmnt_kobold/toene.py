@@ -191,7 +191,7 @@ class Toene:
             self._quellen[pfad] = (werte, rate, hashlib.md5(pfad.read_bytes()).hexdigest()[:10])
         return self._quellen[pfad]
 
-    def koerper_datei(self, name: str) -> Path | None:
+    def koerper_datei(self, name: str, hoeher: float = 0.0) -> Path | None:
         """Eine Auslösung eines Körper-Tons als WAV: zufällige Datei(en), gestreute
         Tonhöhe, Wiederholungen. Einzelne Fassungen liegen im Cache."""
         t = self.koerper_toene.get(name)
@@ -206,6 +206,8 @@ class Toene:
         for _ in range(anzahl):
             werte, rate, kennung = self._quelle(self.rng.choice(t.dateien))
             faktor = self.tonhoehe(name)
+            if hoeher:                           # z. B. Nachhüpfer: je Stufe etwas höher
+                faktor = round(round(faktor * (1 + hoeher) / TONHOEHE_STUFE) * TONHOEHE_STUFE, 2)
             pfad = self.ordner / f"koerper_{kennung}_{stufe}_{round(faktor * 100)}.wav"
             if not pfad.exists():
                 schreibe_wav(pfad, resampeln(werte, faktor, self.lautstaerke).tobytes(), rate)
@@ -228,13 +230,13 @@ class Toene:
         if name in self.koerper_toene:
             self.spielen(name)
 
-    def spielen(self, name: str) -> None:
+    def spielen(self, name: str, hoeher: float = 0.0) -> None:
         if self.stumm or self.lautstaerke <= 0 or sys.platform != "win32":
             return
         pfad = None
         if name in self.koerper_toene:
             try:
-                pfad = self.koerper_datei(name)
+                pfad = self.koerper_datei(name, hoeher)
             except (OSError, wave.Error, EOFError, struct.error):
                 log.exception("Körper-Ton %s konnte nicht erzeugt werden", name)
         pfad = pfad or self._dateien.get(name)

@@ -27,6 +27,20 @@ MAX_WURF = 2200.0         # px/s, Deckel für Wurfgeschwindigkeit
 HUEPFER = -520.0          # px/s, Anfangsgeschwindigkeit Hüpfer
 ABPRALL = 0.5             # Anteil der Geschwindigkeit nach Abprall
 RETTUNG_UNTER = 400.0     # px unter dem virtuellen Desktop → Rettung
+NACHHUPF_MIN_PX = 3.0     # niedrigere Nachhüpfer entfallen
+NACHHUPF_MAX = 4          # höchstens so viele Nachhüpfer nach einer Landung
+
+
+def nachhupf(hoehe: float, weite: float, faktor: float, schon: int) -> tuple[float, float] | None:
+    """Nächster Nachhüpfer beim Nachfedern wie ein Ball → (Höhe, Weite) oder None = Ende.
+    Höhe × Faktor; die Weite schrumpft mit √Faktor (gleiche Horizontalgeschwindigkeit,
+    kürzere Flugzeit). ``schon`` = bisherige Nachhüpfer nach dieser Landung."""
+    if faktor <= 0 or schon >= NACHHUPF_MAX:
+        return None
+    h = hoehe * faktor
+    if h < NACHHUPF_MIN_PX:
+        return None
+    return h, max(0.0, weite) * math.sqrt(faktor)
 
 # Zustände
 STEHT = "steht"

@@ -156,8 +156,9 @@ EREIGNISSE: tuple[EreignisDef, ...] = (
     EreignisDef("avatar.gezogen", "Der Avatar wird mit der Maus gepackt."),
     EreignisDef("avatar.losgelassen", "Der Avatar wird losgelassen oder geworfen.", daten=("vx", "vy")),
     EreignisDef("avatar.gelandet", "Der Avatar landet nach einem Hüpfer, Fall oder Sprung.",
-                bedingungen=(Param("art", "auswahl", "Nur nach einem Hüpfer (hupf) oder nach einem Fall (fall).",
-                                   feld="art", auswahl=("hupf", "fall")),
+                bedingungen=(Param("art", "auswahl", "Nur nach einem Hüpfer (hupf), einem Nachhüpfer beim "
+                                   "Nachfedern (nachhupf) oder nach einem Fall (fall).",
+                                   feld="art", auswahl=("hupf", "fall", "nachhupf")),
                              Param("fallhoehe_px", "zahl", "Nur ab dieser Fallhöhe (Pixel vom höchsten Punkt bis "
                                    "zur Landung).", feld="fallhoehe_px", vergleich="ab")),
                 daten=("art", "fallhoehe_px")),
@@ -288,6 +289,8 @@ WERTE: tuple[WertDef, ...] = (
     WertDef("sprunghoehe_px", "So hoch hüpft er.", "px", 26, 4, 200, "Hüpfen"),
     WertDef("hupf_pause_min_s", "Pause zwischen zwei Hüpfern: mindestens …", "s", 0.8, 0, 10, "Hüpfen"),
     WertDef("hupf_pause_max_s", "… höchstens.", "s", 1.6, 0, 10, "Hüpfen"),
+    WertDef("nachhuepfen", "Nachfedern nach einer Hüpf-Landung wie ein Ball: Jeder Nachhüpfer ist so viel "
+            "mal so hoch wie der vorige (höchstens 4, Ende unter 3 px). 0 = aus.", "", 0.0, 0.0, 0.8, "Hüpfen"),
     # Motor
     WertDef("wunsch_verfaellt_s", "Nicht begonnene Wünsche verfallen nach dieser Zeit (keine veralteten "
             "Reaktionen).", "s", 10.0, 1, 120, "Motor"),
@@ -602,6 +605,9 @@ HUEPF_STANDARD = {"hocken_ms": 260, "stauchen": {"breite": 1.18, "hoehe": 0.78},
                   "strecken": {"breite": 0.88, "hoehe": 1.16}}
 ABSPRUNG_S = 0.08
 LANDEN_S = 0.14
+NACH_ABSPRUNG_S = 0.06       # Nachhüpfer: federt direkt ab, ohne Hocken
+NACH_LANDEN_S = 0.10
+NACH_TON_AB = 0.4            # Nachhüpfer unter diesem Höhenverhältnis landen still
 DREHUNG_S = 0.7                 # ein Umlauf der Pseudo-Drehung
 PARTIKEL_FORMEN = ("quadrat", "tropfen")
 PARTIKEL_STANDARD = {"farbe": "#FFFFFF", "deckkraft": 0.6, "anzahl": [6, 10], "groesse_px": [3, 4],
