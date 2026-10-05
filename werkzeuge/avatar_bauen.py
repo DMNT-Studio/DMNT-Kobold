@@ -444,7 +444,7 @@ def bauen(quelle: Path) -> Path:
 #                   "posen": {"seite:0": {"x": 1.5, "y": -98, "breite": 74, "winkel": 0,
 #                                          "hinten": false, "aus": false}}}}
 # x/y = Mitte des Zubehörs relativ zum Fußpunkt (logische Pixel), breite in logischen
-# Pixeln, winkel in Grad. Posen ohne Eintrag bekommen eine Standard-Platzierung aus
+# Pixeln, winkel in Grad, hoehe in Prozent der natürlichen Höhe (Quetschen/Strecken). Posen ohne Eintrag bekommen eine Standard-Platzierung aus
 # dem Kopf (``sitz``: "ueber_kopf" wie Kopfhörer, "auf_kopf" wie ein Hut).
 
 ZUBEHOER_MAX_BREITE = 480
@@ -521,7 +521,8 @@ def platzierung(info: dict, z: dict, schluessel: str, kopf_rel: dict) -> dict:
 
 def platzierung_liste(p: dict) -> list:
     return [round(float(p["x"]), 1), round(float(p["y"]), 1), round(float(p["breite"]), 1),
-            round(float(p.get("winkel", 0)), 1), int(bool(p.get("hinten"))), int(bool(p.get("aus")))]
+            round(float(p.get("winkel", 0)), 1), int(bool(p.get("hinten"))), int(bool(p.get("aus"))),
+            round(float(p.get("hoehe", 100)), 1)]
 
 
 def vorschau_schreiben(plan, skaliert, anker, ax, ay, breite_px, hoehe_px, s, kopf_rel, zplan, zinfo) -> None:

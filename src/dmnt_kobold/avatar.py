@@ -283,11 +283,11 @@ class SpriteDarsteller(Darsteller):
         ax, ay = self.avatar.anker
         for teil in sorted(teile):
             werte = a.zubehoer[teil]
-            x, y, b, winkel, hinten, aus = (werte[min(i, len(werte) - 1)] + [0, 0, 0])[:6]
+            x, y, b, winkel, hinten, aus, hoehe = (list(werte[min(i, len(werte) - 1)]) + [0, 0, 0, 100])[:7]
             if aus or bool(hinten) == vorne:
                 continue
             pm = self.avatar.zubehoer_bilder[teil]
-            h = b * pm.height() / pm.width()
+            h = b * pm.height() / pm.width() * (hoehe or 100) / 100
             p.save()
             p.translate(ax + x, ay + y)
             if winkel:

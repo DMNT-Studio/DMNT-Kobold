@@ -27,6 +27,30 @@
         "winkel": 0.0,
         "x": 0.0,
         "y": -93.4
+      },
+      "daumen:1": {
+        "x": -0.1,
+        "y": -97.4,
+        "breite": 32.6,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "daumen:2": {
+        "aus": false,
+        "breite": 32.7,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": 0.0,
+        "y": -93.1
+      },
+      "seite:0": {
+        "aus": false,
+        "breite": 29.7,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": -1.3,
+        "y": -99.0
       }
     }
   },

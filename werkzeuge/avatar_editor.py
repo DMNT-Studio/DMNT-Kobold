@@ -693,11 +693,12 @@ class PlatzierungsAnsicht(QWidget):
             p.drawLine(a, QPointF(a.x() + kb * z, a.y()))
         if self.p is not None:
             p.setPen(QColor(230, 235, 232))
-            p.drawText(10, 20, f"x {self.p['x']:.1f}   y {self.p['y']:.1f}   Breite {self.p['breite']:.1f}"
+            p.drawText(10, 20, f"x {self.p['x']:.1f}   y {self.p['y']:.1f}   Breite {self.p['breite']:.1f}   Höhe {self.p.get('hoehe', 100):.0f} %"
                                f"   Drehung {self.p.get('winkel', 0):.0f}°"
                                + ("   (hinter dem Körper)" if self.p.get("hinten") else "")
                                + ("   AUSGEBLENDET" if self.p.get("aus") else ""))
-            p.drawText(10, self.height() - 12, "Ziehen = verschieben · Mausrad = Größe · Umschalt+Mausrad = drehen")
+            p.drawText(10, self.height() - 12, "Ziehen = verschieben · Mausrad = Größe · Strg+Mausrad = nur Breite"
+                                               " · Alt+Mausrad = nur Höhe · Umschalt+Mausrad = drehen")
         p.end()
 
     def _teil(self, p: QPainter, bild: QPixmap, d: dict, z: float, deckkraft: float) -> None:
@@ -705,7 +706,7 @@ class PlatzierungsAnsicht(QWidget):
             deckkraft *= 0.25
         mitte = self._ins_bild(d["x"], d["y"])
         b = d["breite"] * z
-        h = b * bild.height() / bild.width()
+        h = b * bild.height() / bild.width() * d.get("hoehe", 100) / 100
         p.save()
         p.setOpacity(deckkraft)
         p.translate(mitte)
@@ -734,10 +735,17 @@ class PlatzierungsAnsicht(QWidget):
     def wheelEvent(self, e) -> None:  # noqa: N802
         if self.p is None:
             return
-        stufen = e.angleDelta().y() / 120
-        if e.modifiers() & Qt.KeyboardModifier.ShiftModifier:
-            stufen = (e.angleDelta().y() or e.angleDelta().x()) / 120
+        stufen = (e.angleDelta().y() or e.angleDelta().x()) / 120
+        mod = e.modifiers()
+        if mod & Qt.KeyboardModifier.ShiftModifier:
             self.p["winkel"] = round(self.p.get("winkel", 0) + 3 * stufen, 1)
+        elif mod & Qt.KeyboardModifier.ControlModifier:      # nur Breite (seitlich quetschen)
+            alt = self.p["breite"]
+            neu = max(3.0, alt * (1.04 ** stufen))
+            self.p["breite"] = round(neu, 1)
+            self.p["hoehe"] = round(self.p.get("hoehe", 100) * alt / neu, 1)   # Höhe bleibt gleich
+        elif mod & Qt.KeyboardModifier.AltModifier:          # nur Höhe (oben quetschen)
+            self.p["hoehe"] = round(max(10.0, self.p.get("hoehe", 100) * (1.04 ** stufen)), 1)
         else:
             self.p["breite"] = round(max(5.0, self.p["breite"] * (1.04 ** stufen)), 1)
         self.update()
@@ -838,9 +846,9 @@ class ZubehoerTab(QWidget):
         rl.addWidget(self.ansicht, 1)
         werte = QHBoxLayout()
         self.felder = {}
-        for name, lo, hi, schritt in (("x", -200, 200, 0.5), ("y", -300, 50, 0.5), ("breite", 5, 300, 1),
-                                      ("winkel", -180, 180, 1)):
-            werte.addWidget(QLabel(name))
+        for name, lo, hi, schritt in (("x", -200, 200, 0.5), ("y", -300, 50, 0.5), ("breite", 3, 300, 1),
+                                      ("hoehe", 10, 400, 5), ("winkel", -180, 180, 1)):
+            werte.addWidget(QLabel({"hoehe": "höhe %"}.get(name, name)))
             f = QDoubleSpinBox()
             f.setRange(lo, hi)
             f.setSingleStep(schritt)
@@ -956,7 +964,7 @@ class ZubehoerTab(QWidget):
         for name, f in self.felder.items():
             f.setEnabled(p is not None)
             if p is not None:
-                f.setValue(float(p.get(name, 0)))
+                f.setValue(float(p.get(name, 100 if name == "hoehe" else 0)))
         self.hinten.setChecked(bool(p and p.get("hinten")))
         self.aus.setChecked(bool(p and p.get("aus")))
         self._laed = False
@@ -1012,6 +1020,7 @@ class ZubehoerTab(QWidget):
         f = kn / kv
         return {"x": sn["x"] + (quelle["x"] - sv["x"]) * f, "y": sn["y"] + (quelle["y"] - sv["y"]) * f,
                 "breite": sn["breite"] * quelle["breite"] / sv["breite"], "winkel": quelle.get("winkel", 0),
+                "hoehe": quelle.get("hoehe", 100),
                 "hinten": quelle.get("hinten", False), "aus": False}
 
     def _auf_alle(self) -> None:
