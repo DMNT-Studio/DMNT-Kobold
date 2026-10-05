@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   tests:
@@ -18,4 +19,7 @@ jobs:
       - name: Tests
         env:
           QT_QPA_PLATFORM: offscreen
-        run: python -m pytest -q
+        run: python -m pytest -q -rf --junitxml=build/tests.xml
+      - name: Fehler sichtbar machen
+        if: failure()
+        run: python packaging/ci_fehler.py build/tests.xml
