@@ -36,6 +36,10 @@
     "sprung": {
       "datei": "sprung.png",
       "bilder": 1
+    },
+    "fallen": {
+      "datei": "fallen.png",
+      "bilder": 1
     }
   },
   "referenz": [
@@ -214,12 +218,17 @@
       ]
     },
     "fallen": {
-      "fps": 10,
+      "fps": 8,
       "bilder": [
         [
-          "sprung",
+          "fallen",
           0,
           "grell"
+        ],
+        [
+          "fallen",
+          0,
+          "hell"
         ]
       ]
     },
