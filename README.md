@@ -44,7 +44,9 @@ Zum Ausprobieren: `$env:DMNT_KOBOLD_SCHNELLTEST="1"` verkürzt die Wartezeiten,
 
 - **Exklusives Vollbild:** Über Spielen im exklusiven Vollbild kann Windows kein Overlay
   zeigen. Im Fenster- oder Borderless-Modus ist der Kobold sichtbar.
-- Daten: Logs liegen in `%APPDATA%\DMNT-Kobold\logs\`. Es werden keine Eingaben protokolliert.
+- Daten: alles liegt in `Dokumente\DMNT-Kobold\` (daten, module, sicherungen, logs, cache). Jede Änderung wird sofort atomar geschrieben, täglich entsteht eine ZIP-Sicherung (7 Stück). Es werden keine Eingaben protokolliert.
+- Tricks: „Erinnern“ (Strg+Alt+E oder Rechtsklick) und „Pausen anmahnen“. Fremde Tricks laufen erst nach Zustimmung; die Zustimmung gilt für eine Prüfsumme und wird bei Änderungen erneut abgefragt.
+- Einrichten: Klick auf den Kobold – Tricks, Lautstärke, Programme (Eingaben ignorieren), System (Autostart, Daten sichern/laden).
 - Fehlersuche Durchklicken: Umgebungsvariable `DMNT_KOBOLD_OHNE_MASKE=1` schaltet die
   Fenstermaske ab.
 

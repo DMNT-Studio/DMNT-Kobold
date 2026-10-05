@@ -115,7 +115,16 @@ class AvatarFenster(QWidget):
         self.blase.weggeklickt.connect(self.motor.sprechblase_geschlossen)
         self._blase_id: int | None = None
 
-        self.menue = baue_menue(schalter, beim_beenden, self)
+        # Einrichten: von außen gesetzt (app.py)
+        self.beim_einrichten = None          # Klick auf den Avatar / Menü → Einrichten
+        self.menue_eintraege = lambda: []    # Einträge der Tricks fürs Rechtsklick-Menü
+        self.einrichten_aktiv = False
+        self._fuehrung: dict | None = None   # Schweben/Springen statt Physik
+        self._festgehalten = False
+
+        self.menue = baue_menue(schalter, beim_beenden, self,
+                                beim_einrichten=lambda: self.beim_einrichten and self.beim_einrichten(),
+                                eintraege=lambda: self.menue_eintraege())
         self.menue.aboutToHide.connect(self._menue_zu)
         self._menue_offen = False
         schalter.nicht_stoeren_geaendert.connect(self._nicht_stoeren)
@@ -183,21 +192,25 @@ class AvatarFenster(QWidget):
         for ton in a.toene:
             self.toene.spielen(ton)
 
-        # Bewegungsentscheidung (Nutzer-Eingriff hat Vorrang)
-        frei = k.zustand == STEHT and not self._gedrueckt and not self._menue_offen
         laufen = False
-        k.tempo = self.lauftempo
-        if frei and a.ziel is not None:
-            ziel_x = self._ziel_x(a.ziel)
-            if ziel_x is not None and abs(ziel_x - k.x) > 4:
+        if self._fuehrung is not None:
+            ereignisse = self._fuehrung_schritt(dt)
+        elif self._festgehalten:
+            ereignisse = []
+        else:
+            # Bewegungsentscheidung (Nutzer-Eingriff hat Vorrang)
+            frei = k.zustand == STEHT and not self._gedrueckt and not self._menue_offen
+            k.tempo = self.lauftempo
+            if frei and a.ziel is not None:
+                ziel_x = self._ziel_x(a.ziel)
+                if ziel_x is not None and abs(ziel_x - k.x) > 4:
+                    laufen = True
+                    k.richtung = 1 if ziel_x > k.x else -1
+                    k.tempo = ZIELTEMPO
+            elif frei and a.laufen and not self.schalter.nicht_stoeren:
                 laufen = True
-                k.richtung = 1 if ziel_x > k.x else -1
-                k.tempo = ZIELTEMPO
-        elif frei and a.laufen and not self.schalter.nicht_stoeren:
-            laufen = True
-            k.richtung = a.richtung
-
-        ereignisse = k.schritt(dt, self.monitore, laufen, self.schalter.monitor_bleiben)
+                k.richtung = a.richtung
+            ereignisse = k.schritt(dt, self.monitore, laufen, self.schalter.monitor_bleiben)
         if GEDREHT in ereignisse:
             self.motor.eigenleben.richtung = k.richtung
         if GELANDET in ereignisse:
@@ -212,6 +225,8 @@ class AvatarFenster(QWidget):
             animation = "gezogen"
         elif k.zustand == FAELLT:
             animation = "fallen"
+        elif self._fuehrung is not None:
+            animation = "schweben" if self._fuehrung["art"] == "schweben" else "springen"
         elif laufen:
             animation = "laufen"
         else:
@@ -246,7 +261,7 @@ class AvatarFenster(QWidget):
         self._darstellung_aktualisieren()
         self._sprechblase(a)
 
-        if k.in_bewegung or self._stauch_t >= 0 or self._gedrueckt:
+        if k.in_bewegung or self._stauch_t >= 0 or self._gedrueckt or self._fuehrung is not None:
             soll = TAKT_SCHNELL_MS
         elif animation in BEWEGTE_ANIMATIONEN:
             soll = TAKT_MITTEL_MS
@@ -286,6 +301,63 @@ class AvatarFenster(QWidget):
             win32.ganz_nach_vorne(int(self.winId()))
             if self.blase.isVisible():
                 win32.ganz_nach_vorne(int(self.blase.winId()))
+
+    # --- Einrichten: geführte Bewegung ------------------------------------------
+    def position(self) -> tuple[float, float]:
+        return self.koerper.x, self.koerper.y
+
+    def schweben_nach(self, x: float, y: float, dauer: float = 1.0, fertig=None) -> None:
+        """Schwebt (Physik aus) zum Fußpunkt (x, y) und bleibt dort, bis ``loslassen_nach``."""
+        self._fuehrung_starten("schweben", x, y, dauer, fertig)
+
+    def springen_nach(self, x: float, y: float, dauer: float = 0.85, fertig=None) -> None:
+        """Sprung im Bogen zum Fußpunkt (x, y), dort landen (Stauchen), Physik wieder an."""
+        self._fuehrung_starten("springen", x, y, dauer, fertig)
+        self.toene.spielen("huepfen")
+
+    def _fuehrung_starten(self, art: str, x: float, y: float, dauer: float, fertig) -> None:
+        k = self.koerper
+        k.zustand = STEHT
+        k.vx = k.vy = 0.0
+        if abs(x - k.x) > 4:
+            k.richtung = 1 if x > k.x else -1
+        self._gedrueckt = False
+        self._stauch_t = -1.0
+        self._fuehrung = {"art": art, "von": (k.x, k.y), "nach": (x, y), "t": 0.0,
+                          "dauer": max(0.05, dauer), "fertig": fertig}
+        self._takt.setInterval(TAKT_SCHNELL_MS)
+
+    def _fuehrung_schritt(self, dt: float) -> list[str]:
+        f = self._fuehrung
+        k = self.koerper
+        f["t"] += dt
+        s = min(1.0, f["t"] / f["dauer"])
+        (x0, y0), (x1, y1) = f["von"], f["nach"]
+        if f["art"] == "schweben":
+            e = s * s * (3 - 2 * s)
+            k.x = x0 + (x1 - x0) * e
+            k.y = y0 + (y1 - y0) * e - math.sin(math.pi * s) * 24
+        else:
+            hoehe = 70 + 0.12 * abs(y1 - y0)
+            k.x = x0 + (x1 - x0) * s
+            k.y = y0 + (y1 - y0) * s * s - hoehe * 4 * s * (1 - s) * (1 - 0.35 * s)
+        k.vx = k.vy = 0.0
+        if s < 1.0:
+            return []
+        self._fuehrung = None
+        fertig = f["fertig"]
+        if f["art"] == "springen":
+            self._festgehalten = False
+            k.zustand = STEHT
+            self._stauch_t = 0.0
+            self.toene.spielen("landen")
+            self.bus.senden("avatar.gelandet")
+            k.pruefe_monitore(self.monitore)    # Monitor inzwischen weg → Hauptmonitor
+        else:
+            self._festgehalten = True
+        if fertig:
+            fertig()
+        return []
 
     # --- Sprechblase ---------------------------------------------------------
     def _sprechblase(self, a: Ausgabe) -> None:
@@ -331,7 +403,7 @@ class AvatarFenster(QWidget):
             animation=self._animation, t=self._animation_t, sx=sx, sy=sy,
             richtung=self.koerper.richtung, augen=augen, mund=mund,
             blick=(round(self._blick[0], 1), round(self._blick[1], 1)), zzz=zzz,
-            schatten=self.koerper.zustand == STEHT,
+            schatten=self.koerper.zustand == STEHT and self._fuehrung is None,
             zubehoer=a.zubehoer if a else frozenset(),
         )
         schluessel = self.darsteller.masken_schluessel(z)
@@ -359,6 +431,8 @@ class AvatarFenster(QWidget):
 
     # --- Maus ----------------------------------------------------------------
     def mousePressEvent(self, e) -> None:  # noqa: N802
+        if self.einrichten_aktiv:
+            return
         if e.button() == Qt.MouseButton.LeftButton:
             self._gedrueckt = True
             g = e.globalPosition()
@@ -397,9 +471,12 @@ class AvatarFenster(QWidget):
             k.loslassen(vx, vy)
             self.bus.senden("avatar.losgelassen", vx=round(vx), vy=round(vy))
         else:
-            k.huepfen()
-            self.toene.spielen("huepfen")
             self.bus.senden("maus.klick")
+            if self.beim_einrichten is not None:
+                self.beim_einrichten()
+            else:
+                k.huepfen()
+                self.toene.spielen("huepfen")
         self._uhr.restart()
         self._takt.setInterval(TAKT_SCHNELL_MS)
 

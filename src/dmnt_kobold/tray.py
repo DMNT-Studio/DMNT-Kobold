@@ -9,11 +9,12 @@ from . import blob
 from .menue import Schalter, stylesheet
 
 
-def baue_tray(schalter: Schalter, zurueckholen, beenden) -> QSystemTrayIcon | None:
+def baue_tray(schalter: Schalter, zurueckholen, beenden, icon=None, beim_einrichten=None,
+              name: str = "DMNT-Kobold") -> QSystemTrayIcon | None:
     if not QSystemTrayIcon.isSystemTrayAvailable():
         return None
-    tray = QSystemTrayIcon(blob.icon())
-    tray.setToolTip("DMNT-Kobold")
+    tray = QSystemTrayIcon(icon or blob.icon())
+    tray.setToolTip(name)
 
     menue = QMenu()
     menue.setWindowFlags(menue.windowFlags() | Qt.WindowType.FramelessWindowHint
@@ -24,6 +25,11 @@ def baue_tray(schalter: Schalter, zurueckholen, beenden) -> QSystemTrayIcon | No
     holen = QAction("Kobold zurückholen", menue)
     holen.triggered.connect(zurueckholen)
     menue.addAction(holen)
+
+    if beim_einrichten is not None:
+        einrichten = QAction("Einrichten", menue)
+        einrichten.triggered.connect(beim_einrichten)
+        menue.addAction(einrichten)
 
     ns = QAction("Nicht stören", menue, checkable=True)
     ns.setChecked(schalter.nicht_stoeren)

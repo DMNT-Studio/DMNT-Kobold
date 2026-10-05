@@ -79,6 +79,14 @@ if IST_WINDOWS:
     def ganz_nach_vorne(hwnd: int) -> None:
         _user32.SetWindowPos(wt.HWND(hwnd), _HWND_TOPMOST, 0, 0, 0, 0, _SWP)
 
+    _user32.SetWindowLongPtrW.argtypes = [wt.HWND, ctypes.c_int, ctypes.c_void_p]
+    _user32.SetWindowLongPtrW.restype = ctypes.c_void_p
+
+    def besitzer_setzen(hwnd: int, besitzer: int | None) -> None:
+        """Besitzer-Fenster setzen (GWLP_HWNDPARENT): ein besessenes Fenster liegt
+        immer vor seinem Besitzer – so bleibt der Avatar vor der Einrichten-Bühne."""
+        _user32.SetWindowLongPtrW(wt.HWND(hwnd), -8, ctypes.c_void_p(besitzer or 0))
+
     class _PROCESSENTRY32W(ctypes.Structure):
         _fields_ = [("dwSize", wt.DWORD), ("cntUsage", wt.DWORD), ("th32ProcessID", wt.DWORD),
                     ("th32DefaultHeapID", ctypes.c_size_t), ("th32ModuleID", wt.DWORD),
@@ -202,6 +210,9 @@ else:
         return None
 
     def ganz_nach_vorne(hwnd: int) -> None:
+        pass
+
+    def besitzer_setzen(hwnd: int, besitzer: int | None) -> None:
         pass
 
     def laufende_programme() -> set[str]:

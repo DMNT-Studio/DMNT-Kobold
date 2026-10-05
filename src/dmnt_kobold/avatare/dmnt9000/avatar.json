@@ -278,10 +278,10 @@
       ],
       "koepfe": [
         [
-          47.2,
-          31.0,
-          64.5,
-          9.0
+          64.2,
+          52.5,
+          95.5,
+          32.5
         ]
       ]
     },
@@ -326,6 +326,50 @@
           31.0,
           64.5,
           9.0
+        ]
+      ]
+    },
+    "springen": {
+      "fps": 8,
+      "schleife": true,
+      "bilder": [
+        "frames/springen/00.png",
+        "frames/springen/01.png"
+      ],
+      "koepfe": [
+        [
+          64.2,
+          52.5,
+          95.5,
+          32.5
+        ],
+        [
+          64.2,
+          52.5,
+          95.5,
+          32.5
+        ]
+      ]
+    },
+    "schweben": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/schweben/00.png",
+        "frames/schweben/01.png"
+      ],
+      "koepfe": [
+        [
+          64.2,
+          52.5,
+          95.5,
+          32.5
+        ],
+        [
+          64.2,
+          52.5,
+          95.5,
+          32.5
         ]
       ]
     }

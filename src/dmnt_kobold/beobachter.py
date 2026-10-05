@@ -217,6 +217,8 @@ class Beobachter:
         self._prozess_takt = 0
         self._minute = ""
         self._tageszeit = ""
+        self.ignorierte_programme: set[str] = set()      # Einrichten → Programme
+        self.zuletzt: deque[str] = deque(maxlen=10)      # nur Prozessnamen, nur im Speicher
 
         self._timer = QTimer(parent)
         self._timer.timeout.connect(self._takt)
@@ -225,6 +227,9 @@ class Beobachter:
         self._wackel_timer = QTimer(parent)
         self._wackel_timer.timeout.connect(self._wackel_takt)
 
+    def _ignoriert(self) -> bool:
+        return self._programm is not None and self._programm in self.ignorierte_programme
+
     def _senden(self, liste: list[tuple[str, dict]]) -> None:
         for name, daten in liste:
             self.bus.senden(name, **daten)
@@ -232,6 +237,8 @@ class Beobachter:
     def _wackel_takt(self) -> None:
         from PySide6.QtGui import QCursor
 
+        if self._ignoriert():
+            return
         if self._nah and self.wackel.update(time.monotonic(), QCursor.pos().x()):
             self.bus.senden("maus.wackelt")
 
@@ -261,7 +268,8 @@ class Beobachter:
             eingabe = self.win.letzte_eingabe_ms()
             neu = eingabe != self._letzte_eingabe
             self._letzte_eingabe = eingabe
-            tastatur = neu and maus == self._letzte_maus and not self.win.maustaste_gedrueckt()
+            tastatur = (neu and maus == self._letzte_maus and not self.win.maustaste_gedrueckt()
+                        and not self._ignoriert())
             self._senden(self.tipp.update(t, tastatur))
             self._senden(self.leerlauf.update(self.win.leerlauf_s()))
             self._senden(self.audio.update(t, self._pegel.pegel(0.1)))
@@ -273,6 +281,9 @@ class Beobachter:
             fg = self.win.vordergrund_programm()
             if fg is not None and fg[2] != self.eigene_pid and fg[0] and fg[0] != self._programm:
                 vorher, self._programm = self._programm, fg[0]
+                if fg[0] in self.zuletzt:
+                    self.zuletzt.remove(fg[0])
+                self.zuletzt.appendleft(fg[0])
                 self.bus.senden("programm.aktiv", name=fg[0], titel=fg[1], vorher=vorher)
 
         # Beobachtete Programme laufen? (alle 5 s, unabhängig vom Vordergrund)

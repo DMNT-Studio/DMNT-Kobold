@@ -57,7 +57,7 @@ def stylesheet() -> str:
 
 
 class Schalter(QObject):
-    """Gemeinsame Umschalter für Menü und Tray (nicht gespeichert, kommt in M4)."""
+    """Gemeinsame Umschalter für Menü und Tray (app.py speichert sie in den Einstellungen)."""
 
     nicht_stoeren_geaendert = Signal(bool)
     monitor_bleiben_geaendert = Signal(bool)
@@ -103,7 +103,10 @@ class _BeendenEintrag(QWidgetAction):
         return label
 
 
-def baue_menue(schalter: Schalter, beim_beenden, parent: QWidget | None = None) -> QMenu:
+def baue_menue(schalter: Schalter, beim_beenden, parent: QWidget | None = None,
+               beim_einrichten=None, eintraege=None) -> QMenu:
+    """``eintraege()`` liefert die Menüeinträge der Tricks [(Text, Funktion)] –
+    sie werden bei jedem Öffnen frisch eingesetzt."""
     menue = QMenu(parent)
     menue.setWindowFlags(menue.windowFlags() | Qt.WindowType.FramelessWindowHint
                          | Qt.WindowType.NoDropShadowWindowHint)
@@ -112,9 +115,13 @@ def baue_menue(schalter: Schalter, beim_beenden, parent: QWidget | None = None) 
     menue.setToolTipsVisible(True)
 
     einrichten = QAction("Einrichten", menue)
-    einrichten.setEnabled(False)
-    einrichten.setToolTip("kommt in M4")
+    einrichten.setEnabled(beim_einrichten is not None)
+    if beim_einrichten is not None:
+        einrichten.triggered.connect(beim_einrichten)
     menue.addAction(einrichten)
+
+    trenner_tricks = menue.addSeparator()
+    tricks: list[QAction] = []
 
     ns = QAction("Nicht stören", menue, checkable=True)
     ns.setChecked(schalter.nicht_stoeren)
@@ -130,4 +137,22 @@ def baue_menue(schalter: Schalter, beim_beenden, parent: QWidget | None = None) 
 
     menue.addSeparator()
     menue.addAction(_BeendenEintrag(menue, beim_beenden))
+
+    def tricks_einsetzen() -> None:
+        for a in tricks:
+            menue.removeAction(a)
+            a.deleteLater()
+        tricks.clear()
+        liste = eintraege() if eintraege else []
+        for text, funktion in liste:
+            a = QAction(text, menue)
+            a.triggered.connect(lambda _=False, f=funktion: f())
+            menue.insertAction(ns, a)
+            tricks.append(a)
+        if liste:
+            trenner = menue.insertSeparator(ns)
+            tricks.append(trenner)
+        trenner_tricks.setVisible(bool(liste))
+
+    menue.aboutToShow.connect(tricks_einsetzen)
     return menue

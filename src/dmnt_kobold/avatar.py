@@ -289,6 +289,37 @@ def avatar_laden(avatar_id: str = STANDARD_AVATAR) -> tuple[Darsteller, Avatar |
         return BlobDarsteller(), None
 
 
+def avatar_liste() -> list[tuple[str, str, Path | None]]:
+    """Mitgelieferte Avatare: (id, Name, Porträt)."""
+    liste = []
+    for ordner in sorted(p for p in AVATAR_ORDNER.iterdir() if (p / "avatar.json").is_file()):
+        try:
+            daten = json.loads((ordner / "avatar.json").read_text(encoding="utf-8"))
+            portraet = ordner / daten["portraet"] if daten.get("portraet") else None
+            liste.append((daten["id"], daten["name"], portraet))
+        except (OSError, ValueError, KeyError):
+            log.warning("Avatar-Ordner %s unlesbar", ordner.name)
+    return liste
+
+
+def avatar_icon(avatar: Avatar | None):
+    """Tray-/Fenster-Icon aus dem Porträt (oberes Quadrat = Kopf). None ohne Porträt."""
+    from PySide6.QtGui import QIcon
+
+    if avatar is None or avatar.portraet is None or not avatar.portraet.exists():
+        return None
+    pm = QPixmap(str(avatar.portraet))
+    if pm.isNull():
+        return None
+    seite = min(pm.width(), pm.height())
+    kopf = pm.copy((pm.width() - seite) // 2, 0, seite, seite)
+    icon = QIcon()
+    for g in (16, 24, 32, 48, 64, 128):
+        icon.addPixmap(kopf.scaled(g, g, Qt.AspectRatioMode.KeepAspectRatio,
+                                   Qt.TransformationMode.SmoothTransformation))
+    return icon
+
+
 def persoenlichkeit_laden(avatar: Avatar | None, bus, motor):
     """Persönlichkeit aus dem Avatar-Ordner (Klasse ``Persoenlichkeit``), sonst Standard."""
     from .reaktionen import Reaktionen

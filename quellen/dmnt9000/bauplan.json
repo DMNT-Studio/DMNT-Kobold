@@ -32,6 +32,10 @@
       "datei": "gehen4.png",
       "bilder": 4,
       "massstab": "kopf"
+    },
+    "sprung": {
+      "datei": "sprung.png",
+      "bilder": 1
     }
   },
   "referenz": [
@@ -213,7 +217,7 @@
       "fps": 10,
       "bilder": [
         [
-          "seite",
+          "sprung",
           0,
           "grell"
         ]
@@ -244,6 +248,36 @@
         ],
         [
           "seite",
+          0,
+          "puls"
+        ]
+      ]
+    },
+    "springen": {
+      "fps": 8,
+      "bilder": [
+        [
+          "sprung",
+          0,
+          "hell"
+        ],
+        [
+          "sprung",
+          0,
+          "grell"
+        ]
+      ]
+    },
+    "schweben": {
+      "fps": 2,
+      "bilder": [
+        [
+          "sprung",
+          0,
+          "hell"
+        ],
+        [
+          "sprung",
           0,
           "puls"
         ]
