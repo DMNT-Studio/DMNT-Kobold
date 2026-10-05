@@ -89,3 +89,21 @@ def test_reiter_baut_auf(tmp_path, qapp):
     from PySide6.QtWidgets import QLabel
     namen = {w.text() for w in tab.bereich.widget().findChildren(QLabel)}
     assert {"Herkunft", "Töne des Körpers", "landen", "sprechen", "glocke_1.ogg", "platsch_3.ogg"} <= namen
+
+
+def test_speichern_wenn_datei_gesperrt(tmp_path, monkeypatch):
+    """Hält ein anderes Programm bauplan.json offen (Windows: os.replace verweigert),
+    landet die Änderung trotzdem in der Datei – nichts geht verloren."""
+    import avatar_editor
+
+    pr = _projekt(tmp_path)
+
+    def gesperrt(*_a, **_k):
+        raise PermissionError(5, "Zugriff verweigert")
+
+    monkeypatch.setattr(avatar_editor.os, "replace", gesperrt)
+    monkeypatch.setattr(avatar_editor.time, "sleep", lambda _s: None)
+    pr.bauplan["herkunft"]["groesse"] = 640
+    pr.bauplan_speichern()
+    assert Projekt(pr.ordner).bauplan["herkunft"]["groesse"] == 640
+    assert not (pr.ordner / "bauplan.json.tmp").exists()

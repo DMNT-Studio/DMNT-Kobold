@@ -132,6 +132,20 @@ def drei_wege(basis, mein, platte):
     return ergebnis
 
 
+def ersetzen(tmp: Path, pfad: Path, text: str, versuche: int = 5) -> None:
+    """Atomar ersetzen. Unter Windows schlägt das fehl, solange ein anderes Programm die
+    Datei offen hält (Virenscanner, Indexer, ein Werkzeug) – dann kurz warten und nochmal,
+    zuletzt direkt hineinschreiben. Die alte Fassung liegt da schon im Verlauf."""
+    for i in range(versuche):
+        try:
+            os.replace(tmp, pfad)
+            return
+        except PermissionError:
+            time.sleep(0.05 * (i + 1))
+    pfad.write_text(text, encoding="utf-8")
+    tmp.unlink(missing_ok=True)
+
+
 class Projekt:
     """Quellen eines Avatars + die Vorschau des letzten Baus."""
 
@@ -186,7 +200,7 @@ class Projekt:
                 weg.unlink(missing_ok=True)
         tmp = pfad.with_suffix(".json.tmp")
         tmp.write_text(text, encoding="utf-8")
-        os.replace(tmp, pfad)
+        ersetzen(tmp, pfad, text)
         self._geschrieben[attr] = text
         self._basis[attr] = copy.deepcopy(neu)
         setattr(self, attr, neu)
