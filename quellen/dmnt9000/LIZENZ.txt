@@ -1,13 +1,13 @@
-DMNT 9000 – Avatar für DMNT-Kobold
+DMNT 9000 - Avatar fuer DMNT-Kobold
 
-Figur (Bildvorlagen gehen.png, gehen_daumen.png, vorne.png, hinten.png):
-  KI-generiert im Auftrag von Stefan Rohrbach. Daraus gebaute Frames, Töne und
+Figur (Bildvorlagen gehen.png, gehen4.png, gehen_daumen.png, vorne.png, seite.png,
+missfallen.png, hinten.png):
+  KI-generiert im Auftrag von Stefan Rohrbach. Daraus gebaute Frames, Toene und
   persoenlichkeit.py stehen unter der MIT-Lizenz des Projekts.
-  Hinweis: KI-generierte Bilder sind in DE/EU urheberrechtlich kaum geschützt.
+  Hinweis: KI-generierte Bilder sind in DE/EU urheberrechtlich kaum geschuetzt.
 
 Herkunft (herkunft_asteroiden.jpg, herkunft_schiff.png):
-  Herkunft der Bildquellen noch zu klären. Vor einer Veröffentlichung des Repos
-  prüfen, ob sie verwendet werden dürfen, oder durch eigene/KI-Bilder ersetzen.
+  Von Stefan Rohrbach erstellt, unter der MIT-Lizenz des Projekts.
 
-Kopfhörer (quellen/zubehoer/kopfhoerer.png):
-  Herkunft noch zu klären (wie oben).
+Kopfhoerer (quellen/zubehoer/kopfhoerer.png):
+  Von Stefan Rohrbach erstellt, unter der MIT-Lizenz des Projekts.

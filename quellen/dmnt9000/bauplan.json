@@ -27,6 +27,11 @@
       "hintergrund": "weiss",
       "toleranz": 220,
       "bilder": 1
+    },
+    "gehen4": {
+      "datei": "gehen4.png",
+      "bilder": 4,
+      "massstab": "kopf"
     }
   },
   "referenz": [
@@ -60,26 +65,26 @@
       ]
     },
     "bewegen": {
-      "fps": 6,
+      "fps": 7,
       "bilder": [
         [
-          "gehen",
+          "gehen4",
           0,
           "normal"
         ],
         [
-          "gehen",
+          "gehen4",
           1,
           "normal"
         ],
         [
-          "gehen",
+          "gehen4",
           2,
           "normal"
         ],
         [
-          "gehen",
-          1,
+          "gehen4",
+          3,
           "normal"
         ]
       ]

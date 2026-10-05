@@ -283,6 +283,13 @@ def bauen(quelle: Path) -> Path:
         for p in liste:
             _, _, r = auge_finden(p)
             skaliert[name].append(skalieren(p, faktor_pro_augenpixel / r))
+    # Quellen mit "massstab": "kopf" – Kopfbreite wie die Referenzpose (robuster,
+    # wenn die Augengroesse zwischen den Bildern schwankt)
+    ref_kopf = kopf_finden(skaliert[ref_name][ref_i])[2]
+    for name, q in plan["quellen"].items():
+        if q.get("massstab") == "kopf" and name not in ohne_auge:
+            skaliert[name] = [skalieren(p, ref_kopf * q.get("faktor", 1.0) / kopf_finden(p)[2])
+                              for p in posen[name]]
     # Posen ohne Auge: Kopfbreite relativ zu einer Pose mit Auge
     for name in ohne_auge:
         q = plan["quellen"][name]
