@@ -14,6 +14,8 @@ Ereignisse:
   audio.laeuft, audio.still   – aus dem Lautstärkepegel, nicht aus dem Inhalt
 
 Die Analyse-Klassen sind reine Logik (testbar), ``Beobachter`` pollt per QTimer.
+Schwellen und Zeiten kommen aus dem Katalog (``katalog.Werte``) und können je
+Avatar abweichen.
 """
 from __future__ import annotations
 
@@ -21,28 +23,30 @@ import time
 from collections import deque
 from datetime import datetime
 
+from . import katalog
+
 # --- reine Logik -----------------------------------------------------------
 
 
-def tageszeit(stunde: int) -> str:
-    if 5 <= stunde < 11:
-        return "morgens"
-    if 11 <= stunde < 17:
-        return "mittags"
-    if 17 <= stunde < 22:
-        return "abends"
-    return "nachts"
+def tageszeit(stunde: int, werte: katalog.Werte | None = None) -> str:
+    w = werte or katalog.Werte()
+    grenzen = sorted((w[f"{tz}_ab"], tz) for tz in katalog.TAGESZEITEN)
+    ergebnis = grenzen[-1][1]                 # vor der ersten Grenze: die letzte (nachts)
+    for ab, tz in grenzen:
+        if stunde >= ab:
+            ergebnis = tz
+    return ergebnis
 
 
 class TippAnalyse:
     """Bekommt alle 100 ms „Tastatur aktiv ja/nein“ und meldet Sitzungen."""
 
-    START_AKTIV = 3          # aktive Takte in 2 s → Tippen beginnt
-    PAUSE_S = 5.0            # so lange still → Pause
-    SCHNELL_AKTIV = 7        # aktive Takte pro Sekunde …
-    SCHNELL_DAUER_S = 3.0    # … so lange am Stück → schnell
-
-    def __init__(self) -> None:
+    def __init__(self, werte: katalog.Werte | None = None) -> None:
+        w = werte or katalog.Werte()
+        self.START_AKTIV = w["tippen_start_takte"]     # aktive Takte in 2 s → Tippen beginnt
+        self.PAUSE_S = w["tippen_pause_s"]             # so lange still → Pause
+        self.SCHNELL_AKTIV = w["schnell_takte"]        # aktive Takte pro Sekunde …
+        self.SCHNELL_DAUER_S = w["schnell_dauer_s"]    # … so lange am Stück → schnell
         self._aktiv: deque[float] = deque()
         self.sitzung_start: float | None = None
         self.letzte_aktiv: float | None = None
@@ -91,12 +95,12 @@ class TippAnalyse:
 class WackelAnalyse:
     """Mehrere schnelle Richtungswechsel der Maus in kurzer Zeit = Wackeln."""
 
-    MIN_WEG = 25.0
-    WECHSEL = 4
-    FENSTER_S = 1.2
-    PAUSE_S = 3.0
-
-    def __init__(self) -> None:
+    def __init__(self, werte: katalog.Werte | None = None) -> None:
+        w = werte or katalog.Werte()
+        self.MIN_WEG = w["wackeln_weg_px"]
+        self.WECHSEL = w["wackeln_wechsel"]
+        self.FENSTER_S = w["wackeln_fenster_s"]
+        self.PAUSE_S = w["wackeln_sperre_s"]
         self._wechsel: deque[float] = deque()
         self._letztes_x: float | None = None
         self._umkehr_x: float | None = None
@@ -152,12 +156,12 @@ class AudioAnalyse:
     """Pegel 0..1 alle 100 ms → „läuft“ nach einigen Sekunden Ton, „still“ nach Pause.
     Kurze Lücken (Liedwechsel, leise Stellen) zählen nicht als Ende."""
 
-    SCHWELLE = 0.015
-    START_S = 6.0
-    LUECKE_S = 1.5
-    ENDE_S = 6.0
-
-    def __init__(self) -> None:
+    def __init__(self, werte: katalog.Werte | None = None) -> None:
+        w = werte or katalog.Werte()
+        self.SCHWELLE = w["audio_schwelle"]
+        self.START_S = w["audio_start_s"]
+        self.LUECKE_S = w["audio_luecke_s"]
+        self.ENDE_S = w["audio_ende_s"]
         self.laeuft = False
         self._seit: float | None = None
         self._laut: float | None = None
@@ -184,8 +188,8 @@ class AudioAnalyse:
 
 # --- Polling (Qt) -----------------------------------------------------------
 
-NAH_PX = 170
-WEG_PX = 220
+NAH_PX = katalog.standard("maus_nah_px")
+WEG_PX = katalog.standard("maus_weg_px")
 
 
 class Beobachter:
@@ -193,7 +197,7 @@ class Beobachter:
     (während der Avatar gezogen wird)."""
 
     def __init__(self, bus, avatar_mitte, eigene_pid: int, parent=None,
-                 beobachtete_programme: set[str] | None = None) -> None:
+                 beobachtete_programme: set[str] | None = None, werte: katalog.Werte | None = None) -> None:
         from PySide6.QtCore import QTimer
 
         from . import win32
@@ -202,10 +206,13 @@ class Beobachter:
         self.avatar_mitte = avatar_mitte
         self.eigene_pid = eigene_pid
         self.win = win32
-        self.tipp = TippAnalyse()
-        self.wackel = WackelAnalyse()
+        self.werte = werte or katalog.Werte()
+        self.nah_px = self.werte["maus_nah_px"]
+        self.weg_px = max(self.werte["maus_weg_px"], self.nah_px)
+        self.tipp = TippAnalyse(self.werte)
+        self.wackel = WackelAnalyse(self.werte)
         self.leerlauf = LeerlaufAnalyse()
-        self.audio = AudioAnalyse()
+        self.audio = AudioAnalyse(self.werte)
         self._pegel = win32.Pegelmesser()
         self._nah = False
         self._letzte_eingabe = win32.letzte_eingabe_ms()
@@ -253,12 +260,12 @@ class Beobachter:
         mitte = self.avatar_mitte()
         if mitte is not None:
             d = ((maus[0] - mitte[0]) ** 2 + (maus[1] - mitte[1]) ** 2) ** 0.5
-            if not self._nah and d < NAH_PX:
+            if not self._nah and d < self.nah_px:
                 self._nah = True
                 self.wackel.zuruecksetzen()
                 self._wackel_timer.start(33)
                 self.bus.senden("maus.nah_am_avatar", entfernung=round(d))
-            elif self._nah and d > WEG_PX:
+            elif self._nah and d > self.weg_px:
                 self._nah = False
                 self._wackel_timer.stop()
                 self.bus.senden("maus.weg")
@@ -302,7 +309,7 @@ class Beobachter:
         if minute != self._minute:
             self._minute = minute
             self.bus.senden(f"uhrzeit.{minute}")
-            tz = tageszeit(jetzt.hour)
+            tz = tageszeit(jetzt.hour, self.werte)
             if tz != self._tageszeit:
                 self._tageszeit = tz
                 self.bus.senden(f"tageszeit.{tz}")

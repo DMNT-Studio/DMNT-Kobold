@@ -23,7 +23,7 @@ dmnt-kobold = "dmnt_kobold.app:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-dmnt_kobold = ["avatare/*/*.json", "avatare/*/*.py", "avatare/*/*.txt", "avatare/*/*.png",
+dmnt_kobold = ["*.json", "avatare/*/*.json", "avatare/*/*.py", "avatare/*/*.txt", "avatare/*/*.png",
                "avatare/*/*.jpg", "avatare/*/frames/*/*.png", "avatare/*/toene/*.wav", "avatare/*/zubehoer/*.png",
                "zubehoer/*.png", "tricks/*/*.py", "tricks/*/*.json"]
 

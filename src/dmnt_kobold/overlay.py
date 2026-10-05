@@ -20,7 +20,7 @@ from PySide6.QtCore import QElapsedTimer, QPoint, QPointF, Qt, QTimer
 from PySide6.QtGui import QCursor, QPainter
 from PySide6.QtWidgets import QWidget
 
-from . import win32
+from . import katalog, win32
 from .avatar import Darsteller, Zustand
 from .bus import EventBus
 from .menue import Schalter, baue_menue
@@ -42,8 +42,8 @@ ZIEH_SCHWELLE = 5        # px
 WURF_FENSTER_S = 0.08    # letzte 80 ms Mausbewegung
 STAUCH_DAUER = 0.12
 TOPMOST_ALLE_S = 2.0
-LAUFTEMPO = 60.0
-ZIELTEMPO = 140.0
+LAUFTEMPO = katalog.standard("laufgeschwindigkeit")
+ZIELTEMPO = katalog.standard("zieltempo")
 ZIEL_RAND = 24.0
 
 BEWEGTE_ANIMATIONEN = {"laufen", "anschauen", "freuen", "erschrecken", "sprechen", "gezogen", "fallen",
@@ -85,7 +85,8 @@ def ausdruck(animation: str, t: float, blinzelt: bool) -> tuple[float, float, st
 
 class AvatarFenster(QWidget):
     def __init__(self, bus: EventBus, motor: Verhaltensmotor, schalter: Schalter,
-                 toene: Toene, beim_beenden, darsteller: Darsteller, lauftempo: float = LAUFTEMPO) -> None:
+                 toene: Toene, beim_beenden, darsteller: Darsteller, lauftempo: float = LAUFTEMPO,
+                 zieltempo: float = ZIELTEMPO) -> None:
         super().__init__(None)
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
@@ -100,6 +101,7 @@ class AvatarFenster(QWidget):
         self.darsteller = darsteller
         self.fuss = darsteller.fuss
         self.lauftempo = lauftempo
+        self.zieltempo = zieltempo
         self.setFixedSize(darsteller.fenster_b, darsteller.fenster_h)
         self.setWindowTitle("DMNT-Kobold")
 
@@ -208,7 +210,7 @@ class AvatarFenster(QWidget):
                 if ziel_x is not None and abs(ziel_x - k.x) > 4:
                     laufen = True
                     k.richtung = 1 if ziel_x > k.x else -1
-                    k.tempo = ZIELTEMPO
+                    k.tempo = self.zieltempo
             elif frei and a.laufen and not self.schalter.nicht_stoeren:
                 laufen = True
                 k.richtung = a.richtung

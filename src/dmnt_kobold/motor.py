@@ -12,8 +12,8 @@ Regeln:
 - Wird ein Wunsch verdrängt, verfällt er – außer ``aufheben=True``: dann
   wartet er und läuft später mit seiner Restzeit weiter.
 - ``dauer_s=None`` heißt: bis zurückgezogen (z. B. „solange Programm X läuft“).
-- Noch nicht begonnene Wünsche mit Dauer verfallen nach ``MAX_WARTEN_S``,
-  damit keine veralteten Reaktionen nachgeholt werden.
+- Noch nicht begonnene Wünsche mit Dauer verfallen nach ``wunsch_verfaellt_s``
+  (Katalog), damit keine veralteten Reaktionen nachgeholt werden.
 """
 from __future__ import annotations
 
@@ -21,12 +21,13 @@ import logging
 from dataclasses import dataclass, field
 from typing import Callable
 
+from . import katalog
 from .eigenleben import LAUFEN, SCHLAFEN, Eigenleben
 
 log = logging.getLogger(__name__)
 
-LEISE_AB = 70          # „Nicht stören“ lässt nur Wünsche ab dieser Priorität durch
-MAX_WARTEN_S = 10.0
+LEISE_AB = katalog.LEISE_AB     # „Nicht stören“ lässt nur Wünsche ab dieser Priorität durch
+MAX_WARTEN_S = katalog.standard("wunsch_verfaellt_s")
 
 
 @dataclass
@@ -64,6 +65,7 @@ class Verhaltensmotor:
     def __init__(self, bus=None, eigenleben: Eigenleben | None = None) -> None:
         self.bus = bus
         self.eigenleben = eigenleben or Eigenleben()
+        self.max_warten_s = self.eigenleben.werte["wunsch_verfaellt_s"]
         self._wuensche: list[Wunsch] = []
         self._aktiv: Wunsch | None = None
         self._naechste_id = 1
@@ -159,7 +161,7 @@ class Verhaltensmotor:
             if w is self._aktiv or w.begonnen or w.aufheben or w.dauer_s is None:
                 continue
             w.gewartet += dt
-            if w.gewartet > MAX_WARTEN_S:
+            if w.gewartet > self.max_warten_s:
                 self._wuensche.remove(w)
 
         w = self._aktiv

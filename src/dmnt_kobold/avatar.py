@@ -2,7 +2,13 @@
 
 Ein Avatar ist ein Ordner (siehe Konzept, Abschnitt 4):
   avatar.json, frames/<animation>/*.png, toene/*.wav, herkunft.*, portraet.png,
-  persoenlichkeit.py, LIZENZ.txt
+  verhalten.json (Regeln und Werte, siehe katalog.py), persoenlichkeit.py (optional,
+  Sonderlogik in Python), LIZENZ.txt
+
+Verhalten: ``verhalten.json`` wird von ``regeln.RegelPersoenlichkeit`` ausgewertet.
+Eine ``persoenlichkeit.py`` läuft zusätzlich (Klasse ``Persoenlichkeit``, ein ``Modul``
+mit ``SONDERLOGIK = [(Name, Beschreibung), ...]`` für den Editor). Ein Avatar ohne
+``persoenlichkeit.py`` ist „ohne Code“: es wird kein Code aus dem Avatar ausgeführt.
 
 Darsteller zeichnen den Avatar in das Overlay-Fenster und liefern dessen Maske:
 - ``SpriteDarsteller``: Frames aus dem Avatar-Ordner
@@ -27,7 +33,7 @@ from pathlib import Path
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBitmap, QColor, QImage, QPainter, QPixmap, QRegion, QTransform
 
-from . import blob
+from . import blob, katalog
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +42,7 @@ AVATAR_ORDNER = PAKET / "avatare"
 ZUBEHOER_ORDNER = PAKET / "zubehoer"
 STANDARD_AVATAR = "dmnt9000"
 
-NAMEN = {"laufen": "bewegen"}          # intern → Kern-Vokabular
+NAMEN = katalog.NAMEN                  # intern → Kern-Vokabular
 RAND_SEITE = 14
 RAND_OBEN = 44                         # Platz für zzz und Zubehör
 RAND_UNTEN = 8
@@ -199,6 +205,12 @@ class Avatar:
         if "ruhe" not in self.animationen:
             raise ValueError("Pflicht-Animation 'ruhe' fehlt")
         self.persoenlichkeit_datei = ordner / "persoenlichkeit.py"
+        self.verhalten: dict | None = None
+        if (ordner / "verhalten.json").is_file():
+            try:
+                self.verhalten = json.loads((ordner / "verhalten.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                log.exception("verhalten.json von %s unlesbar – nehme das Standard-Verhalten", self.id)
         # Avatar-eigenes Zubehör (Bild + Platzierung je Frame, im Editor eingestellt)
         self.zubehoer_bilder: dict[str, QPixmap] = {}
         self.zubehoer_immer: list[str] = []
@@ -208,6 +220,20 @@ class Avatar:
                 self.zubehoer_bilder[teil] = pm
                 if z.get("immer"):
                     self.zubehoer_immer.append(teil)
+
+    @property
+    def ohne_code(self) -> bool:
+        """Kein Python im Avatar-Ordner: Verhalten nur aus verhalten.json."""
+        return not self.persoenlichkeit_datei.exists()
+
+    @property
+    def werte(self) -> katalog.Werte:
+        return katalog.Werte((self.verhalten or {}).get("werte"))
+
+    @property
+    def lauftempo(self) -> float:
+        """Wert „laufgeschwindigkeit“, sonst bewegung.tempo aus dem Bauplan."""
+        return float(self.werte.get("laufgeschwindigkeit", self.bewegung.get("tempo")))
 
     def animation(self, name: str) -> Animation:
         name = NAMEN.get(name, name)
@@ -369,17 +395,37 @@ def avatar_icon(avatar: Avatar | None):
     return icon
 
 
-def persoenlichkeit_laden(avatar: Avatar | None, bus, motor):
-    """Persönlichkeit aus dem Avatar-Ordner (Klasse ``Persoenlichkeit``), sonst Standard."""
+def persoenlichkeiten_laden(avatar: Avatar | None, bus, motor, werte: katalog.Werte | None = None) -> list:
+    """Verhalten eines Avatars: Regeln aus verhalten.json und – falls vorhanden – die
+    Sonderlogik aus persoenlichkeit.py (läuft zusätzlich). Ohne beides: Standard-Reaktionen."""
     from .reaktionen import Reaktionen
+    from .regeln import RegelPersoenlichkeit
 
+    liste = []
+    if avatar is not None and avatar.verhalten is not None:
+        liste.append(RegelPersoenlichkeit(bus, motor, avatar.verhalten, name=avatar.id,
+                                          werte=werte or avatar.werte))
     if avatar is not None and avatar.persoenlichkeit_datei.exists():
         try:
             spec = importlib.util.spec_from_file_location(
                 f"dmnt_avatar_{avatar.id}", avatar.persoenlichkeit_datei)
             modul = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(modul)  # type: ignore[union-attr]
-            return modul.Persoenlichkeit(bus, motor)
+            liste.append(modul.Persoenlichkeit(bus, motor))
         except Exception:  # noqa: BLE001
-            log.exception("Persönlichkeit von %s fehlerhaft – nehme die Standard-Reaktionen", avatar.id)
-    return Reaktionen(bus, motor)
+            log.exception("persoenlichkeit.py von %s fehlerhaft – nur die Regeln laufen", avatar.id)
+    if not liste:
+        liste.append(Reaktionen(bus, motor))
+    return liste
+
+
+def persoenlichkeit_laden(avatar: Avatar | None, bus, motor):
+    """Wie ``persoenlichkeiten_laden``, liefert die erste (Regeln, sonst Sonderlogik)."""
+    return persoenlichkeiten_laden(avatar, bus, motor)[0]
+
+
+def beobachtete_programme(persoenlichkeiten: list) -> set[str]:
+    ergebnis: set[str] = set()
+    for p in persoenlichkeiten:
+        ergebnis |= set(getattr(p, "BEOBACHTETE_PROGRAMME", set()))
+    return ergebnis

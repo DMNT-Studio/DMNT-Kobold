@@ -47,8 +47,8 @@ def test_blob_rueckfall_bei_fehlendem_avatar(qapp):
 
 
 def test_persoenlichkeit_star_citizen_dreht_sich_um(qapp):
-    _, _, bus, m, p = aufbau(qapp)
-    assert type(p).__name__ == "Persoenlichkeit"
+    _, avatar, bus, m, p = aufbau(qapp)
+    assert type(p).__name__ == "RegelPersoenlichkeit" and avatar.ohne_code   # seit 0.5.0: verhalten.json
     bus.senden("programm.gestartet", name="starcitizen.exe")
     a = m.tick(0.1)
     assert a.sprechblase is not None and "Hintergrund" in a.sprechblase[1]

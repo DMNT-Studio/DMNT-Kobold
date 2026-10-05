@@ -15,6 +15,7 @@ Das Programm selbst kennt nur fertige Frames. Dieses Werkzeug erledigt alles dav
 - Fußpunkt (unten) und Körpermitte (Auge) ausrichten
 - Augen-Effekte rechnen (hell, dunkel, aus, grell, puls) für Ausdrücke
 - Herkunfts-Bild zusammensetzen, Töne synthetisieren
+- verhalten.json gegen den Katalog prüfen (Fehler brechen ab, bevor etwas gelöscht wird)
 
 Was gebaut wird, steht in ``bauplan.json`` im Quellordner.
 Benötigt (nur zum Bauen): Pillow, numpy, scipy.
@@ -32,6 +33,7 @@ from scipy import ndimage
 
 WURZEL = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WURZEL / "src"))
+from dmnt_kobold import katalog  # noqa: E402
 from dmnt_kobold.toene import schreibe_wav, synthese  # noqa: E402
 
 # --- Hintergrund und Zerlegen ------------------------------------------------
@@ -257,10 +259,34 @@ def herkunft_bauen(quelle: Path, plan: dict, ziel: Path) -> str:
     return name
 
 
+class BauFehler(SystemExit):
+    """Bau abgebrochen – Meldung ist für Menschen (deutsch, mit Regel-id und Feld)."""
+
+
+def verhalten_pruefen(quelle: Path, plan: dict) -> dict | None:
+    """verhalten.json gegen den Katalog prüfen. Fehler → BauFehler, Warnungen → Ausgabe."""
+    datei = quelle / "verhalten.json"
+    if not datei.exists():
+        return None
+    try:
+        verhalten = json.loads(datei.read_text(encoding="utf-8"))
+    except ValueError as e:
+        raise BauFehler(f"Fehler in verhalten.json: kein gültiges JSON ({e})") from None
+    fehler, warnungen = katalog.pruefen(verhalten, plan.get("animationen", {}).keys())
+    for w in warnungen:
+        print(f"  Warnung: {w}")
+    if fehler:
+        raise BauFehler("Fehler in verhalten.json – Bau abgebrochen:\n" + "\n".join(f"  - {f}" for f in fehler))
+    print(f"  Verhalten: {len(verhalten.get('regeln', []))} Regel(n), "
+          f"{len(verhalten.get('werte', {}))} eigene(r) Wert(e)")
+    return verhalten
+
+
 def bauen(quelle: Path) -> Path:
     plan = json.loads((quelle / "bauplan.json").read_text(encoding="utf-8"))
     ziel = WURZEL / "src" / "dmnt_kobold" / "avatare" / plan["id"]
     s = plan.get("skalierung", 2)
+    verhalten = verhalten_pruefen(quelle, plan)        # vor allem anderen: nichts kaputt bauen
 
     # 1) Posen laden
     posen: dict[str, list[np.ndarray]] = {}
@@ -406,7 +432,10 @@ def bauen(quelle: Path) -> Path:
             schreibe_wav(ziel / "toene" / f"{name}.wav", pcm)
             toene[name] = f"toene/{name}.wav"
 
-    # 9) Persönlichkeit, Lizenz, avatar.json
+    # 9) Verhalten, Sonderlogik, Lizenz, avatar.json
+    if verhalten is not None:
+        (ziel / "verhalten.json").write_text(json.dumps(verhalten, ensure_ascii=False, indent=2) + "\n",
+                                             encoding="utf-8")
     for datei in ("persoenlichkeit.py", "LIZENZ.txt"):
         if (quelle / datei).exists():
             shutil.copy(quelle / datei, ziel / datei)

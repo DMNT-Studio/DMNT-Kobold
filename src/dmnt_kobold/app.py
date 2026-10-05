@@ -56,10 +56,13 @@ def main() -> int:
 
     # Erst nach QApplication importieren (Qt-Widgets)
     from . import autostart, win32
-    from .avatar import STANDARD_AVATAR, avatar_icon, avatar_laden, avatar_liste, persoenlichkeit_laden
+    from .avatar import (STANDARD_AVATAR, avatar_icon, avatar_laden, avatar_liste, beobachtete_programme,
+                         persoenlichkeiten_laden)
     from .beobachter import Beobachter
     from .bus import EventBus
     from .daten import Datenablage, Sicherung
+    from .eigenleben import Eigenleben
+    from .katalog import Werte
     from .einrichten import Dienste, Einrichten
     from .hotkeys import Hotkeys
     from .menue import Schalter
@@ -87,24 +90,25 @@ def main() -> int:
     schalter.monitor_bleiben_geaendert.connect(lambda w: einstellungen.__setitem__("monitor_bleiben", w))
 
     bus = EventBus()
-    motor = Verhaltensmotor(bus)
     avatar_id = einstellungen.get("avatar", STANDARD_AVATAR)
     darsteller, avatar = avatar_laden(avatar_id)
     if avatar is None and avatar_id != STANDARD_AVATAR:
         darsteller, avatar = avatar_laden(STANDARD_AVATAR)
+    werte = avatar.werte if avatar else Werte()          # Verhalten gehört zum Avatar
+    motor = Verhaltensmotor(bus, Eigenleben(werte=werte))
     icon = avatar_icon(avatar) or blob.icon()
     app.setWindowIcon(icon)
     toene = Toene(pfade.datenordner() / "cache" / "toene",
                   lautstaerke=float(einstellungen.get("lautstaerke", 0.35)),
                   avatar_toene=avatar.toene if avatar else None)
-    lauftempo = float(avatar.bewegung.get("tempo", 60)) if avatar else 60.0
+    lauftempo = avatar.lauftempo if avatar else werte["laufgeschwindigkeit"]
     name = lambda: einstellungen.get("name") or (avatar.name if avatar else "DMNT-Kobold")  # noqa: E731
 
     def beenden() -> None:
         log.info("Beenden über Menü")
         app.quit()
 
-    fenster = AvatarFenster(bus, motor, schalter, toene, beenden, darsteller, lauftempo)
+    fenster = AvatarFenster(bus, motor, schalter, toene, beenden, darsteller, lauftempo, werte["zieltempo"])
     for teil in (avatar.zubehoer_immer if avatar else []):     # z. B. ein Hut, den er immer trägt
         motor.zubehoer_setzen(teil, True, "avatar")
     if schalter.nicht_stoeren:
@@ -118,10 +122,11 @@ def main() -> int:
         k.x, k.y = float(pos["x"]), float(pos.get("y", k.y))
         k.pruefe_monitore(fenster.monitore)
 
-    persoenlichkeit = persoenlichkeit_laden(avatar, bus, motor)
-    log.info("Persönlichkeit: %s", type(persoenlichkeit).__name__)
+    persoenlichkeiten = persoenlichkeiten_laden(avatar, bus, motor, werte)
+    log.info("Verhalten: %s%s", ", ".join(type(p).__name__ for p in persoenlichkeiten),
+             " (ohne Code)" if avatar is not None and avatar.ohne_code else "")
     beobachter = Beobachter(bus, fenster.kopf_mitte, os.getpid(), parent=app,
-                            beobachtete_programme=getattr(persoenlichkeit, "BEOBACHTETE_PROGRAMME", set()))
+                            beobachtete_programme=beobachtete_programme(persoenlichkeiten), werte=werte)
 
     def programme_uebernehmen() -> None:
         beobachter.ignorierte_programme = {exe for exe, w in einstellungen.get("programme", {}).items()
