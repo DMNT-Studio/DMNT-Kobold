@@ -5,7 +5,106 @@
     "sitz": "ueber_kopf",
     "gruppe": "ohren",
     "immer": false,
-    "posen": {}
+    "posen": {
+      "daumen:0": {
+        "aus": false,
+        "breite": 80.0,
+        "hinten": false,
+        "hoehe": 92.5,
+        "winkel": 12.0,
+        "x": -2.4,
+        "y": -102.4
+      },
+      "daumen:1": {
+        "aus": false,
+        "breite": 75.6,
+        "hinten": false,
+        "winkel": 12.0,
+        "x": -3.5,
+        "y": -104.9
+      },
+      "daumen:2": {
+        "aus": false,
+        "breite": 75.6,
+        "hinten": false,
+        "winkel": 6.0,
+        "x": -3.1,
+        "y": -99.0
+      },
+      "seite:0": {
+        "aus": false,
+        "breite": 71.0,
+        "hinten": false,
+        "hoehe": 108.2,
+        "winkel": 0.0,
+        "x": -11.7,
+        "y": -103.3
+      },
+      "missfallen:0": {
+        "aus": false,
+        "breite": 81.8,
+        "hinten": false,
+        "winkel": 6.0,
+        "x": -9.5,
+        "y": -94.8
+      },
+      "gehen4:0": {
+        "aus": false,
+        "breite": 66.1,
+        "hinten": false,
+        "winkel": 3.0,
+        "x": -2.0,
+        "y": -92.5
+      },
+      "gehen4:1": {
+        "aus": false,
+        "breite": 66.1,
+        "hinten": false,
+        "winkel": 6.0,
+        "x": -2.6,
+        "y": -91.7
+      },
+      "gehen4:2": {
+        "aus": false,
+        "breite": 67.2,
+        "hinten": false,
+        "winkel": 12.0,
+        "x": 0.0,
+        "y": -89.0
+      },
+      "gehen4:3": {
+        "aus": false,
+        "breite": 66.1,
+        "hinten": false,
+        "winkel": 6.0,
+        "x": -3.8,
+        "y": -83.9
+      },
+      "sprung:0": {
+        "aus": false,
+        "breite": 78.0,
+        "hinten": false,
+        "winkel": -6.0,
+        "x": 0.2,
+        "y": -85.6
+      },
+      "fallen:0": {
+        "aus": false,
+        "breite": 65.8,
+        "hinten": false,
+        "winkel": 21.0,
+        "x": 3.6,
+        "y": -77.3
+      },
+      "front:0": {
+        "aus": false,
+        "breite": 85.6,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": 0.2,
+        "y": -92.1
+      }
+    }
   },
   "zylinder": {
     "datei": "zubehoer/zylinder.png",
@@ -69,11 +168,11 @@
       },
       "gehen4:1": {
         "aus": false,
-        "breite": 34.9,
+        "breite": 37.8,
         "hinten": false,
         "winkel": 15.0,
-        "x": 2.5,
-        "y": -115.5
+        "x": 2.8,
+        "y": -116.5
       },
       "gehen4:2": {
         "aus": false,
@@ -103,11 +202,19 @@
       },
       "fallen:0": {
         "aus": false,
-        "breite": 57.1,
+        "breite": 48.8,
         "hinten": false,
         "winkel": 21.0,
-        "x": 18.6,
-        "y": -121.4
+        "x": 14.1,
+        "y": -114.7
+      },
+      "front:0": {
+        "aus": false,
+        "breite": 51.0,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": 0.9,
+        "y": -128.2
       }
     }
   },

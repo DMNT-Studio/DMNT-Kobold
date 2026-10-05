@@ -40,7 +40,8 @@
     },
     "fallen": {
       "datei": "fallen.png",
-      "bilder": 1
+      "bilder": 1,
+      "faktor": 0.9
     },
     "front": {
       "datei": "front.png",
