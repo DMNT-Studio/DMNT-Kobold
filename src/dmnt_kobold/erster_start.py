@@ -18,8 +18,10 @@ HINWEIS_NACH_MS = 1_500          # Pause zwischen Autostart-Frage und Hinweis
 
 class ErsterStart:
     def __init__(self, bus, motor, einstellungen, autostart_setzen: Callable[[bool], None],
-                 verzoegern: Callable[[int, Callable[[], None]], None], entwickler: bool = False) -> None:
+                 verzoegern: Callable[[int, Callable[[], None]], None], entwickler: bool = False,
+                 ohne_autostart: bool = False) -> None:
         self.entwickler = entwickler
+        self.ohne_autostart = ohne_autostart     # Portable: keine Autostart-Frage, nur der Hinweis
         self.bus = bus
         self.motor = motor
         self.einstellungen = einstellungen
@@ -33,7 +35,7 @@ class ErsterStart:
         Im Entwickler-Start nichts: echten Autostart nie anfassen."""
         if self.entwickler:
             return
-        if not self.einstellungen.get("autostart_gefragt"):
+        if not self.einstellungen.get("autostart_gefragt") and not self.ohne_autostart:
             self.verzoegern(nach_ms, self.autostart_fragen)
         else:
             self.verzoegern(nach_ms, self.hinweis_zeigen)

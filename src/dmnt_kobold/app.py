@@ -75,7 +75,8 @@ def main() -> int:
         return 0  # läuft schon → still beenden
 
     _logging_einrichten()
-    log.info("Start DMNT-Kobold %s, Daten in %s", __version__, pfade.datenordner())
+    art = "entwickler" if avatar_pfad is not None else pfade.installationsart()
+    log.info("Start DMNT-Kobold %s (%s), Daten in %s", __version__, art, pfade.datenordner())
 
     # Erst nach QApplication importieren (Qt-Widgets)
     from . import autostart, win32
@@ -275,6 +276,15 @@ def main() -> int:
         deckkraft(1.0, 0.0, 380)
         return neu.name, neu.herkunft
 
+    update_ref: dict = {}
+
+    def update_schalten(an: bool) -> bool:
+        einstellungen["update_pruefen"] = bool(an)
+        dienst = update_ref.get("dienst")
+        if an and dienst is not None:
+            QTimer.singleShot(2_000, dienst.pruefen)
+        return bool(an)
+
     def dienste() -> Dienste:
         a = aktiv["avatar"]
         return Dienste(
@@ -288,6 +298,8 @@ def main() -> int:
             lautstaerke_geaendert=toene.lautstaerke_setzen,
             programme_geaendert=programme_uebernehmen,
             avatar_wechseln=avatar_wechseln,
+            update_pruefen_an=lambda: bool(einstellungen.get("update_pruefen", True)),
+            update_pruefen_setzen=update_schalten,
         )
 
     def einrichten_oeffnen() -> None:
@@ -362,8 +374,26 @@ def main() -> int:
 
     # --- Erster Start: Autostart-Frage, danach einmalig der Tray-Hinweis -------------
     erster_start = ErsterStart(bus, motor, einstellungen, autostart.setzen, QTimer.singleShot,
-                               entwickler=avatar_pfad is not None)
+                               entwickler=avatar_pfad is not None, ohne_autostart=art == "portable")
     erster_start.starten(AUTOSTART_FRAGE_NACH_MS)
+
+    # --- Updates über das Internet (Konzept #20: Hinweis, Nutzer klickt) ---------------
+    from .update import UpdateHinweis
+    from .update_netz import UpdateDienst
+
+    update_hinweis = UpdateHinweis(motor, einstellungen, art, __version__, bus=bus,
+                                   darf_jetzt=lambda: not fenster.einrichten_aktiv)
+
+    def vor_installation() -> None:
+        zustand_sichern()
+        sperre.unlock()             # das Setup startet gleich den neuen Kobold
+
+    update_dienst = UpdateDienst(update_hinweis, __version__, vor_installation, app.quit,
+                                 nach_fehlstart=lambda: sperre.tryLock(100), parent=app)
+    update_ref["dienst"] = update_dienst
+    update_dienst.starten()
+    if art != "entwickler":
+        QTimer.singleShot(AUTOSTART_FRAGE_NACH_MS + 4_000, update_hinweis.nach_update_melden)
 
     # --- Monitore -------------------------------------------------------------------
     # Änderungen gebündelt und verzögert auswerten: Windows meldet beim Abstecken

@@ -90,6 +90,10 @@ class Dienste:
     umbenannt: Callable[[str], None] = lambda name: None
     lautstaerke_geaendert: Callable[[float], None] = lambda w: None
     programme_geaendert: Callable[[], None] = lambda: None
+    # Updates: Schalter „Nach Updates suchen“ (Programm-Einstellung, kein Verhalten)
+    update_pruefen_an: Callable[[], bool] = lambda: True
+    update_pruefen_setzen: Callable[[bool], bool] = lambda an: an
+    neuigkeiten_url: str = "https://github.com/DMNT-Studio/DMNT-Kobold/releases"
     # Avatar sofort wechseln (Pfeile am Sockel, Adoptieren): startet Hüpfer und Überblenden,
     # liefert (Standardname, Herkunft) des neuen Avatars oder None, wenn er nicht ladbar ist.
     avatar_wechseln: Callable[[str], tuple[str, Path | None] | None] = lambda aid: None
@@ -875,6 +879,11 @@ class Einrichten(QWidget):
         schalter.setChecked(self.d.autostart_an())
         schalter.toggled.connect(lambda an: schalter.setChecked(self.d.autostart_setzen(an)))
         lay.addLayout(_zeile(_label("Mit Windows starten", wrap=False), schalter))
+        updates = Kippschalter()
+        updates.setChecked(self.d.update_pruefen_an())
+        updates.toggled.connect(lambda an: updates.setChecked(self.d.update_pruefen_setzen(an)))
+        self.update_schalter = updates
+        lay.addLayout(_zeile(_label("Nach Updates suchen", wrap=False), updates))
 
         sichern = QPushButton("Daten sichern")
         sichern.clicked.connect(self._daten_sichern)
@@ -900,12 +909,15 @@ class Einrichten(QWidget):
         repo = QPushButton("Quellcode")
         repo.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(REPO_URL)))
         links.addWidget(repo)
-        if KAFFEE_URL:
-            kaffee = QPushButton("Kauf mir nen Kaffee")
-            kaffee.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(KAFFEE_URL)))
-            links.addWidget(kaffee)
+        neu = QPushButton("Was ist neu")
+        neu.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(self.d.neuigkeiten_url)))
+        links.addWidget(neu)
         links.addStretch(1)
         lay.addLayout(links)
+        if KAFFEE_URL:                          # eigene Zeile, damit die Kachel schmal bleibt
+            kaffee = QPushButton("Kauf mir nen Kaffee")
+            kaffee.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(KAFFEE_URL)))
+            lay.addLayout(_zeile(kaffee, stretch_index=-1))
 
     def _system_meldung(self, text: str) -> None:
         self._system_hinweis.setText(text)

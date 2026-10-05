@@ -42,9 +42,31 @@ def _dokumente() -> Path:
     return Path.home() / "Documents"
 
 
+PORTABLE_MARKE = "portable.txt"
+
+
+def programmordner() -> Path | None:
+    """Ordner der ausgelieferten EXE, im Entwickler-Start None."""
+    return Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else None
+
+
+def installationsart() -> str:
+    """``entwickler`` (aus dem Quellcode), ``portable`` (``portable.txt`` neben der EXE)
+    oder ``installiert`` (über das Setup)."""
+    ordner = programmordner()
+    if ordner is None:
+        return "entwickler"
+    return "portable" if (ordner / PORTABLE_MARKE).exists() else "installiert"
+
+
 def datenordner() -> Path:
     eigen = os.environ.get("DMNT_KOBOLD_DATEN")
-    ordner = Path(eigen) if eigen else _dokumente() / APP_NAME
+    if eigen:
+        ordner = Path(eigen)
+    elif installationsart() == "portable":       # Daten wandern mit dem Ordner mit
+        ordner = programmordner() / "daten"
+    else:
+        ordner = _dokumente() / APP_NAME
     ordner.mkdir(parents=True, exist_ok=True)
     return ordner
 

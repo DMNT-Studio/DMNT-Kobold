@@ -1,0 +1,26 @@
+{
+  "url": "https://api.github.com/repos/DMNT-Studio/DMNT-Kobold/releases/1",
+  "html_url": "https://github.com/DMNT-Studio/DMNT-Kobold/releases/tag/v0.7.1",
+  "tag_name": "v0.7.1",
+  "name": "DMNT-Kobold 0.7.1",
+  "draft": false,
+  "prerelease": false,
+  "published_at": "2026-10-06T08:00:00Z",
+  "assets": [
+    {
+      "name": "DMNT-Kobold-Setup.exe",
+      "size": 48213504,
+      "browser_download_url": "https://github.com/DMNT-Studio/DMNT-Kobold/releases/download/v0.7.1/DMNT-Kobold-Setup.exe"
+    },
+    {
+      "name": "DMNT-Kobold-Portable.zip",
+      "size": 61022208,
+      "browser_download_url": "https://github.com/DMNT-Studio/DMNT-Kobold/releases/download/v0.7.1/DMNT-Kobold-Portable.zip"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 190,
+      "browser_download_url": "https://github.com/DMNT-Studio/DMNT-Kobold/releases/download/v0.7.1/SHA256SUMS.txt"
+    }
+  ]
+}

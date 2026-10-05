@@ -4,10 +4,26 @@ Ein Desktop-Begleiter für Windows. Ein kleiner Kobold lebt auf deiner Taskleist
 läuft herum, lässt sich packen und werfen und fällt wieder herunter. Alles hinter
 ihm bleibt normal anklickbar.
 
-Stand: **M2 „Er reagiert"** – Platzhalter-Blob, Physik, alle Monitore, Rechtsklick-Menü, Tray-Icon,
-Event-Bus, Verhaltensmotor, Sprechblase mit Knöpfen, Töne, Reaktionen auf Maus, Tippen, Leerlauf und Programme.
+**Herunterladen:** [DMNT-Kobold-Setup.exe](https://github.com/DMNT-Studio/DMNT-Kobold/releases/latest/download/DMNT-Kobold-Setup.exe)
+(Windows 10/11, ohne Admin-Rechte) · [Portable-Version](https://github.com/DMNT-Studio/DMNT-Kobold/releases/latest/download/DMNT-Kobold-Portable.zip)
+· Webseite: https://dmnt-studio.github.io/DMNT-Kobold/ · Änderungen: [CHANGELOG.md](CHANGELOG.md)
 
-## Starten (PowerShell, lokal)
+Neue Versionen meldet der Kobold selbst per Sprechblase („Aktualisieren“ / „Später“). Er fragt dafür
+einmal am Tag bei der GitHub-API nach und sendet nichts außer seiner Versionsnummer. Abschaltbar unter
+Einrichten → System → „Nach Updates suchen“. Testkanal mit Vorab-Versionen:
+`$env:DMNT_KOBOLD_UPDATE_KANAL="test"`.
+
+## Ausliefern (für Entwickler)
+
+- Version steht in `pyproject.toml` (gleichlautend in `src/dmnt_kobold/__init__.py`, ein Test prüft das).
+- Lokal bauen (PowerShell): `.\packaging\bauen.ps1` → `dist\DMNT-Kobold-Setup.exe`,
+  `dist\DMNT-Kobold-Portable.zip`, `dist\SHA256SUMS.txt`. Ohne Inno Setup: `-OhneSetup`.
+- Release: Version erhöhen, Abschnitt in `CHANGELOG.md`, committen, Tag `v<version>` pushen.
+  GitHub Actions baut und veröffentlicht. Tags mit Bindestrich (`v0.7.1-test.1`) werden Vorab-Versionen.
+- Mitgepackt wird nur, was in Git steht. Sulfi ist ausgeschlossen.
+- Webseite: `website/`, veröffentlicht über `.github/workflows/pages.yml`.
+
+## Starten aus dem Quellcode (PowerShell, lokal)
 
 ```powershell
 cd dmnt-kobold

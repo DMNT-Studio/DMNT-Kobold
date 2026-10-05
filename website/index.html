@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DMNT-Kobold</title>
+  <meta name="description" content="Ein kleiner Begleiter, der auf deiner Taskleiste wohnt. Kostenlos, Open Source, für Windows.">
+  <link rel="icon" href="bilder/favicon.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  <main>
+    <header class="kopf">
+      <div class="buehne" aria-hidden="true">
+        <div class="kreis"></div>
+        <img class="kiesel" src="bilder/kiesel.png" alt="" width="180" height="180">
+        <div class="schatten"></div>
+        <div class="boden"></div>
+      </div>
+      <h1>DMNT-Kobold</h1>
+      <p class="satz">Ein kleiner Begleiter, der auf deiner Taskleiste wohnt.</p>
+      <a class="knopf haupt" id="download"
+         href="https://github.com/DMNT-Studio/DMNT-Kobold/releases/latest/download/DMNT-Kobold-Setup.exe">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
+        Herunterladen für Windows
+      </a>
+      <p class="klein" id="version">Windows 10 und 11 · kostenlos · ohne Admin-Rechte</p>
+      <p class="klein links">
+        <a href="https://github.com/DMNT-Studio/DMNT-Kobold/releases/latest/download/DMNT-Kobold-Portable.zip">Portable-Version</a>
+        <span>·</span>
+        <a href="https://github.com/DMNT-Studio/DMNT-Kobold/releases">Alle Versionen</a>
+      </p>
+    </header>
+
+    <section class="karten">
+      <article class="karte">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18M7 18v-3a5 5 0 0 1 10 0v3"/></svg>
+        <h2>Lebt auf der Taskleiste</h2>
+        <p>Er läuft oder hüpft herum, lässt sich packen und werfen und fällt wieder herunter. Alles hinter ihm bleibt anklickbar.</p>
+      </article>
+      <article class="karte">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9 10h.01M15 10h.01M9 14.5c1.6 1.3 4.4 1.3 6 0"/></svg>
+        <h2>Reagiert auf dich</h2>
+        <p>Er schaut zur Maus, freut sich über einen Klick, schläft ein, wenn du weg bist, und erinnert dich an Pausen.</p>
+      </article>
+      <article class="karte">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>
+        <h2>Lernt Tricks</h2>
+        <p>Erinnerungen, Pausen-Wächter und mehr. Mehrere Kobolde zur Auswahl, jeder mit eigenem Charakter.</p>
+      </article>
+    </section>
+
+    <section class="block">
+      <h2>Erste Schritte</h2>
+      <ol class="schritte">
+        <li><strong>Herunterladen.</strong> Klick oben auf „Herunterladen für Windows“.</li>
+        <li><strong>Setup starten.</strong> Windows kennt das Programm noch nicht und zeigt eventuell
+          „Der Computer wurde durch Windows geschützt“. Dann auf <em>Weitere Informationen</em>
+          und danach auf <em>Trotzdem ausführen</em> klicken.</li>
+        <li><strong>Installieren.</strong> Eine Admin-Abfrage gibt es nicht, der Kobold installiert sich nur für dich.</li>
+        <li><strong>Symbol anpinnen.</strong> Einrichten und Beenden findest du über das Kobold-Symbol unten
+          rechts in der Taskleiste. Windows 11 versteckt neue Symbole hinter dem kleinen Pfeil <span class="taste">^</span>.
+          Zieh das Symbol von dort auf die Taskleiste, dann ist es immer sichtbar.</li>
+      </ol>
+      <p class="fertig">Fertig, wenn der Kobold auf deiner Taskleiste steht und dich fragt, ob er mit Windows starten soll.</p>
+      <p>Neue Versionen kommen von selbst: Der Kobold sagt per Sprechblase Bescheid, ein Klick auf
+        „Aktualisieren“ genügt. Deine Einstellungen und Erinnerungen bleiben erhalten.</p>
+    </section>
+
+    <section class="block">
+      <h2>Datenschutz</h2>
+      <ul class="liste">
+        <li>Keine Tasteninhalte. Der Kobold merkt nur, <em>dass</em> getippt wird, nie <em>was</em>.</li>
+        <li>Keine globalen Tastatur- oder Maus-Hooks.</li>
+        <li>Keine Telemetrie, keine Nutzungszahlen, kein Konto.</li>
+        <li>Einzige Internetverbindung: einmal am Tag die Frage an GitHub, ob es eine neue Version gibt.
+          Dabei wird nichts über dich gesendet. Abschaltbar unter Einrichten → System.</li>
+        <li>Deine Daten liegen sichtbar in <code>Dokumente\DMNT-Kobold</code>, mit täglicher Sicherung.
+          Beim Deinstallieren bleiben sie erhalten.</li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <h2>Gut zu wissen</h2>
+      <ul class="liste">
+        <li>Über Spielen im <strong>exklusiven Vollbild</strong> kann Windows kein Overlay zeigen.
+          Im Fenster- oder Randlos-Modus bleibt der Kobold sichtbar.</li>
+        <li>Der Quellcode ist offen (MIT-Lizenz). Jeder kann nachsehen, was das Programm tut.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="fuss">
+    <a href="https://github.com/DMNT-Studio/DMNT-Kobold">GitHub</a>
+    <span>·</span>
+    <a href="https://github.com/DMNT-Studio/DMNT-Kobold/blob/main/LICENSE">MIT-Lizenz</a>
+    <span id="kaffee-trenner" hidden>·</span>
+    <a id="kaffee" href="#" hidden>Kauf mir nen Kaffee</a>
+    <span>·</span>
+    <a href="impressum.html">Impressum</a>
+    <span>·</span>
+    <a href="datenschutz.html">Datenschutz</a>
+  </footer>
+
+  <script src="einstellungen.js"></script>
+  <script src="seite.js"></script>
+</body>
+</html>
