@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90">
+  <!-- Beine hinten (abgewandte Seite) -->
+  <polyline points="70,60 70,85" fill="none" stroke="#5B5868" stroke-width="8.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="71" cy="86.5" rx="5.4" ry="3.5" fill="#5B5868"/>
+  <polyline points="46,60 47,85" fill="none" stroke="#5B5868" stroke-width="8.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="48" cy="86.5" rx="5.4" ry="3.5" fill="#5B5868"/>
+  <polyline points="70,60 70,85" fill="none" stroke="#121116" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="71" cy="86.5" rx="4.3" ry="2.4" fill="#121116"/>
+  <polyline points="46,60 47,85" fill="none" stroke="#121116" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="48" cy="86.5" rx="4.3" ry="2.4" fill="#121116"/>
+  <!-- Körper: Fellfarbe #1C1B21, Saum #5B5868 -->
+  <path d="M31,46 C24,38 23,24 27,13" fill="none" stroke="#5B5868" stroke-width="11.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="57" cy="51" rx="27.1" ry="16.6" fill="#5B5868"/>
+  <ellipse cx="41" cy="56" rx="11.1" ry="11.1" fill="#5B5868"/>
+  <ellipse cx="74" cy="56" rx="11.1" ry="12.1" fill="#5B5868"/>
+  <ellipse cx="82" cy="53" rx="9.1" ry="10.1" fill="#5B5868"/>
+  <polygon points="37.4,41.47 39.6,35.67 42.4,41.47" fill="#5B5868" stroke="#5B5868" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="43.4,39.16 45.6,33.36 48.4,39.16" fill="#5B5868" stroke="#5B5868" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="49.4,37.99 51.6,32.19 54.4,37.99" fill="#5B5868" stroke="#5B5868" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="55.4,37.71 57.6,31.91 60.4,37.71" fill="#5B5868" stroke="#5B5868" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="61.4,38.27 63.6,32.47 66.4,38.27" fill="#5B5868" stroke="#5B5868" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="67.4,39.78 69.6,33.98 72.4,39.78" fill="#5B5868" stroke="#5B5868" stroke-width="3" stroke-linejoin="round"/>
+  <ellipse cx="91" cy="49" rx="13.6" ry="13.1" fill="#5B5868"/>
+  <ellipse cx="92" cy="53.5" rx="14.6" ry="10.3" fill="#5B5868"/>
+  <polygon points="80,44 73.5,35.5 87,39.5" fill="#5B5868" stroke="#5B5868" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="96,38.5 106.5,33 104.5,43.5" fill="#5B5868" stroke="#5B5868" stroke-width="3" stroke-linejoin="round"/>
+  <polyline points="40,60 37,85" fill="none" stroke="#5B5868" stroke-width="8.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="38" cy="86.5" rx="5.4" ry="3.5" fill="#5B5868"/>
+  <polyline points="76,60 78,85" fill="none" stroke="#5B5868" stroke-width="8.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="79" cy="86.5" rx="5.4" ry="3.5" fill="#5B5868"/>
+  <path d="M31,46 C24,38 23,24 27,13" fill="none" stroke="#1C1B21" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="57" cy="51" rx="26" ry="15.5" fill="#1C1B21"/>
+  <ellipse cx="41" cy="56" rx="10" ry="10" fill="#1C1B21"/>
+  <ellipse cx="74" cy="56" rx="10" ry="11" fill="#1C1B21"/>
+  <ellipse cx="82" cy="53" rx="8" ry="9" fill="#1C1B21"/>
+  <polygon points="37.4,41.47 39.6,35.67 42.4,41.47" fill="#1C1B21" stroke="#1C1B21" stroke-width="0.8" stroke-linejoin="round"/>
+  <polygon points="43.4,39.16 45.6,33.36 48.4,39.16" fill="#1C1B21" stroke="#1C1B21" stroke-width="0.8" stroke-linejoin="round"/>
+  <polygon points="49.4,37.99 51.6,32.19 54.4,37.99" fill="#1C1B21" stroke="#1C1B21" stroke-width="0.8" stroke-linejoin="round"/>
+  <polygon points="55.4,37.71 57.6,31.91 60.4,37.71" fill="#1C1B21" stroke="#1C1B21" stroke-width="0.8" stroke-linejoin="round"/>
+  <polygon points="61.4,38.27 63.6,32.47 66.4,38.27" fill="#1C1B21" stroke="#1C1B21" stroke-width="0.8" stroke-linejoin="round"/>
+  <polygon points="67.4,39.78 69.6,33.98 72.4,39.78" fill="#1C1B21" stroke="#1C1B21" stroke-width="0.8" stroke-linejoin="round"/>
+  <ellipse cx="91" cy="49" rx="12.5" ry="12" fill="#1C1B21"/>
+  <ellipse cx="92" cy="53.5" rx="13.5" ry="9.2" fill="#1C1B21"/>
+  <polygon points="80,44 73.5,35.5 87,39.5" fill="#1C1B21" stroke="#1C1B21" stroke-width="0.8" stroke-linejoin="round"/>
+  <polygon points="96,38.5 106.5,33 104.5,43.5" fill="#1C1B21" stroke="#1C1B21" stroke-width="0.8" stroke-linejoin="round"/>
+  <polyline points="40,60 37,85" fill="none" stroke="#1C1B21" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="38" cy="86.5" rx="4.3" ry="2.4" fill="#1C1B21"/>
+  <polyline points="76,60 78,85" fill="none" stroke="#1C1B21" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="79" cy="86.5" rx="4.3" ry="2.4" fill="#1C1B21"/>
+  <!-- Details -->
+  <polygon points="81,42.5 77,37 85.5,39.6" fill="#4B3541"/>
+  <polygon points="97.5,39.3 104,35.5 103,41.8" fill="#4B3541"/>
+  <ellipse cx="88" cy="41.5" rx="5.5" ry="2" fill="#2B2A33"/>
+  <polygon points="92.2,54.2 95,54.2 93.6,56" fill="#B8828F" stroke="#B8828F" stroke-width="0.6" stroke-linejoin="round"/>
+  <path d="M93.6,56 q-1.2,1.6 -2.6,1 M93.6,56 q1.2,1.6 2.6,1" fill="none" stroke="#6E6B7C" stroke-width="0.7" stroke-linecap="round"/>
+  <line x1="98.5" y1="55" x2="112" y2="52" stroke="#C4C7D0" stroke-opacity="0.5" stroke-width="0.45" stroke-linecap="round"/>
+  <line x1="98.5" y1="56" x2="112.5" y2="56" stroke="#C4C7D0" stroke-opacity="0.5" stroke-width="0.45" stroke-linecap="round"/>
+  <line x1="98" y1="57" x2="111" y2="60" stroke="#C4C7D0" stroke-opacity="0.5" stroke-width="0.45" stroke-linecap="round"/>
+  <line x1="88.5" y1="55" x2="78" y2="52.5" stroke="#C4C7D0" stroke-opacity="0.5" stroke-width="0.45" stroke-linecap="round"/>
+  <line x1="88.5" y1="56.2" x2="77.5" y2="56.5" stroke="#C4C7D0" stroke-opacity="0.5" stroke-width="0.45" stroke-linecap="round"/>
+</svg>

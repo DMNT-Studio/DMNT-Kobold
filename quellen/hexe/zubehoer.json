@@ -1,0 +1,482 @@
+{
+  "fluegel": {
+    "datei": "zubehoer/fluegel.svg",
+    "sitz": "ueber_kopf",
+    "gruppe": "fluegel",
+    "immer": false,
+    "posen": {
+      "stehen_a:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "stehen_b:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "stehen_c:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "stehen_zu:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "anschauen:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "sprechen_auf:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "freuen_a:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "freuen_b:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_1:0": {
+        "x": -11.3,
+        "y": -72.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_2:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 4.2,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_3:0": {
+        "x": -11.3,
+        "y": -74.8,
+        "breite": 70.4,
+        "winkel": 6.0,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_4:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 4.2,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_5:0": {
+        "x": -11.3,
+        "y": -72.9,
+        "breite": 70.4,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_6:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": -4.2,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_7:0": {
+        "x": -11.3,
+        "y": -74.8,
+        "breite": 70.4,
+        "winkel": -6.0,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_8:0": {
+        "x": -11.3,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": -4.2,
+        "hinten": false,
+        "aus": false
+      },
+      "sitzen:0": {
+        "x": -32.1,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 14,
+        "hinten": false,
+        "aus": false
+      },
+      "sitzen_halb:0": {
+        "x": -32.1,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 14,
+        "hinten": false,
+        "aus": false
+      },
+      "sitzen_zu:0": {
+        "x": -32.1,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 14,
+        "hinten": false,
+        "aus": false
+      },
+      "putzen_1:0": {
+        "x": -32.1,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 14,
+        "hinten": false,
+        "aus": false
+      },
+      "putzen_2:0": {
+        "x": -32.1,
+        "y": -73.9,
+        "breite": 70.4,
+        "winkel": 14,
+        "hinten": false,
+        "aus": false
+      },
+      "schlafen_a:0": {
+        "x": -22.3,
+        "y": -46.0,
+        "breite": 54.4,
+        "winkel": -6,
+        "hinten": false,
+        "aus": false
+      },
+      "schlafen_b:0": {
+        "x": -22.3,
+        "y": -46.0,
+        "breite": 54.4,
+        "winkel": -6,
+        "hinten": false,
+        "aus": false
+      },
+      "strecken:0": {
+        "x": -11.3,
+        "y": -80.3,
+        "breite": 70.4,
+        "winkel": -8,
+        "hinten": false,
+        "aus": false
+      },
+      "strecken_halb:0": {
+        "x": -11.3,
+        "y": -80.3,
+        "breite": 70.4,
+        "winkel": -8,
+        "hinten": false,
+        "aus": false
+      },
+      "landen:0": {
+        "x": -13.2,
+        "y": -69.5,
+        "breite": 73.6,
+        "winkel": 0.0,
+        "hinten": false,
+        "aus": false
+      },
+      "buckel:0": {
+        "x": -19.3,
+        "y": -89.9,
+        "breite": 70.4,
+        "winkel": 8,
+        "hinten": false,
+        "aus": false
+      },
+      "buckel_1:0": {
+        "x": -17.3,
+        "y": -89.9,
+        "breite": 70.4,
+        "winkel": 8,
+        "hinten": false,
+        "aus": false
+      },
+      "buckel_2:0": {
+        "x": -21.2,
+        "y": -89.9,
+        "breite": 70.4,
+        "winkel": 8,
+        "hinten": false,
+        "aus": false
+      }
+    }
+  },
+  "fluegel_fern": {
+    "datei": "zubehoer/fluegel_fern.svg",
+    "sitz": "ueber_kopf",
+    "gruppe": "fluegel_fern",
+    "immer": false,
+    "posen": {
+      "stehen_a:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "stehen_b:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "stehen_c:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "stehen_zu:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "anschauen:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "sprechen_auf:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "freuen_a:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "freuen_b:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "gehen_1:0": {
+        "x": -0.4,
+        "y": -75.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "gehen_2:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 11.2,
+        "hinten": true,
+        "aus": false
+      },
+      "gehen_3:0": {
+        "x": -0.4,
+        "y": -77.0,
+        "breite": 63.4,
+        "winkel": 13.0,
+        "hinten": true,
+        "aus": false
+      },
+      "gehen_4:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 11.2,
+        "hinten": true,
+        "aus": false
+      },
+      "gehen_5:0": {
+        "x": -0.4,
+        "y": -75.1,
+        "breite": 63.4,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "gehen_6:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 2.8,
+        "hinten": true,
+        "aus": false
+      },
+      "gehen_7:0": {
+        "x": -0.4,
+        "y": -77.0,
+        "breite": 63.4,
+        "winkel": 1.0,
+        "hinten": true,
+        "aus": false
+      },
+      "gehen_8:0": {
+        "x": -0.4,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 2.8,
+        "hinten": true,
+        "aus": false
+      },
+      "sitzen:0": {
+        "x": -21.2,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 21,
+        "hinten": true,
+        "aus": false
+      },
+      "sitzen_halb:0": {
+        "x": -21.2,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 21,
+        "hinten": true,
+        "aus": false
+      },
+      "sitzen_zu:0": {
+        "x": -21.2,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 21,
+        "hinten": true,
+        "aus": false
+      },
+      "putzen_1:0": {
+        "x": -21.2,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 21,
+        "hinten": true,
+        "aus": false
+      },
+      "putzen_2:0": {
+        "x": -21.2,
+        "y": -76.1,
+        "breite": 63.4,
+        "winkel": 21,
+        "hinten": true,
+        "aus": false
+      },
+      "schlafen_a:0": {
+        "x": -12.1,
+        "y": -48.5,
+        "breite": 49.0,
+        "winkel": 1,
+        "hinten": true,
+        "aus": false
+      },
+      "schlafen_b:0": {
+        "x": -12.1,
+        "y": -48.5,
+        "breite": 49.0,
+        "winkel": 1,
+        "hinten": true,
+        "aus": false
+      },
+      "strecken:0": {
+        "x": -0.4,
+        "y": -82.5,
+        "breite": 63.4,
+        "winkel": -1,
+        "hinten": true,
+        "aus": false
+      },
+      "strecken_halb:0": {
+        "x": -0.4,
+        "y": -82.5,
+        "breite": 63.4,
+        "winkel": -1,
+        "hinten": true,
+        "aus": false
+      },
+      "landen:0": {
+        "x": -2.2,
+        "y": -71.7,
+        "breite": 66.2,
+        "winkel": 7.0,
+        "hinten": true,
+        "aus": false
+      },
+      "buckel:0": {
+        "x": -8.4,
+        "y": -92.1,
+        "breite": 63.4,
+        "winkel": 15,
+        "hinten": true,
+        "aus": false
+      },
+      "buckel_1:0": {
+        "x": -6.5,
+        "y": -92.1,
+        "breite": 63.4,
+        "winkel": 15,
+        "hinten": true,
+        "aus": false
+      },
+      "buckel_2:0": {
+        "x": -10.3,
+        "y": -92.1,
+        "breite": 63.4,
+        "winkel": 15,
+        "hinten": true,
+        "aus": false
+      }
+    }
+  }
+}

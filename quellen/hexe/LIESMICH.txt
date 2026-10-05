@@ -1,0 +1,34 @@
+Hexe – schwarze Katze mit grünen Augen
+======================================
+
+Eigener Avatar (MIT, Stefan Rohrbach), komplett als Vektorgrafik gezeichnet und „ohne Code“:
+alles, was sie tut, steht in verhalten.json. Sie läuft auf allen vieren (Bewegungsart „gehen“,
+8 Laufbilder im Kreuzgang), setzt sich gern hin, putzt sich, schläft viel und macht einen
+Buckel, wenn man mit der Maus wackelt.
+
+Was liegt hier?
+  bauplan.json      Aussehen: Posen (Körper + Augen/Mund als Teile), Animationen, Töne, Herkunft
+  verhalten.json    Verhalten: Werte (Tempo, Sitzen, Einschlafen …) und 23 Regeln mit Sprüchen
+  teile/            Posen (stehen, gehen_1–8, sitzen, schlafen, strecken, buckel, freuen, putzen)
+                    und Gesichtsteile (augen_offen/rund/halb/zu/froh, mund_auf/fauchen/zunge)
+  herkunft.svg      Dächer bei Vollmond (Hintergrund beim Einrichten)
+  toene/            miau, prrt, fauchen, schnurren, tapp (synthetisiert)
+
+Erzeugt mit:  python werkzeuge/hexe_zeichnen.py
+  Das Skript schreibt teile/, herkunft.svg und toene/ neu. bauplan.json legt es nur an,
+  wenn noch keiner da ist – Änderungen aus dem Avatar-Editor bleiben also erhalten.
+  verhalten.json fasst es nie an.
+
+Leicht selbst ändern
+  Fellfarbe/Augenfarbe: oben in werkzeuge/hexe_zeichnen.py (FELL, AUGE …), Skript laufen lassen.
+  Sprüche: Avatar-Editor → Hexe → Reiter „Verhalten“ → Regel anklicken (z. B. klick_freude).
+  Danach neu bauen: python werkzeuge/avatar_bauen.py quellen/hexe und den Kobold neu starten.
+
+Woran man sie erkennt
+  Schwarz auf dunkler Taskleiste wäre unsichtbar. Deshalb hat jede Pose einen hellen Saum
+  (RAND) nur an der Außenkontur.
+
+Halloween-Kostüm
+  Ab 19 Uhr (Wert abends_ab) und nachts trägt sie Fledermausflügel (zubehoer/fluegel*.svg,
+  nach Stefans Skizze), morgens zieht sie sie wieder aus. Regeln: fluegel_an, fluegel_aus,
+  fluegel_spruch. Lage je Pose: zubehoer.json bzw. Avatar-Editor, Reiter „Zubehör“.

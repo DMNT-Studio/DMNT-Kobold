@@ -1,0 +1,536 @@
+{
+  "beschreibung": "Hexe – schwarze Katze mit grünen Augen. Läuft auf allen vieren, setzt sich gern, putzt sich, schläft viel und lässt sich nur streicheln, wenn sie will. Ohne Code.",
+  "werte": {
+    "laufgeschwindigkeit": 38,
+    "zieltempo": 110,
+    "ruhe_min_s": 3,
+    "ruhe_max_s": 9,
+    "chance_sitzen": 0.3,
+    "chance_laufen": 0.45,
+    "sitzen_min_s": 8,
+    "sitzen_max_s": 40,
+    "einschlafen_nach_min": 4,
+    "abends_ab": 19
+  },
+  "regeln": [
+    {
+      "id": "hallo_maus",
+      "wenn": {
+        "ereignis": "maus.nah_am_avatar"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "anschauen"
+        },
+        {
+          "aktion": "bleiben"
+        }
+      ],
+      "prioritaet": 30
+    },
+    {
+      "id": "hallo_miau",
+      "wenn": {
+        "ereignis": "maus.nah_am_avatar"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "anschauen"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Miau?",
+            "Mrrp?"
+          ]
+        }
+      ],
+      "prioritaet": 31,
+      "dauer_s": 2.5,
+      "chance": 0.25,
+      "abklingzeit_s": 30
+    },
+    {
+      "id": "maus_weg",
+      "wenn": {
+        "ereignis": "maus.weg"
+      },
+      "dann": [
+        {
+          "aktion": "zurueckziehen",
+          "regeln": [
+            "hallo_maus",
+            "hallo_miau"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "klick_launisch",
+      "wenn": {
+        "ereignis": "maus.klick"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "sitzen"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Jetzt nicht.",
+            "Hm.",
+            "Ich putz mich gerade. Gedanklich."
+          ]
+        }
+      ],
+      "prioritaet": 35,
+      "dauer_s": 3,
+      "chance": 0.25,
+      "gruppe": "klick"
+    },
+    {
+      "id": "klick_freude",
+      "wenn": {
+        "ereignis": "maus.klick"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "freuen"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Prrrt!",
+            "Mrrrp.",
+            "Weiterkraulen."
+          ]
+        }
+      ],
+      "prioritaet": 35,
+      "dauer_s": 2.5,
+      "gruppe": "klick"
+    },
+    {
+      "id": "wackeln",
+      "wenn": {
+        "ereignis": "maus.wackelt"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "erschrecken"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Fffff!",
+            "Pfoten weg vom Zeiger!"
+          ],
+          "trotz_ruhe": true
+        }
+      ],
+      "prioritaet": 45,
+      "dauer_s": 2,
+      "abklingzeit_s": 8,
+      "gruppe": "wackeln"
+    },
+    {
+      "id": "wackeln_kurz",
+      "wenn": {
+        "ereignis": "maus.wackelt"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "erschrecken"
+        }
+      ],
+      "prioritaet": 45,
+      "dauer_s": 1.2,
+      "gruppe": "wackeln"
+    },
+    {
+      "id": "tippen",
+      "wenn": {
+        "ereignis": "tastatur.tippt"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "sitzen"
+        },
+        {
+          "aktion": "bleiben"
+        }
+      ],
+      "prioritaet": 15
+    },
+    {
+      "id": "tippen_ende",
+      "wenn": {
+        "ereignis": "tastatur.pause"
+      },
+      "dann": [
+        {
+          "aktion": "zurueckziehen",
+          "regeln": [
+            "tippen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tastatur_schnell",
+      "wenn": {
+        "ereignis": "tastatur.schnell"
+      },
+      "dann": [
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Soll ich mich auf die Tastatur legen? Hilft bestimmt."
+          ]
+        }
+      ],
+      "prioritaet": 40,
+      "dauer_s": 5,
+      "chance": 0.4,
+      "abklingzeit_s": 1800
+    },
+    {
+      "id": "tipp_pause",
+      "wenn": {
+        "ereignis": "tastatur.pause",
+        "sitzung_ab_s": "$lange_tippsitzung_s"
+      },
+      "dann": [
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Pause. Du kraulst, ich schnurre."
+          ],
+          "knoepfe": [
+            "Ok",
+            "Gleich"
+          ]
+        }
+      ],
+      "prioritaet": 60,
+      "dauer_s": 15,
+      "aufheben": true,
+      "abklingzeit_s": 900,
+      "gruppe": "pause"
+    },
+    {
+      "id": "putzen",
+      "wenn": {
+        "ereignis": "tastatur.pause"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "putzen"
+        }
+      ],
+      "prioritaet": 25,
+      "dauer_s": 4,
+      "chance": 0.35,
+      "gruppe": "pause"
+    },
+    {
+      "id": "blick",
+      "wenn": {
+        "ereignis": "tastatur.pause"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "anschauen"
+        }
+      ],
+      "prioritaet": 25,
+      "dauer_s": 2,
+      "gruppe": "pause"
+    },
+    {
+      "id": "pause_ok",
+      "wenn": {
+        "ereignis": "sprechblase.knopf",
+        "knopf": "Ok",
+        "regel": "tipp_pause"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "freuen"
+        }
+      ],
+      "prioritaet": 45,
+      "dauer_s": 2
+    },
+    {
+      "id": "pause_gleich",
+      "wenn": {
+        "ereignis": "sprechblase.knopf",
+        "knopf": "Gleich",
+        "regel": "tipp_pause"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "sitzen"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Ich warte. Ich bin gut im Warten."
+          ]
+        }
+      ],
+      "prioritaet": 45,
+      "dauer_s": 3
+    },
+    {
+      "id": "leerlauf",
+      "wenn": {
+        "ereignis": "leerlauf",
+        "ab_minuten": "$einschlafen_nach_min"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "schlafen"
+        },
+        {
+          "aktion": "bleiben"
+        }
+      ],
+      "prioritaet": 20
+    },
+    {
+      "id": "aufwachen",
+      "wenn": {
+        "ereignis": "leerlauf.ende",
+        "regel_laeuft": "leerlauf"
+      },
+      "dann": [
+        {
+          "aktion": "zurueckziehen",
+          "regeln": [
+            "leerlauf"
+          ]
+        },
+        {
+          "aktion": "animation",
+          "name": "sitzen"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Ich hab nicht geschlafen. Ich hab meditiert.",
+            "Du warst weg. Ich hab aufgepasst. Mit geschlossenen Augen."
+          ]
+        }
+      ],
+      "prioritaet": 35,
+      "dauer_s": 4
+    },
+    {
+      "id": "landung_hoch",
+      "wenn": {
+        "ereignis": "avatar.gelandet",
+        "art": "fall",
+        "fallhoehe_px": 200
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "landen"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Auf allen vieren. Wie immer."
+          ]
+        }
+      ],
+      "prioritaet": 40,
+      "dauer_s": 2.5
+    },
+    {
+      "id": "musik",
+      "wenn": {
+        "ereignis": "audio.laeuft"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "sitzen"
+        }
+      ],
+      "prioritaet": 32,
+      "dauer_s": 4,
+      "chance": 0.5
+    },
+    {
+      "id": "morgens",
+      "wenn": {
+        "ereignis": "tageszeit",
+        "tageszeit": "morgens"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "freuen"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Morgen. Wo ist das Frühstück?"
+          ]
+        }
+      ],
+      "prioritaet": 40,
+      "dauer_s": 5,
+      "abklingzeit_s": 21600
+    },
+    {
+      "id": "nachts",
+      "wenn": {
+        "ereignis": "tageszeit",
+        "tageszeit": "nachts"
+      },
+      "dann": [
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Nachts bin ich am wachsten. Du solltest schlafen."
+          ]
+        }
+      ],
+      "prioritaet": 40,
+      "dauer_s": 5,
+      "abklingzeit_s": 21600
+    },
+    {
+      "id": "star_citizen",
+      "wenn": {
+        "ereignis": "programm.gestartet",
+        "programm": [
+          "starcitizen.exe"
+        ]
+      },
+      "dann": [
+        {
+          "aktion": "gehen_zu",
+          "ziel": "rechts"
+        },
+        {
+          "aktion": "animation",
+          "name": "sitzen"
+        },
+        {
+          "aktion": "bleiben"
+        }
+      ],
+      "prioritaet": 40
+    },
+    {
+      "id": "star_citizen_ende",
+      "wenn": {
+        "ereignis": "programm.beendet",
+        "programm": [
+          "starcitizen.exe"
+        ]
+      },
+      "dann": [
+        {
+          "aktion": "zurueckziehen",
+          "regeln": [
+            "star_citizen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fluegel_an",
+      "wenn": [
+        {
+          "ereignis": "tageszeit",
+          "tageszeit": "abends"
+        },
+        {
+          "ereignis": "tageszeit",
+          "tageszeit": "nachts"
+        }
+      ],
+      "dann": [
+        {
+          "aktion": "zubehoer",
+          "name": "fluegel",
+          "an": true
+        },
+        {
+          "aktion": "zubehoer",
+          "name": "fluegel_fern",
+          "an": true
+        }
+      ],
+      "prioritaet": 40,
+      "dauer_s": 1
+    },
+    {
+      "id": "fluegel_spruch",
+      "wenn": {
+        "ereignis": "tageszeit",
+        "tageszeit": "abends"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "freuen"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Heute Nacht fliege ich.",
+            "Buh. Ich bin eine Fledermaus."
+          ]
+        }
+      ],
+      "prioritaet": 41,
+      "dauer_s": 4
+    },
+    {
+      "id": "fluegel_aus",
+      "wenn": [
+        {
+          "ereignis": "tageszeit",
+          "tageszeit": "morgens"
+        },
+        {
+          "ereignis": "tageszeit",
+          "tageszeit": "mittags"
+        }
+      ],
+      "dann": [
+        {
+          "aktion": "zubehoer",
+          "name": "fluegel",
+          "an": false
+        },
+        {
+          "aktion": "zubehoer",
+          "name": "fluegel_fern",
+          "an": false
+        }
+      ],
+      "prioritaet": 40,
+      "dauer_s": 1
+    }
+  ]
+}

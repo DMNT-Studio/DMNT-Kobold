@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#171B33"/>
+      <stop offset="0.65" stop-color="#363B68"/>
+      <stop offset="1" stop-color="#5B5583"/>
+    </linearGradient>
+    <radialGradient id="schein" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F4EED6" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#F4EED6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#himmel)"/>
+  <circle cx="317.55" cy="297.11" r="1.63" fill="#F4EED6" fill-opacity="0.47"/>
+  <circle cx="157.68" cy="289.54" r="0.71" fill="#F4EED6" fill-opacity="0.8"/>
+  <circle cx="159.09" cy="99.1" r="1.01" fill="#F4EED6" fill-opacity="0.59"/>
+  <circle cx="499.79" cy="263.65" r="1.45" fill="#F4EED6" fill-opacity="0.89"/>
+  <circle cx="115.93" cy="61.27" r="1.44" fill="#F4EED6" fill-opacity="0.37"/>
+  <circle cx="27.55" cy="174.76" r="1.26" fill="#F4EED6" fill-opacity="0.85"/>
+  <circle cx="254.46" cy="89.2" r="0.71" fill="#F4EED6" fill-opacity="0.46"/>
+  <circle cx="191.81" cy="11.19" r="1.7" fill="#F4EED6" fill-opacity="0.43"/>
+  <circle cx="141.66" cy="291.71" r="1.31" fill="#F4EED6" fill-opacity="0.82"/>
+  <circle cx="55.02" cy="183.17" r="1.31" fill="#F4EED6" fill-opacity="0.83"/>
+  <circle cx="187.74" cy="201.42" r="0.77" fill="#F4EED6" fill-opacity="0.56"/>
+  <circle cx="168.93" cy="58.06" r="1.68" fill="#F4EED6" fill-opacity="0.56"/>
+  <circle cx="491.54" cy="198.8" r="1.43" fill="#F4EED6" fill-opacity="0.7"/>
+  <circle cx="342.81" cy="58.25" r="1.23" fill="#F4EED6" fill-opacity="0.48"/>
+  <circle cx="208.03" cy="40.95" r="1.86" fill="#F4EED6" fill-opacity="0.47"/>
+  <circle cx="440.05" cy="221.91" r="0.86" fill="#F4EED6" fill-opacity="0.81"/>
+  <circle cx="474.91" cy="299.25" r="1.38" fill="#F4EED6" fill-opacity="0.43"/>
+  <circle cx="104.69" cy="306.93" r="1.36" fill="#F4EED6" fill-opacity="0.45"/>
+  <circle cx="444.96" cy="215.3" r="1.38" fill="#F4EED6" fill-opacity="0.56"/>
+  <circle cx="212.19" cy="86.64" r="0.75" fill="#F4EED6" fill-opacity="0.83"/>
+  <circle cx="168.5" cy="250.42" r="0.73" fill="#F4EED6" fill-opacity="0.55"/>
+  <circle cx="24.93" cy="49.33" r="1.86" fill="#F4EED6" fill-opacity="0.71"/>
+  <circle cx="439.42" cy="120.15" r="1.41" fill="#F4EED6" fill-opacity="0.73"/>
+  <circle cx="184.86" cy="176.11" r="1.62" fill="#F4EED6" fill-opacity="0.85"/>
+  <circle cx="84.32" cy="308.69" r="0.71" fill="#F4EED6" fill-opacity="0.76"/>
+  <circle cx="408.78" cy="53.76" r="1.2" fill="#F4EED6" fill-opacity="0.8"/>
+  <circle cx="17.02" cy="211.11" r="1.65" fill="#F4EED6" fill-opacity="0.63"/>
+  <circle cx="107.67" cy="126.2" r="0.92" fill="#F4EED6" fill-opacity="0.54"/>
+  <circle cx="476.48" cy="193.47" r="1.11" fill="#F4EED6" fill-opacity="0.5"/>
+  <circle cx="330" cy="170" r="160" fill="url(#schein)"/>
+  <circle cx="330" cy="170" r="74" fill="#F2ECD3"/>
+  <circle cx="306" cy="148" r="13" fill="#E3DBBE"/>
+  <circle cx="352" cy="196" r="17" fill="#E3DBBE"/>
+  <circle cx="356" cy="140" r="7" fill="#E3DBBE"/>
+  <circle cx="300" cy="200" r="6" fill="#E3DBBE"/>
+  <!-- Dächer -->
+  <path d="M0,420 L70,360 L140,420 L140,512 L0,512 Z" fill="#1A1C2B"/>
+  <path d="M110,440 L215,350 L320,440 L320,512 L110,512 Z" fill="#141622"/>
+  <rect x="250" y="360" width="22" height="48" fill="#141622"/>
+  <path d="M290,455 L400,380 L512,455 L512,512 L290,512 Z" fill="#1A1C2B"/>
+  <rect x="198" y="440" width="34" height="30" rx="3" fill="#F0C86A" fill-opacity="0.85"/>
+  <rect x="214" y="440" width="2" height="30" fill="#141622"/>
+  <rect x="198" y="454" width="34" height="2" fill="#141622"/>
+  <rect x="420" y="470" width="26" height="22" rx="3" fill="#F0C86A" fill-opacity="0.55"/>
+</svg>
