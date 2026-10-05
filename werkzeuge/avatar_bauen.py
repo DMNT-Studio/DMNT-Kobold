@@ -58,7 +58,7 @@ from scipy import ndimage
 
 WURZEL = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WURZEL / "src"))
-from dmnt_kobold import katalog  # noqa: E402
+from dmnt_kobold import effekte, katalog  # noqa: E402
 from dmnt_kobold.toene import schreibe_wav, synthese  # noqa: E402
 
 # --- Hintergrund und Zerlegen ------------------------------------------------
@@ -428,6 +428,8 @@ def innen_varianten(zplan: dict) -> set[str]:
 def koerper_pruefen(quelle: Path, plan: dict) -> None:
     """Körper-Blöcke des Bauplans prüfen. Fehler → BauFehler, Warnungen → Ausgabe."""
     fehler, warnungen = katalog.koerper_pruefen(plan, quelle)
+    f2, w2 = effekte.plan_pruefen(plan, quelle, set(plan.get("animationen", {})) | set(katalog.KERN_ANIMATIONEN))
+    fehler, warnungen = fehler + f2, warnungen + w2
     for w in warnungen:
         print(f"  Warnung: {w}")
     if fehler:
@@ -536,6 +538,29 @@ def ton_als_wav(quelle: Path, ziel: Path) -> None:
                                "-sample_fmt", "s16", str(ziel)], capture_output=True, text=True)
     if ergebnis.returncode != 0 or not ziel.exists():
         raise BauFehler(f"Ton „{quelle.name}“ ließ sich nicht umwandeln: {ergebnis.stderr.strip()[:200]}")
+
+
+def effekte_bauen(quelle: Path, ziel: Path, plan: dict) -> dict:
+    """Eigene Effekte (PNG-Folgen) nach ``effekte/<name>/`` kopieren → Eintrag für avatar.json."""
+    eigene = {}
+    for name, d in (plan.get("eigene") or {}).items():
+        bilder = sorted((quelle / d["ordner"]).glob("*.png"))
+        if not bilder:
+            continue
+        (ziel / "effekte" / name).mkdir(parents=True, exist_ok=True)
+        rel = []
+        for n, bild in enumerate(bilder):
+            shutil.copy(bild, ziel / "effekte" / name / f"{n:02d}.png")
+            rel.append(f"effekte/{name}/{n:02d}.png")
+        eigene[name] = {"bilder": rel, "fps": d.get("fps", 8), "breite": d.get("breite", 40),
+                        "hoehe_ueber_kopf": d.get("hoehe_ueber_kopf", 6)}
+        print(f"  Effekt {name}: {len(rel)} Bild(er)")
+    ergebnis: dict = {}
+    if plan.get("zuordnung"):
+        ergebnis["zuordnung"] = dict(plan["zuordnung"])
+    if eigene:
+        ergebnis["eigene"] = eigene
+    return ergebnis
 
 
 def bauen(quelle: Path, ziel: Path | None = None) -> Path:
@@ -740,6 +765,9 @@ def _bauen_rest(quelle, plan, ziel, s, rahmen, verhalten, skaliert, anker, ohne_
                                "wiederholen": t.get("wiederholen", [1, 1])}
                 print(f"  Ton {name}: {len(dateien)} Datei(en)")
 
+    # 8b) Effekte über dem Kopf: Zuordnung + eigene Bildfolgen
+    effekte_json = effekte_bauen(quelle, ziel, plan.get("effekte") or {})
+
     # 9) Verhalten, Sonderlogik, Lizenz, avatar.json
     if verhalten is not None:
         (ziel / "verhalten.json").write_text(json.dumps(verhalten, ensure_ascii=False, indent=2) + "\n",
@@ -769,6 +797,8 @@ def _bauen_rest(quelle, plan, ziel, s, rahmen, verhalten, skaliert, anker, ohne_
     for k in ("partikel", "koerper_deckkraft"):
         if k in plan:
             avatar[k] = plan[k]
+    if effekte_json:
+        avatar["effekte"] = effekte_json
     (ziel / "avatar.json").write_text(json.dumps(avatar, ensure_ascii=False, indent=2), encoding="utf-8")
     vorschau_schreiben(plan, skaliert, anker, ax, ay, breite_px, hoehe_px, s, kopf_rel, zubehoer_plan,
                        zubehoer_info)

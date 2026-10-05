@@ -40,7 +40,7 @@ from pathlib import Path
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBitmap, QColor, QImage, QPainter, QPixmap, QRegion, QTransform
 
-from . import blob, katalog
+from . import blob, effekte, katalog
 from .toene import KoerperTon
 
 log = logging.getLogger(__name__)
@@ -120,6 +120,8 @@ class Darsteller:
     bewegung: dict = {"art": "gleiten"}
     partikel: dict = {}
     innenleben = False
+    effekte_zuordnung: dict[str, str] = {}      # Animation → Effekt (Bauplan, ohne Standard)
+    eigene_effekte: dict = {}                   # Name → effekte.EigenerEffekt
 
     def hat(self, animation: str) -> bool:
         """Hat der Avatar eigene Frames für diese Animation?"""
@@ -127,6 +129,10 @@ class Darsteller:
 
     def zeichnen(self, p: QPainter, z: Zustand) -> None:
         raise NotImplementedError
+
+    def kopf(self, z: Zustand) -> tuple[QPointF, float]:
+        """Mitte der Kopfoberkante (Fensterkoordinaten) und Kopfbreite – hier sitzen Effekte."""
+        return QPointF(self.fuss.x(), self.fuss.y() - self.hoehe * z.sy), self.breite * 0.8 * z.sx
 
     def maske(self, z: Zustand) -> QRegion:
         bild = QImage(self.fenster_b, self.fenster_h, QImage.Format.Format_ARGB32_Premultiplied)
@@ -210,6 +216,9 @@ class Avatar:
         self.partikel = {m: {**katalog.PARTIKEL_STANDARD, **d} for m, d in daten.get("partikel", {}).items()
                          if m in katalog.KERN_ANIMATIONEN and isinstance(d, dict)}
         self.koerper_deckkraft = float(daten.get("koerper_deckkraft", 1.0))
+        self.effekte_zuordnung = {k: v for k, v in ((daten.get("effekte") or {}).get("zuordnung") or {}).items()
+                                  if isinstance(v, str)}
+        self.eigene_effekte = effekte.eigene_laden(ordner, daten)
         self.herkunft = ordner / daten["herkunft"] if daten.get("herkunft") else None
         self.portraet = ordner / daten["portraet"] if daten.get("portraet") else None
         self.toene = {n: ordner / rel for n, rel in daten.get("toene", {}).items()
@@ -302,6 +311,8 @@ class SpriteDarsteller(Darsteller):
         self.bewegung = avatar.bewegung
         self.partikel = avatar.partikel
         self.innenleben = bool(avatar.innen)
+        self.effekte_zuordnung = avatar.effekte_zuordnung
+        self.eigene_effekte = avatar.eigene_effekte
         rand = katalog.PARTIKEL_RAND if avatar.partikel else 0     # Platz für Spritzer
         self.fenster_b += 2 * rand
         self.fenster_h += rand
@@ -312,6 +323,14 @@ class SpriteDarsteller(Darsteller):
 
     def hat(self, animation: str) -> bool:
         return NAMEN.get(animation, animation) in self.avatar.animationen
+
+    def kopf(self, z: Zustand) -> tuple[QPointF, float]:
+        i, a, _ = self._frame(z)
+        kx, _ky, kb, ko = a.koepfe[min(i, len(a.koepfe) - 1)]
+        spiegeln = -1 if z.richtung != self.blickrichtung else 1
+        ax, ay = self.avatar.anker
+        return (QPointF(self.fuss.x() + (kx - ax) * z.sx * spiegeln, self.fuss.y() + (ko - ay) * z.sy),
+                kb * z.sx)
 
     def _frame(self, z: Zustand) -> tuple[int, Animation, frozenset[str]]:
         """Frame-Index, Animation und das noch aufzusetzende Zubehör."""

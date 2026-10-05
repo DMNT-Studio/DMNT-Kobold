@@ -215,6 +215,8 @@ AKTIONEN: tuple[AktionDef, ...] = (
     AktionDef("innen", "Zeigt eine Variante des Innenlebens (Gegenstand im Körper), solange der Wunsch läuft. "
               "Fehlt die Variante, bleibt die Grundvariante.",
               (Param("variante", "innen", "Variante, z. B. froh (zu tnt@froh)", pflicht=True),)),
+    AktionDef("effekt", "Zeigt einen Effekt über dem Kopf, solange der Wunsch läuft (z. B. sterne, noten, dampf). Hat Vorrang vor dem Effekt der Animation.",
+              (Param("name", "effekt", "Effekt: zzz, noten, sterne, dampf, herzchen, fragezeichen, ausrufezeichen oder ein eigener", pflicht=True),)),
 )
 
 #: Felder einer Regel (außer wenn/dann) mit Standard und Grenzen

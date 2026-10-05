@@ -41,6 +41,7 @@ WURZEL = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WURZEL / "src"))
 from dmnt_kobold import katalog, stil  # noqa: E402
 from dmnt_kobold.regeln import standard_verhalten  # noqa: E402
+from editor_effekte import EffekteTab  # noqa: E402
 from editor_herkunft import HerkunftToeneTab  # noqa: E402
 from editor_verhalten import VerhaltenTab  # noqa: E402
 
@@ -1507,11 +1508,13 @@ class Editor(QMainWindow):
         self.zubehoer = ZubehoerTab(self)
         self.verhalten = VerhaltenTab(self)
         self.herkunft = HerkunftToeneTab(self)
+        self.effekte = EffekteTab(self)
         self.tabs.addTab(self.bilder, "Bilder")
         self.tabs.addTab(self.animationen, "Animationen")
         self.tabs.addTab(self.zubehoer, "Zubehör")
         self.tabs.addTab(self.verhalten, "Verhalten")
         self.tabs.addTab(self.herkunft, "Herkunft && Töne")
+        self.tabs.addTab(self.effekte, "Effekte")
         mitte = QWidget()
         ml = QVBoxLayout(mitte)
         ml.addWidget(self.tabs, 1)
@@ -1547,6 +1550,7 @@ class Editor(QMainWindow):
         self.zubehoer.aufbauen()
         self.verhalten.aufbauen()
         self.herkunft.aufbauen()
+        self.effekte.aufbauen()
         self._beobachten()
 
     def _beobachten(self) -> None:
@@ -1582,6 +1586,7 @@ class Editor(QMainWindow):
             self.zubehoer.aufbauen()
             self.verhalten.aufbauen()
             self.herkunft.aufbauen()
+            self.effekte.aufbauen()
             self.geaendert()
 
     def _avatar_wechseln(self) -> None:

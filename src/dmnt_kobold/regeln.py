@@ -168,6 +168,8 @@ class RegelPersoenlichkeit(Modul):
                         pass
             elif art == "innen" and isinstance(a.get("variante"), str) and a["variante"].strip("@ "):
                 wunsch["innen"] = a["variante"].strip("@ ")
+            elif art == "effekt" and isinstance(a.get("name"), str) and a["name"]:
+                wunsch["effekt"] = a["name"]
         if not wunsch:
             return
         prioritaet = int(r.get("prioritaet", 50))

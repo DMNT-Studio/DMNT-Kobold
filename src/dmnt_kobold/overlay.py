@@ -32,8 +32,8 @@ from PySide6.QtCore import QElapsedTimer, QPoint, QPointF, QRect, QRectF, Qt, QT
 from PySide6.QtGui import QColor, QCursor, QPainter
 from PySide6.QtWidgets import QWidget
 
-from . import katalog, win32
-from .avatar import Darsteller, Zustand
+from . import effekte, katalog, win32
+from .avatar import NAMEN, Darsteller, Zustand
 from .bus import EventBus
 from .menue import Schalter, baue_menue
 from .monitore import Monitor, lese_monitore, monitor_bei, monitor_unter_fuss
@@ -262,6 +262,9 @@ class AvatarFenster(QWidget):
         self._drehung: float | None = None
         self._partikel: list[dict] = []
         self.partikel_fenster = PartikelFenster()
+        self.effekt_fenster = effekte.EffektFenster()      # zweite Ebene: über dem Kopf
+        self._effekt: str | None = None
+        self._effekt_t = 0.0
         self._antippen = False               # Rückfall-Hüpfer nach einem Klick ohne Regel
         self._innen_variante: str | None = None
         self._innen_pos: list[float] | None = None
@@ -416,13 +419,14 @@ class AvatarFenster(QWidget):
 
         self._platzieren()
         self._darstellung_aktualisieren()
+        self._effekt_schritt(dt, a)
         self._sprechblase(a)
 
         if k.in_bewegung or self._stauch_t >= 0 or self._gedrueckt or self._fuehrung is not None \
                 or self._phase in HUEPF_PHASEN or self._partikel or self._innen_wackelt() \
                 or self._drehung is not None:
             soll = TAKT_SCHNELL_MS
-        elif animation in BEWEGTE_ANIMATIONEN or self._phase == "pause":
+        elif animation in BEWEGTE_ANIMATIONEN or self._phase == "pause" or self._effekt is not None:
             soll = TAKT_MITTEL_MS
         else:
             soll = TAKT_RUHE_MS
@@ -672,6 +676,30 @@ class AvatarFenster(QWidget):
             ergebnis.append((QRectF(t["x"] - ox - g / 2, t["y"] - oy - h, g, h), farbe, t["form"]))
         return ergebnis
 
+    # --- Effekte: zweite Ebene über dem Kopf ------------------------------------
+    def effekt_name(self, a: Ausgabe | None) -> str | None:
+        """Effekt des Wunsches, sonst der zur sichtbaren Animation (Bauplan oder Standard)."""
+        eigene = self.darsteller.eigene_effekte
+        if a is not None and a.effekt and effekte.bekannt(a.effekt, eigene):
+            return a.effekt
+        z = effekte.zuordnung(self.darsteller.effekte_zuordnung)
+        name = z.get(self._animation) or z.get(NAMEN.get(self._animation, self._animation))
+        return name if name and effekte.bekannt(name, eigene) else None
+
+    def _effekt_schritt(self, dt: float, a: Ausgabe | None) -> None:
+        name = None if self.einrichten_aktiv else self.effekt_name(a)
+        if name != self._effekt:
+            self._effekt, self._effekt_t = name, 0.0
+        else:
+            self._effekt_t += dt
+        if name is None:
+            self.effekt_fenster.verstecken()
+            return
+        kopf, breite = self.darsteller.kopf(self._zustand)
+        glob = QPointF(self.koerper.x - self.fuss.x() + kopf.x(), self.koerper.y - self.fuss.y() + kopf.y())
+        self.effekt_fenster.zeigen(name, self._effekt_t, glob, breite, self._zustand.richtung,
+                                   self.darsteller.eigene_effekte)
+
     # --- Innenleben: Variante und Nachwackeln ----------------------------------------
     def _innen_wackelt(self) -> bool:
         return self._innen_versatz != (0.0, 0.0) or abs(self._innen_v[0]) + abs(self._innen_v[1]) > 1.0
@@ -830,6 +858,8 @@ class AvatarFenster(QWidget):
         self._drehung = None
         self._partikel = []
         self.partikel_fenster.verstecken()
+        self._effekt = None
+        self.effekt_fenster.verstecken()
         self._innen_variante, self._innen_pos, self._innen_v = None, None, [0.0, 0.0]
         self._innen_spur.clear()
         self._innen_versatz = (0.0, 0.0)
@@ -912,7 +942,7 @@ class AvatarFenster(QWidget):
         z = Zustand(
             animation=animation, t=self._animation_t, sx=sx, sy=sy,
             richtung=richtung, augen=augen, mund=mund,
-            blick=(round(self._blick[0], 1), round(self._blick[1], 1)), zzz=zzz,
+            blick=(round(self._blick[0], 1), round(self._blick[1], 1)), zzz=False,   # zzz: Effekt-Ebene
             schatten=self.koerper.zustand == STEHT and self._fuehrung is None,
             zubehoer=a.zubehoer if a else frozenset(), drehung=drehung,
             innen=self._innen_variante, innen_versatz=self._innen_versatz,
@@ -939,6 +969,11 @@ class AvatarFenster(QWidget):
         p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
         self.darsteller.zeichnen(p, self._zustand)
         p.end()
+
+    def closeEvent(self, e) -> None:  # noqa: N802 (Qt-API)
+        self.partikel_fenster.verstecken()
+        self.effekt_fenster.verstecken()
+        super().closeEvent(e)
 
     # --- Maus ----------------------------------------------------------------
     def mousePressEvent(self, e) -> None:  # noqa: N802

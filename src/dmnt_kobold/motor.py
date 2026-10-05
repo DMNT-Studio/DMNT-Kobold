@@ -42,6 +42,7 @@ class Wunsch:
     ton: str | None = None
     bewegung: str | None = None          # z. B. "freuen_huepfend" (Hüpfer auf der Stelle)
     innen: str | None = None             # Variante des Innenlebens, z. B. "froh"
+    effekt: str | None = None            # Effekt über dem Kopf, z. B. "sterne"
     quelle: str = ""
     beim_knopf: Callable[[str], None] | None = None
     id: int = 0
@@ -64,6 +65,7 @@ class Ausgabe:
     bewegung: str | None = None
     innen: str | None = None
     rennen: bool = False                 # Eigenleben flitzt („ihre 5 Minuten“)
+    effekt: str | None = None            # vom Wunsch (sonst entscheidet die Animation)
 
 
 class Verhaltensmotor:
@@ -188,7 +190,7 @@ class Verhaltensmotor:
         if w is not None:
             blase = (w.id, w.text, w.knoepfe) if w.text else None
             return Ausgabe(w.animation, False, el.richtung, w.ziel, blase, toene, w.id, el.blinzelt,
-                           self.zubehoer, w.bewegung, w.innen)
+                           self.zubehoer, w.bewegung, w.innen, effekt=w.effekt)
         anim = el.zustand
         return Ausgabe(anim, anim in (LAUFEN, RENNEN), el.richtung, None, None, toene, None, el.blinzelt,
                        self.zubehoer, rennen=anim == RENNEN)

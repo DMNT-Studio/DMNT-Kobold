@@ -27,7 +27,8 @@ from dmnt_kobold import stil
 from dmnt_kobold.regeln import standard_verhalten
 
 WURZEL = Path(__file__).resolve().parents[1]
-BEREICHE = {"toene": ("bauplan", "Töne"), "verhalten": ("verhalten", "Verhalten (Regeln und Werte)")}
+BEREICHE = {"toene": ("bauplan", "Töne"), "effekte": ("bauplan", "Effekte"),
+            "verhalten": ("verhalten", "Verhalten (Regeln und Werte)")}
 VERLAUF_ZEIGEN = 40
 _ZEIT = re.compile(r"_(\d{8})_(\d{6})_(\d{3})$")
 
@@ -43,8 +44,8 @@ class Stand:
 
 def teil(bereich: str, datei_inhalt: dict) -> dict:
     """Den zurücksetzbaren Teil aus dem Inhalt einer Datei holen."""
-    if bereich == "toene":
-        return copy.deepcopy(datei_inhalt.get("toene") or {})
+    if bereich in ("toene", "effekte"):
+        return copy.deepcopy(datei_inhalt.get(bereich) or {})
     return {"werte": copy.deepcopy(datei_inhalt.get("werte") or {}),
             "regeln": copy.deepcopy(datei_inhalt.get("regeln") or []),
             **{k: copy.deepcopy(v) for k, v in datei_inhalt.items() if k not in ("werte", "regeln")}}
@@ -81,7 +82,7 @@ def repo_stand(projekt, bereich: str) -> Stand | None:
 
 
 def datei_name(bereich: str) -> str:
-    return "bauplan.json" if bereich == "toene" else "verhalten.json"
+    return "verhalten.json" if bereich == "verhalten" else "bauplan.json"
 
 
 def verlauf_staende(projekt, bereich: str) -> list[Stand]:
@@ -131,11 +132,11 @@ def staende(projekt, bereich: str) -> list[Stand]:
 
 def zuruecksetzen(projekt, bereich: str, stand: Stand) -> None:
     """Stand übernehmen und speichern (der bisherige Stand geht in den Verlauf)."""
-    if bereich == "toene":
+    if bereich in ("toene", "effekte"):
         if stand.daten:
-            projekt.bauplan["toene"] = copy.deepcopy(stand.daten)
+            projekt.bauplan[bereich] = copy.deepcopy(stand.daten)
         else:
-            projekt.bauplan.pop("toene", None)
+            projekt.bauplan.pop(bereich, None)
         projekt.bauplan_speichern()
     else:
         projekt.verhalten = copy.deepcopy(stand.daten)
@@ -143,6 +144,13 @@ def zuruecksetzen(projekt, bereich: str, stand: Stand) -> None:
 
 
 def zusammenfassung(bereich: str, daten: dict) -> str:
+    if bereich == "effekte":
+        z = daten.get("zuordnung") or {}
+        eigene = daten.get("eigene") or {}
+        teile = [f"{a} → {n or 'kein Effekt'}" for a, n in z.items()] or ["nur Standard (schlafen → zzz)"]
+        if eigene:
+            teile.append("eigene: " + ", ".join(eigene))
+        return "\n".join(teile)
     if bereich == "toene":
         if not daten:
             return "keine Töne"
@@ -164,6 +172,10 @@ def zusammenfassung(bereich: str, daten: dict) -> str:
 
 def unterschied(bereich: str, jetzt: dict, stand: dict) -> str:
     """Kurz, was sich beim Zurücksetzen ändert."""
+    if bereich == "effekte":
+        jetzt = {**(jetzt.get("zuordnung") or {}), **{f"eigener {n}": 1 for n in (jetzt.get("eigene") or {})}}
+        stand = {**(stand.get("zuordnung") or {}), **{f"eigener {n}": 1 for n in (stand.get("eigene") or {})}}
+        bereich = "toene"                                  # gleiche Darstellung: Schlüssel vergleichen
     if bereich == "toene":
         a, b = set(jetzt), set(stand)
         geaendert = sorted(m for m in a & b if jetzt[m] != stand[m])
@@ -196,7 +208,8 @@ class ZuruecksetzenDialog(QDialog):
         self.setWindowTitle(f"{name} zurücksetzen – {projekt.id}")
         self.resize(720, 560)
         lay = QVBoxLayout(self)
-        was = "sollen die Töne" if bereich == "toene" else "soll das Verhalten (Regeln und Werte)"
+        was = {"toene": "sollen die Töne", "effekte": "sollen die Effekte"}.get(
+            bereich, "soll das Verhalten (Regeln und Werte)")
         erkl = QLabel(f"Auf welchen Stand {was} von „{projekt.id}“ zurück? Der jetzige Stand "
                       "kommt dabei in den Verlauf und lässt sich hier genauso wiederherstellen. "
                       "Dateien werden nicht gelöscht.")

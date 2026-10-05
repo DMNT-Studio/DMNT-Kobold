@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (QCheckBox, QComboBox, QDoubleSpinBox, QFormLayout
                                QPlainTextEdit, QPushButton, QScrollArea, QSlider, QSpinBox, QSplitter,
                                QTabWidget, QTextBrowser, QVBoxLayout, QWidget)
 
-from dmnt_kobold import katalog, stil
+from dmnt_kobold import effekte, katalog, stil
 from dmnt_kobold.toene import KLAENGE
 
 GRAU = "#8A938E"
@@ -171,9 +171,9 @@ class ParamFeld(QWidget):
             w.setEditText(text)
             w.lineEdit().setPlaceholderText("Zahl oder Wert aus der Liste")
             w.editTextChanged.connect(self.geaendert)
-        elif t in ("auswahl", "animation", "ton", "zubehoer", "regel", "innen"):
+        elif t in ("auswahl", "animation", "ton", "zubehoer", "regel", "innen", "effekt"):
             w = QComboBox()
-            w.setEditable(t in ("animation", "ton", "zubehoer", "innen"))
+            w.setEditable(t in ("animation", "ton", "zubehoer", "innen", "effekt"))
             if not p.pflicht:
                 w.addItem("")
             for o in (p.auswahl if t == "auswahl" else quellen.get(t, [])):
@@ -935,6 +935,7 @@ class VerhaltenTab(QWidget):
                 "ton": sorted(set(pr.bauplan.get("toene", {})) | set(KLAENGE)),
                 "zubehoer": sorted({katalog.kennung(z) or z for z in pr.zubehoer} | {"kopfhoerer"}),
                 "innen": pr.innen_varianten(),
+                "effekt": list(effekte.EINGEBAUT) + sorted(((pr.bauplan.get("effekte") or {}).get("eigene") or {})),
                 "regel": [r.get("id", "") for r in self.verhalten.get("regeln", [])]}
 
     # --- Ablauf ---------------------------------------------------------------------------
