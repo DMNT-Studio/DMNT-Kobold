@@ -474,7 +474,8 @@ def avatar_liste() -> list[tuple[str, str, Path | None]]:
 
 
 def avatar_icon(avatar: Avatar | None):
-    """Tray-/Fenster-Icon aus dem Porträt (oberes Quadrat = Kopf). None ohne Porträt."""
+    """Tray-/Fenster-Icon aus dem Porträt (oberes Quadrat = Kopf, breite Figuren ganz).
+    None ohne Porträt."""
     from PySide6.QtGui import QIcon
 
     if avatar is None or avatar.portraet is None or not avatar.portraet.exists():
@@ -482,8 +483,15 @@ def avatar_icon(avatar: Avatar | None):
     pm = QPixmap(str(avatar.portraet))
     if pm.isNull():
         return None
-    seite = min(pm.width(), pm.height())
-    kopf = pm.copy((pm.width() - seite) // 2, 0, seite, seite)
+    if pm.width() > pm.height():          # breite Figur (z. B. Kiesel): ganz zeigen
+        kopf = QPixmap(pm.width(), pm.width())
+        kopf.fill(Qt.GlobalColor.transparent)
+        p = QPainter(kopf)
+        p.drawPixmap(0, (pm.width() - pm.height()) // 2, pm)
+        p.end()
+    else:
+        seite = pm.width()
+        kopf = pm.copy(0, 0, seite, seite)
     icon = QIcon()
     for g in (16, 24, 32, 48, 64, 128):
         icon.addPixmap(kopf.scaled(g, g, Qt.AspectRatioMode.KeepAspectRatio,

@@ -83,6 +83,24 @@ Aussehen steht im Bauplan, Temperament in den Werten – nichts doppelt.
   `python -m dmnt_kobold --avatar-pfad build/huepf_probe` (eigene Daten, läuft neben dem
   normalen Kobold; Einrichten und Beenden über sein Tray-Icon).
 
+## Kiesel (ab 0.6.1) – Beispiel für Avatar-Autoren
+
+Kiesel ist ein eigener, frei erfundener Hüpf-Avatar (MIT, Stefan Rohrbach): ein halbdurchsichtiger
+Glibber-Tropfen mit einem Kieselstein im Bauch, der seine Stimmung zeigt (froh = leuchtet gelb,
+erschreckt = springt hoch, müde = sinkt ab, neugierig = rollt zur Blickrichtung). Er ist „ohne Code“.
+
+- Quellen: `quellen/kiesel/` – alles Vektorgrafik (SVG), Töne aus `werkzeuge/toene_kiesel.py`.
+- **Rig aus Teilen:** Jede Pose im Bauplan ist Körper (`teile/koerper.svg`) + Rückwand
+  (`koerper_hinten.svg`) + Teile (Glanz, Augen, Mund). `form` verformt die Pose um den Fußpunkt
+  (`breite`, `hoehe`, `neigung` in Grad, `x`, `y`), je Teil gibt es `x`, `y`, `breite`, `hoehe`.
+  SVG wird beim Bau mit `QSvgRenderer` in doppelter Auflösung gerendert (keine neue Abhängigkeit).
+- Bauen: `python werkzeuge/avatar_bauen.py quellen/kiesel` (für die OGG-Töne braucht der Bau ffmpeg
+  oder das Paket soundfile).
+- Ausprobieren neben dem normalen Kobold: `python -m dmnt_kobold --avatar-pfad src/dmnt_kobold/avatare/kiesel`.
+  Fest einziehen lassen: Tray → Einrichten → System → „Anderen Kobold adoptieren“ → Kiesel, dann neu starten.
+- Farbe ändern: `fill="#8EC9E8"` in `teile/koerper.svg` und `teile/koerper_hinten.svg`.
+  Sprüche: Avatar-Editor, Reiter „Verhalten“. Danach neu bauen.
+
 ## Grenzen
 
 - **Exklusives Vollbild:** Über Spielen im exklusiven Vollbild kann Windows kein Overlay

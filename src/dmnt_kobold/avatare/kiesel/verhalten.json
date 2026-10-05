@@ -1,0 +1,403 @@
+{
+  "beschreibung": "Kiesel – freundlicher Glibber-Tropfen mit einem Kiesel im Bauch, der seine Stimmung zeigt. Hüpft, ohne Code.",
+  "werte": {
+    "sprungweite_px": 30,
+    "sprunghoehe_px": 22,
+    "hupf_pause_min_s": 1.0,
+    "hupf_pause_max_s": 2.2,
+    "einschlafen_nach_min": 6
+  },
+  "regeln": [
+    {
+      "id": "hallo_maus",
+      "wenn": {
+        "ereignis": "maus.nah_am_avatar"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "anschauen"
+        },
+        {
+          "aktion": "innen",
+          "variante": "neugierig"
+        },
+        {
+          "aktion": "bleiben"
+        }
+      ],
+      "prioritaet": 30
+    },
+    {
+      "id": "hallo_blubb",
+      "wenn": {
+        "ereignis": "maus.nah_am_avatar"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "anschauen"
+        },
+        {
+          "aktion": "innen",
+          "variante": "neugierig"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Blubb?"
+          ]
+        }
+      ],
+      "prioritaet": 31,
+      "dauer_s": 2.5,
+      "chance": 0.3,
+      "abklingzeit_s": 20
+    },
+    {
+      "id": "maus_weg",
+      "wenn": {
+        "ereignis": "maus.weg"
+      },
+      "dann": [
+        {
+          "aktion": "zurueckziehen",
+          "regeln": [
+            "hallo_maus",
+            "hallo_blubb"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "klick_freude",
+      "wenn": {
+        "ereignis": "maus.klick"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "freuen"
+        },
+        {
+          "aktion": "freuen_huepfend"
+        },
+        {
+          "aktion": "innen",
+          "variante": "froh"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Juhu!",
+            "Nochmal!",
+            "Plopp-plopp!"
+          ]
+        }
+      ],
+      "prioritaet": 35,
+      "dauer_s": 2.8
+    },
+    {
+      "id": "wackeln",
+      "wenn": {
+        "ereignis": "maus.wackelt"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "erschrecken"
+        },
+        {
+          "aktion": "innen",
+          "variante": "erschreckt"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Huiii, mir ist schwindelig!"
+          ],
+          "trotz_ruhe": true
+        }
+      ],
+      "prioritaet": 45,
+      "dauer_s": 2.5,
+      "abklingzeit_s": 8,
+      "gruppe": "wackeln"
+    },
+    {
+      "id": "wackeln_kurz",
+      "wenn": {
+        "ereignis": "maus.wackelt"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "erschrecken"
+        },
+        {
+          "aktion": "innen",
+          "variante": "erschreckt"
+        }
+      ],
+      "prioritaet": 45,
+      "dauer_s": 1.2,
+      "gruppe": "wackeln"
+    },
+    {
+      "id": "tippen",
+      "wenn": {
+        "ereignis": "tastatur.tippt"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "ruhe"
+        },
+        {
+          "aktion": "bleiben"
+        }
+      ],
+      "prioritaet": 15
+    },
+    {
+      "id": "tippen_ende",
+      "wenn": {
+        "ereignis": "tastatur.pause"
+      },
+      "dann": [
+        {
+          "aktion": "zurueckziehen",
+          "regeln": [
+            "tippen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tipp_pause",
+      "wenn": {
+        "ereignis": "tastatur.pause",
+        "sitzung_ab_s": "$lange_tippsitzung_s"
+      },
+      "dann": [
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Plopp! Kurz die Augen ausruhen?"
+          ],
+          "knoepfe": [
+            "Ok",
+            "Gleich"
+          ]
+        }
+      ],
+      "prioritaet": 60,
+      "dauer_s": 15,
+      "aufheben": true,
+      "abklingzeit_s": 900,
+      "gruppe": "pause"
+    },
+    {
+      "id": "blick",
+      "wenn": {
+        "ereignis": "tastatur.pause"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "anschauen"
+        }
+      ],
+      "prioritaet": 25,
+      "dauer_s": 2,
+      "gruppe": "pause"
+    },
+    {
+      "id": "pause_ok",
+      "wenn": {
+        "ereignis": "sprechblase.knopf",
+        "knopf": "Ok",
+        "regel": "tipp_pause"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "freuen"
+        },
+        {
+          "aktion": "innen",
+          "variante": "froh"
+        }
+      ],
+      "prioritaet": 45,
+      "dauer_s": 1.5
+    },
+    {
+      "id": "pause_gleich",
+      "wenn": {
+        "ereignis": "sprechblase.knopf",
+        "knopf": "Gleich",
+        "regel": "tipp_pause"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "anschauen"
+        }
+      ],
+      "prioritaet": 45,
+      "dauer_s": 2.5
+    },
+    {
+      "id": "leerlauf",
+      "wenn": {
+        "ereignis": "leerlauf",
+        "ab_minuten": "$einschlafen_nach_min"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "schlafen"
+        },
+        {
+          "aktion": "innen",
+          "variante": "muede"
+        },
+        {
+          "aktion": "bleiben"
+        }
+      ],
+      "prioritaet": 20
+    },
+    {
+      "id": "aufwachen",
+      "wenn": {
+        "ereignis": "leerlauf.ende",
+        "regel_laeuft": "leerlauf"
+      },
+      "dann": [
+        {
+          "aktion": "zurueckziehen",
+          "regeln": [
+            "leerlauf"
+          ]
+        },
+        {
+          "aktion": "animation",
+          "name": "erschrecken"
+        },
+        {
+          "aktion": "innen",
+          "variante": "erschreckt"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Oh! Ich hab nur kurz geblinzelt."
+          ]
+        }
+      ],
+      "prioritaet": 35,
+      "dauer_s": 3.5
+    },
+    {
+      "id": "minecraft",
+      "wenn": [
+        {
+          "ereignis": "programm.aktiv",
+          "programm": [
+            "javaw.exe",
+            "java.exe"
+          ],
+          "titel_enthaelt": "minecraft"
+        },
+        {
+          "ereignis": "programm.aktiv",
+          "programm": [
+            "minecraft.exe",
+            "minecraftlauncher.exe"
+          ]
+        }
+      ],
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "freuen"
+        },
+        {
+          "aktion": "innen",
+          "variante": "froh"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Bauen wir was Großes?",
+            "Ich pass auf, dass keiner kommt."
+          ]
+        }
+      ],
+      "prioritaet": 50,
+      "dauer_s": 6,
+      "abklingzeit_s": 900
+    },
+    {
+      "id": "landung_hoch",
+      "wenn": {
+        "ereignis": "avatar.gelandet",
+        "art": "fall",
+        "fallhoehe_px": 200
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "landen"
+        },
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Platsch! Alles heil."
+          ]
+        }
+      ],
+      "prioritaet": 40,
+      "dauer_s": 2.5
+    },
+    {
+      "id": "musik",
+      "wenn": {
+        "ereignis": "audio.laeuft"
+      },
+      "dann": [
+        {
+          "aktion": "animation",
+          "name": "freuen"
+        },
+        {
+          "aktion": "innen",
+          "variante": "froh"
+        }
+      ],
+      "prioritaet": 32,
+      "dauer_s": 1.5
+    },
+    {
+      "id": "nachts",
+      "wenn": {
+        "ereignis": "tageszeit",
+        "tageszeit": "nachts"
+      },
+      "dann": [
+        {
+          "aktion": "sprechen",
+          "texte": [
+            "Es ist schon spät. Zeit fürs Bett?"
+          ]
+        }
+      ],
+      "prioritaet": 40,
+      "dauer_s": 5,
+      "abklingzeit_s": 21600
+    }
+  ]
+}

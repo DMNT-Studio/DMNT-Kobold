@@ -1,0 +1,1037 @@
+{
+  "id": "kiesel",
+  "name": "Kiesel",
+  "skalierung": 2,
+  "ausrichtung": "rahmen",
+  "rahmen_px": [
+    224,
+    224
+  ],
+  "blickrichtung": 1,
+  "bewegung": {
+    "art": "huepfen",
+    "hocken_ms": 300,
+    "stauchen": {
+      "breite": 1.24,
+      "hoehe": 0.72
+    },
+    "strecken": {
+      "breite": 0.86,
+      "hoehe": 1.2
+    }
+  },
+  "koerper_deckkraft": 1.0,
+  "partikel": {
+    "landen": {
+      "farbe": "#8EC9E8",
+      "deckkraft": 0.6,
+      "anzahl": [
+        5,
+        8
+      ],
+      "groesse_px": [
+        3,
+        5
+      ],
+      "reichweite_px": 18,
+      "dauer_ms": 340,
+      "form": "tropfen"
+    }
+  },
+  "toene": {
+    "absprung": {
+      "dateien": [
+        "toene/plopp.ogg"
+      ],
+      "tonhoehe": 0.06
+    },
+    "landen": {
+      "dateien": [
+        "toene/platsch.ogg"
+      ],
+      "tonhoehe": 0.08
+    },
+    "sprechen": {
+      "dateien": [
+        "toene/blubb.ogg"
+      ],
+      "tonhoehe": 0.15,
+      "wiederholen": [
+        1,
+        3
+      ]
+    },
+    "erschrecken": {
+      "dateien": [
+        "toene/kling.ogg"
+      ],
+      "tonhoehe": 0.04
+    }
+  },
+  "herkunft": {
+    "hintergrund": "herkunft.svg",
+    "groesse": 768
+  },
+  "portraet": {
+    "pose": "drehen_1",
+    "hoehe": 160
+  },
+  "quellen": {
+    "ruhe_a": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6,
+        "hoehe": 0.98
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "ruhe_b": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "ruhe_c": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6,
+        "hoehe": 1.02
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "ruhe_zu": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_zu.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "hocken": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_schlitz.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "absprung": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_rund.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "flug": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_rund.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_o.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "landen": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_kneifen.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "anschauen": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg",
+          "x": 6,
+          "y": -2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 3
+        }
+      ]
+    },
+    "sprechen_1": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "sprechen_2": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_o.svg",
+          "x": 2.0,
+          "hoehe": 0.55
+        }
+      ]
+    },
+    "sprechen_3": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_o.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "freuen": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_froh.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_offen.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "erschrecken_1": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6,
+        "x": 2
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_erschreckt.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_o.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "erschrecken_2": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6,
+        "x": -2
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_erschreckt.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_o.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "erschrecken_3": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_erschreckt.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_o.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "schlafen": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_zu.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0,
+          "breite": 0.7
+        }
+      ]
+    },
+    "gezogen": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "breite": 0.88,
+        "hoehe": 1.14
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_rund.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "fallen": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "breite": 0.88,
+        "hoehe": 1.14
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_rund.svg",
+          "x": 2.0
+        },
+        {
+          "datei": "teile/mund_o.svg",
+          "x": 2.0
+        }
+      ]
+    },
+    "drehen_1": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg"
+        },
+        {
+          "datei": "teile/mund_strich.svg"
+        }
+      ]
+    },
+    "drehen_2": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg",
+          "x": 10.0,
+          "breite": 0.84
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 10,
+          "breite": 0.84
+        }
+      ]
+    },
+    "drehen_3": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -10
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        },
+        {
+          "datei": "teile/augen_offen.svg",
+          "x": 26.0,
+          "breite": 0.42
+        },
+        {
+          "datei": "teile/mund_strich.svg",
+          "x": 26,
+          "breite": 0.45
+        }
+      ]
+    },
+    "drehen_4": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "form": {
+        "neigung": -6
+      },
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        }
+      ]
+    },
+    "drehen_5": {
+      "datei": "teile/koerper.svg",
+      "hinten": "teile/koerper_hinten.svg",
+      "teile": [
+        {
+          "datei": "teile/glanz.svg"
+        }
+      ]
+    }
+  },
+  "referenz": [
+    "ruhe_b",
+    0
+  ],
+  "animationen": {
+    "ruhe": {
+      "fps": 6,
+      "bilder": [
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_zu",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_zu",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_c",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_a",
+          0,
+          "normal"
+        ],
+        [
+          "ruhe_b",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "hocken": {
+      "fps": 4,
+      "bilder": [
+        [
+          "hocken",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "absprung": {
+      "fps": 4,
+      "bilder": [
+        [
+          "absprung",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "flug": {
+      "fps": 4,
+      "bilder": [
+        [
+          "flug",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "landen": {
+      "fps": 4,
+      "bilder": [
+        [
+          "landen",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "anschauen": {
+      "fps": 2,
+      "bilder": [
+        [
+          "anschauen",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "sprechen": {
+      "fps": 8,
+      "bilder": [
+        [
+          "sprechen_1",
+          0,
+          "normal"
+        ],
+        [
+          "sprechen_2",
+          0,
+          "normal"
+        ],
+        [
+          "sprechen_3",
+          0,
+          "normal"
+        ],
+        [
+          "sprechen_2",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "freuen": {
+      "fps": 4,
+      "bilder": [
+        [
+          "freuen",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "erschrecken": {
+      "fps": 16,
+      "schleife": false,
+      "bilder": [
+        [
+          "erschrecken_1",
+          0,
+          "normal"
+        ],
+        [
+          "erschrecken_2",
+          0,
+          "normal"
+        ],
+        [
+          "erschrecken_1",
+          0,
+          "normal"
+        ],
+        [
+          "erschrecken_2",
+          0,
+          "normal"
+        ],
+        [
+          "erschrecken_3",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "schlafen": {
+      "fps": 1,
+      "bilder": [
+        [
+          "schlafen",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "gezogen": {
+      "fps": 2,
+      "bilder": [
+        [
+          "gezogen",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "fallen": {
+      "fps": 2,
+      "bilder": [
+        [
+          "fallen",
+          0,
+          "normal"
+        ]
+      ]
+    },
+    "drehen": {
+      "fps": 6,
+      "bilder": [
+        [
+          "drehen_1",
+          0,
+          "normal"
+        ],
+        [
+          "drehen_2",
+          0,
+          "normal"
+        ],
+        [
+          "drehen_3",
+          0,
+          "normal"
+        ],
+        [
+          "drehen_4",
+          0,
+          "normal"
+        ],
+        [
+          "drehen_5",
+          0,
+          "normal"
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,31 @@
+Kiesel – ein Glibber-Tropfen mit einem Kiesel im Bauch
+======================================================
+
+Kiesel ist ein eigener, frei erfundener Hüpf-Avatar (MIT, Stefan Rohrbach) und das
+Beispiel für Avatar-Autoren: Er ist komplett als Vektorgrafik (SVG) gezeichnet und
+„ohne Code“ – alles, was er tut, steht in verhalten.json.
+
+Was liegt hier?
+  bauplan.json      Aussehen: Posen (aus Teilen zusammengesetzt), Hüpf-Form, Spritzer, Töne
+  verhalten.json    Verhalten: Werte (Sprungweite, Einschlafen …) und Regeln mit Sprüchen
+  zubehoer.json     der Kiesel im Bauch und seine Stimmungs-Varianten
+  teile/            Körper, Rückwand, Glanz, Augen und Münder als SVG
+  innen/            der Kiesel: kiesel.svg, kiesel@froh, @erschreckt, @muede, @neugierig
+  herkunft.svg      wo er herkommt: Flachwasser eines Bachs (Hintergrund beim Einrichten)
+  toene/            plopp, platsch, blubb, kling (erzeugt mit werkzeuge/toene_kiesel.py)
+
+Leicht selbst ändern
+  Farbe:   teile/koerper.svg und teile/koerper_hinten.svg mit dem Editor (Notepad) öffnen
+           und fill="#8EC9E8" in beiden Dateien auf eine andere Farbe ändern, z. B. #F4A6C0
+           (rosa) oder #9BE39B (grün). Der Rand steht in koerper.svg bei stroke="#5FA8CF".
+  Sprüche: Avatar-Editor starten (werkzeuge\Avatar-Editor.bat), Kiesel wählen, Reiter
+           „Verhalten“ → Regel anklicken (z. B. klick_freude) → Sprüche ändern.
+           Oder direkt in verhalten.json bei "texte".
+  Danach neu bauen: python werkzeuge/avatar_bauen.py quellen/kiesel
+  (der Avatar-Editor baut nach jeder Änderung selbst neu) und den Kobold neu starten.
+
+Wie die Posen entstehen (Rig)
+  Jede Pose im Bauplan ist eine Zeile: Körper (koerper.svg) + Rückwand (koerper_hinten.svg)
+  + Teile (Glanz, Augen, Mund). "form" verformt die ganze Pose um den Fußpunkt
+  (breite, hoehe, neigung in Grad, x, y), je Teil gibt es x, y, breite, hoehe.
+  Hüpfen, Stauchen und Strecken macht der Sockel selbst, das Nachwackeln des Kiesels auch.

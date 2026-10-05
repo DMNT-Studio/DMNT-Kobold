@@ -1,0 +1,41 @@
+{
+  "kiesel": {
+    "datei": "innen/kiesel.svg",
+    "sitz": "innen",
+    "gruppe": "innen",
+    "immer": true,
+    "breite": 48,
+    "posen": {
+      "gezogen:0": {
+        "x": -12,
+        "y": -15
+      },
+      "fallen:0": {
+        "x": -12,
+        "y": -15
+      }
+    },
+    "varianten": {
+      "froh": {
+        "datei": "innen/kiesel@froh.svg",
+        "x": 0,
+        "y": 0
+      },
+      "erschreckt": {
+        "datei": "innen/kiesel@erschreckt.svg",
+        "x": 0,
+        "y": -10
+      },
+      "muede": {
+        "datei": "innen/kiesel@muede.svg",
+        "x": -15,
+        "y": 29
+      },
+      "neugierig": {
+        "datei": "innen/kiesel@neugierig.svg",
+        "x": 4,
+        "y": 0
+      }
+    }
+  }
+}

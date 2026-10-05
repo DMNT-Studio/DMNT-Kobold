@@ -269,7 +269,8 @@ class Projekt:
             self._sichern(self.ordner / quelle["datei"])
             Image.open(neu).save(ziel)
             quelle["datei"] = ziel.name
-            quelle.pop("toleranz", None)
+            for k in ("toleranz", "teile", "form"):     # Rig (SVG-Teile) gilt fürs neue Bild nicht
+                quelle.pop(k, None)
             if hg:
                 quelle["hintergrund"] = hg
             else:

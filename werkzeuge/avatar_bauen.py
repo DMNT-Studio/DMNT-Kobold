@@ -18,6 +18,19 @@ Zwei Arten auszurichten:
   Avatare ohne Auge (Hüpfer wie Sulfi oder Kiesel). Optional je Quelle ``"hinten"``:
   eigene Rückwand (Innenleben liegt dann zwischen Rückwand und Körper).
 
+Vektorgrafik (SVG) und Rig aus Teilen (z. B. Kiesel):
+- Eine ``.svg`` wird mit ``QSvgRenderer`` (PySide6) gerendert – die viewBox ist die
+  Leinwand (es wird nicht zugeschnitten), Standard 2× viewBox, im Rahmen-Modus genau
+  ``rahmen_px``. Das gilt für Posen, Rückwände, Zubehör/Innenleben und die Herkunft.
+- Rig: Eine Quelle zeichnet ``datei`` (der Körper) und darüber ``"teile"`` (Augen, Mund,
+  Glanz …), alle mit derselben viewBox. Je Teil: ``x``/``y`` (Versatz, logische Pixel),
+  ``breite``/``hoehe`` (Faktor um die Mitte des Teils), ``deckkraft``. ``"form"`` gilt für
+  die ganze Pose samt Rückwand: ``breite``/``hoehe`` (Faktor um den Fußpunkt),
+  ``neigung`` (Grad, Spitze nach vorn +, nach hinten −), ``x``/``y`` (Versatz).
+  So steckt die Farbe nur in einer Körper-Datei und jede Pose ist eine Zeile im Bauplan.
+- ``"portraet": {"pose": "<quelle>", "hoehe": 160}``: Porträt (und Tray-Icon) aus einer
+  Pose samt Rückwand und Innenleben.
+
 Das Programm selbst kennt nur fertige Frames. Dieses Werkzeug erledigt alles davor:
 - Bildbögen in Einzelbilder zerlegen (leere Spalten trennen die Posen)
 - schwarzen Hintergrund entfernen und die Außenkontur wieder schwarz nachziehen
@@ -94,7 +107,10 @@ def weiss_entfernen(rgb: np.ndarray, toleranz: int = 235, nur_groesstes: bool = 
 
 def laden(pfad: Path, hintergrund: str | None, toleranz: int | None = None) -> np.ndarray:
     """``hintergrund``: None (Bild hat Transparenz), "schwarz" oder "weiss".
-    Bei "weiss" auch für eingebrannte Karomuster: ``toleranz`` z. B. 220."""
+    Bei "weiss" auch für eingebrannte Karomuster: ``toleranz`` z. B. 220.
+    SVG: gerendert in doppelter viewBox-Größe (Hintergrund gibt es dort nicht)."""
+    if ist_svg(pfad):
+        return rig_bild(pfad)
     im = Image.open(pfad)
     if hintergrund == "schwarz":
         return schwarz_entfernen(np.array(im.convert("RGB")))
@@ -133,6 +149,117 @@ def zuschneiden(rgba: np.ndarray, rand: int = 2) -> np.ndarray:
     y0, y1 = max(ys.min() - rand, 0), min(ys.max() + rand + 1, rgba.shape[0])
     x0, x1 = max(xs.min() - rand, 0), min(xs.max() + rand + 1, rgba.shape[1])
     return rgba[y0:y1, x0:x1].copy()
+
+
+# --- SVG und Rig ---------------------------------------------------------------------
+
+_QT: list = []
+
+
+def ist_svg(pfad: Path) -> bool:
+    return pfad.suffix.lower() == ".svg"
+
+
+def _qt_bereit() -> None:
+    """QSvgRenderer/QPainter brauchen eine Qt-Anwendung (im Editor gibt es sie schon)."""
+    from PySide6.QtGui import QGuiApplication
+
+    if QGuiApplication.instance() is None and not _QT:
+        import os
+
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        _QT.append(QGuiApplication(["avatar_bauen"]))
+
+
+def _svg(pfad: Path):
+    from PySide6.QtSvg import QSvgRenderer
+
+    _qt_bereit()
+    if not pfad.is_file():
+        raise BauFehler(f"Bild „{pfad.name}“ fehlt ({pfad})")
+    r = QSvgRenderer(str(pfad))
+    if not r.isValid():
+        raise BauFehler(f"SVG „{pfad.name}“ lässt sich nicht lesen (kein gültiges SVG)")
+    return r
+
+
+def _als_array(img) -> np.ndarray:
+    from PySide6.QtGui import QImage
+
+    img = img.convertToFormat(QImage.Format.Format_RGBA8888)
+    w, h = img.width(), img.height()
+    roh = np.frombuffer(img.constBits(), np.uint8, count=img.sizeInBytes())
+    return roh.reshape(h, img.bytesPerLine())[:, :w * 4].reshape(h, w, 4).copy()
+
+
+_TEIL_MITTE: dict[Path, tuple[float, float]] = {}
+
+
+def _teil_mitte(pfad: Path) -> tuple[float, float]:
+    """Mitte der sichtbaren Fläche eines Teils (viewBox-Koordinaten) – um sie wird skaliert."""
+    if pfad not in _TEIL_MITTE:
+        r = _svg(pfad)
+        vb = r.viewBoxF()
+        bild = rig_bild(pfad, breite_px=round(vb.width() * 2))
+        ys, xs = np.nonzero(bild[..., 3] > 10)
+        if len(xs):
+            _TEIL_MITTE[pfad] = (vb.x() + (xs.min() + xs.max()) / 4, vb.y() + (ys.min() + ys.max()) / 4)
+        else:
+            _TEIL_MITTE[pfad] = (vb.center().x(), vb.center().y())
+    return _TEIL_MITTE[pfad]
+
+
+def rig_bild(datei: Path, breite_px: int | None = None, form: dict | None = None,
+             teile: list | tuple = (), ordner: Path | None = None) -> np.ndarray:
+    """SVG (Körper) plus Teile darüber → RGBA. Leinwand = viewBox von ``datei`` in
+    ``breite_px`` Breite (Standard 2×). ``form`` wirkt um den Fußpunkt (unten Mitte)."""
+    import math
+
+    from PySide6.QtCore import QRectF, Qt
+    from PySide6.QtGui import QImage, QPainter, QTransform
+
+    r = _svg(datei)
+    vb = r.viewBoxF()
+    k = breite_px / vb.width() if breite_px else 2.0
+    w, h = max(1, round(vb.width() * k)), max(1, round(vb.height() * k))
+    img = QImage(w, h, QImage.Format.Format_ARGB32_Premultiplied)
+    img.fill(Qt.GlobalColor.transparent)
+    p = QPainter(img)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
+    basis = QTransform().scale(k, k).translate(-vb.x(), -vb.y())
+    if form:
+        fx, fy = vb.center().x(), vb.bottom()
+        t = QTransform()
+        t.translate(fx + float(form.get("x", 0)), fy + float(form.get("y", 0)))
+        t.shear(-math.tan(math.radians(float(form.get("neigung", 0)))), 0)
+        t.scale(float(form.get("breite", 1)), float(form.get("hoehe", 1)))
+        t.translate(-fx, -fy)
+        basis = t * basis
+    flaeche = QRectF(vb)
+    p.setTransform(basis)
+    r.render(p, flaeche)
+    for teil in teile:
+        pfad = (ordner or datei.parent) / teil["datei"]
+        tr = _svg(pfad)
+        cx, cy = _teil_mitte(pfad)
+        t = QTransform()
+        t.translate(cx + float(teil.get("x", 0)), cy + float(teil.get("y", 0)))
+        t.scale(float(teil.get("breite", 1)), float(teil.get("hoehe", 1)))
+        t.translate(-cx, -cy)
+        p.setTransform(t * basis)
+        p.setOpacity(float(teil.get("deckkraft", 1)))
+        tr.render(p, QRectF(tr.viewBoxF()))
+        p.setOpacity(1.0)
+    p.end()
+    return _als_array(img)
+
+
+def _pil_bild(pfad: Path, breite_px: int | None = None) -> Image.Image:
+    """Rasterbild oder SVG als PIL-Bild (SVG in ``breite_px`` Breite)."""
+    if ist_svg(pfad):
+        return Image.fromarray(rig_bild(pfad, breite_px), "RGBA")
+    return Image.open(pfad)
 
 
 # --- Auge ------------------------------------------------------------------------
@@ -254,14 +381,14 @@ def skalieren(rgba: np.ndarray, faktor: float) -> np.ndarray:
 
 
 def herkunft_bauen(quelle: Path, plan: dict, ziel: Path) -> str:
-    hg = Image.open(quelle / plan["hintergrund"]).convert("RGB")
     seite = plan.get("groesse", 768)
+    hg = _pil_bild(quelle / plan["hintergrund"], seite).convert("RGB")
     s = min(hg.width, hg.height)
     hg = hg.crop(((hg.width - s) // 2, (hg.height - s) // 2, (hg.width + s) // 2, (hg.height + s) // 2))
     hg = hg.resize((seite, seite), Image.LANCZOS).convert("RGBA")
     for ebene in plan.get("ebenen", []):
-        e = Image.open(quelle / ebene["datei"]).convert("RGBA")
         b = round(seite * ebene["breite"])
+        e = _pil_bild(quelle / ebene["datei"], b).convert("RGBA")
         e = e.resize((b, round(e.height * b / e.width)), Image.LANCZOS)
         x = round(seite * ebene["x"] - e.width / 2)
         y = round(seite * ebene["y"] - e.height / 2)
@@ -312,8 +439,15 @@ def verhalten_pruefen(quelle: Path, plan: dict, zplan: dict | None = None) -> di
 # --- Rahmen-Ausrichtung (ohne Auge) -------------------------------------------------
 
 
-def rahmen_bild(pfad: Path, q: dict, rahmen_b: int) -> np.ndarray:
-    """Bild einer Quelle im Rahmen-Modus: auf Rahmenbreite (× faktor) skaliert, ungeschnitten."""
+def rahmen_bild(pfad: Path, q: dict, rahmen_b: int, ordner: Path | None = None,
+                mit_teilen: bool = True) -> np.ndarray:
+    """Bild einer Quelle im Rahmen-Modus: auf Rahmenbreite (× faktor) skaliert, ungeschnitten.
+    SVG wird direkt in dieser Breite gerendert, mit ``form`` und (``mit_teilen``) den Teilen."""
+    if ist_svg(pfad):
+        return rig_bild(pfad, round(rahmen_b * float(q.get("faktor", 1.0))), q.get("form"),
+                        q.get("teile", []) if mit_teilen else (), ordner)
+    if q.get("teile") or q.get("form"):
+        raise BauFehler(f"„teile“ und „form“ gehen nur mit SVG-Quellen ({pfad.name})")
     bild = laden(pfad, q.get("hintergrund"), q.get("toleranz"))
     f = rahmen_b / bild.shape[1] * float(q.get("faktor", 1.0))
     return bild if abs(f - 1) < 1e-6 else skalieren(bild, f)
@@ -337,13 +471,13 @@ def rahmen_posen(quelle: Path, plan: dict) -> tuple[dict, dict, dict]:
     for name, q in plan["quellen"].items():
         if q.get("bilder", 1) != 1:
             raise BauFehler(f"Quelle „{name}“: im Rahmen-Modus ein Bild je Datei")
-        bild = rahmen_bild(quelle / q["datei"], q, rahmen_b)
+        bild = rahmen_bild(quelle / q["datei"], q, rahmen_b, quelle)
         if not (bild[..., 3] > 20).any():
             print(f"  Warnung: Bild „{q['datei']}“ ist leer")
         skaliert[name] = [bild]
         if q.get("hinten"):
             if (quelle / q["hinten"]).exists():
-                hinten[(name, 0)] = rahmen_bild(quelle / q["hinten"], q, rahmen_b)
+                hinten[(name, 0)] = rahmen_bild(quelle / q["hinten"], q, rahmen_b, quelle, mit_teilen=False)
             else:
                 print(f"  Warnung: Rückwand „{q['hinten']}“ fehlt – übersprungen")
     anker = {(name, 0): (liste[0].shape[1] / 2, liste[0].shape[0]) for name, liste in skaliert.items()}
@@ -557,7 +691,11 @@ def _bauen_rest(quelle, plan, ziel, s, rahmen, verhalten, skaliert, anker, ohne_
     portraet = None
     if "portraet" in plan:
         q = plan["portraet"]
-        bild = zuschneiden(laden(quelle / q["datei"], q.get("hintergrund")))
+        if q.get("pose"):
+            bild = zuschneiden(pose_mit_innen(q["pose"], skaliert, rueckwand, anker, zubehoer_info,
+                                              zubehoer_plan, kopf_rel, s, ziel))
+        else:
+            bild = zuschneiden(laden(quelle / q["datei"], q.get("hintergrund")))
         f = q.get("hoehe", 360) * s / bild.shape[0]
         Image.fromarray(skalieren(bild, f), "RGBA").save(ziel / "portraet.png", optimize=True)
         portraet = "portraet.png"
@@ -621,6 +759,32 @@ def _bauen_rest(quelle, plan, ziel, s, rahmen, verhalten, skaliert, anker, ohne_
     return ziel
 
 
+def pose_mit_innen(name: str, skaliert, rueckwand, anker, zinfo, zplan, kopf_rel, s, ziel: Path) -> np.ndarray:
+    """Eine Pose so, wie der Sockel sie zeigt: Rückwand, Innenleben (Grundvariante), Körper."""
+    if name not in skaliert:
+        raise BauFehler(f"portraet.pose: Quelle „{name}“ gibt es nicht")
+    front = skaliert[name][0]
+    im = Image.new("RGBA", (front.shape[1], front.shape[0]))
+    if (name, 0) in rueckwand:
+        im.alpha_composite(Image.fromarray(rueckwand[(name, 0)], "RGBA"))
+    cx, fy = anker[(name, 0)]
+    for teil, info in zinfo.items():
+        if zplan[teil].get("sitz") != "innen":
+            continue
+        p = platzierung(info, zplan[teil], f"{name}:0", kopf_rel)
+        if p.get("aus"):
+            continue
+        stueck = Image.open(ziel / info["bild"]).convert("RGBA")
+        b = float(p["breite"]) * s
+        h = b * stueck.height / stueck.width * float(p.get("hoehe", 100)) / 100
+        stueck = stueck.resize((max(1, round(b)), max(1, round(h))), Image.LANCZOS)
+        ebene = Image.new("RGBA", im.size)
+        ebene.paste(stueck, (round(cx + float(p["x"]) * s - b / 2), round(fy + float(p["y"]) * s - h / 2)))
+        im.alpha_composite(ebene)
+    im.alpha_composite(Image.fromarray(front, "RGBA"))
+    return np.array(im)
+
+
 # --- Zubehör ------------------------------------------------------------------------
 # zubehoer.json im Quellordner:
 #   {"kopfhoerer": {"datei": "../zubehoer/kopfhoerer.png", "hintergrund": "weiss",
@@ -639,7 +803,7 @@ def _zubehoer_bild(pfad: Path, z: dict, ziel: Path, name: str) -> tuple[str, flo
     if not pfad.exists():
         return None
     bild = laden(pfad, z.get("hintergrund"), z.get("toleranz"))
-    if (bild[..., 3] > 20).any():
+    if (bild[..., 3] > 20).any() and not ist_svg(pfad):    # SVG: viewBox bleibt (Varianten deckungsgleich)
         bild = zuschneiden(bild)
     if bild.shape[1] > ZUBEHOER_MAX_BREITE:
         bild = skalieren(bild, ZUBEHOER_MAX_BREITE / bild.shape[1])
@@ -707,7 +871,7 @@ def standard_platzierung(info: dict, z: dict, merkmale: dict) -> dict:
     kx, _ky, kb, ko = merkmale["kopf"]
     sitz = z.get("sitz")
     if sitz == "innen":                       # mitten im Körper, gut ein Drittel so breit
-        b = kb * 0.38
+        b = float(z["breite"]) if z.get("breite") else kb * 0.38
         return {"x": kx, "y": ko / 2, "breite": b, "winkel": 0.0, "hinten": False, "aus": False}
     if sitz == "am_auge" and merkmale.get("auge"):
         ex, ey, er = merkmale["auge"]

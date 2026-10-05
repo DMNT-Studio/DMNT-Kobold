@@ -1,0 +1,1829 @@
+{
+  "format": 1,
+  "id": "kiesel",
+  "name": "Kiesel",
+  "skalierung": 2,
+  "rahmen": [
+    114.0,
+    114.0
+  ],
+  "anker": [
+    57.0,
+    113.0
+  ],
+  "koerper": {
+    "breite": 86.5,
+    "hoehe": 82.0
+  },
+  "blickrichtung": 1,
+  "bewegung": {
+    "art": "huepfen",
+    "hocken_ms": 300,
+    "stauchen": {
+      "breite": 1.24,
+      "hoehe": 0.72
+    },
+    "strecken": {
+      "breite": 0.86,
+      "hoehe": 1.2
+    }
+  },
+  "herkunft": "herkunft.jpg",
+  "portraet": "portraet.png",
+  "animationen": {
+    "ruhe": {
+      "fps": 6,
+      "schleife": true,
+      "bilder": [
+        "frames/ruhe/00.png",
+        "frames/ruhe/01.png",
+        "frames/ruhe/02.png",
+        "frames/ruhe/03.png",
+        "frames/ruhe/04.png",
+        "frames/ruhe/05.png",
+        "frames/ruhe/06.png",
+        "frames/ruhe/07.png",
+        "frames/ruhe/08.png",
+        "frames/ruhe/09.png",
+        "frames/ruhe/10.png",
+        "frames/ruhe/11.png",
+        "frames/ruhe/12.png",
+        "frames/ruhe/13.png",
+        "frames/ruhe/14.png",
+        "frames/ruhe/15.png",
+        "frames/ruhe/16.png",
+        "frames/ruhe/17.png",
+        "frames/ruhe/18.png",
+        "frames/ruhe/19.png",
+        "frames/ruhe/20.png",
+        "frames/ruhe/21.png",
+        "frames/ruhe/22.png",
+        "frames/ruhe/23.png",
+        "frames/ruhe/24.png",
+        "frames/ruhe/25.png",
+        "frames/ruhe/26.png",
+        "frames/ruhe/27.png",
+        "frames/ruhe/28.png",
+        "frames/ruhe/29.png",
+        "frames/ruhe/30.png",
+        "frames/ruhe/31.png",
+        "frames/ruhe/32.png",
+        "frames/ruhe/33.png",
+        "frames/ruhe/34.png",
+        "frames/ruhe/35.png",
+        "frames/ruhe/36.png",
+        "frames/ruhe/37.png",
+        "frames/ruhe/38.png",
+        "frames/ruhe/39.png",
+        "frames/ruhe/40.png",
+        "frames/ruhe/41.png",
+        "frames/ruhe/42.png",
+        "frames/ruhe/43.png",
+        "frames/ruhe/44.png",
+        "frames/ruhe/45.png",
+        "frames/ruhe/46.png",
+        "frames/ruhe/47.png",
+        "frames/ruhe/48.png",
+        "frames/ruhe/49.png",
+        "frames/ruhe/50.png",
+        "frames/ruhe/51.png",
+        "frames/ruhe/52.png",
+        "frames/ruhe/53.png",
+        "frames/ruhe/54.png",
+        "frames/ruhe/55.png",
+        "frames/ruhe/56.png",
+        "frames/ruhe/57.png",
+        "frames/ruhe/58.png",
+        "frames/ruhe/59.png"
+      ],
+      "koepfe": [
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.5,
+          58.0,
+          86.0,
+          29.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          60.3,
+          86.5,
+          32.5
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_zu:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_c:0",
+        "ruhe_zu:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_c:0",
+        "ruhe_b:0",
+        "ruhe_b:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_a:0",
+        "ruhe_b:0"
+      ],
+      "hinten": [
+        "frames/ruhe/00_hinten.png",
+        "frames/ruhe/01_hinten.png",
+        "frames/ruhe/02_hinten.png",
+        "frames/ruhe/03_hinten.png",
+        "frames/ruhe/04_hinten.png",
+        "frames/ruhe/05_hinten.png",
+        "frames/ruhe/06_hinten.png",
+        "frames/ruhe/07_hinten.png",
+        "frames/ruhe/08_hinten.png",
+        "frames/ruhe/09_hinten.png",
+        "frames/ruhe/10_hinten.png",
+        "frames/ruhe/11_hinten.png",
+        "frames/ruhe/12_hinten.png",
+        "frames/ruhe/13_hinten.png",
+        "frames/ruhe/14_hinten.png",
+        "frames/ruhe/15_hinten.png",
+        "frames/ruhe/16_hinten.png",
+        "frames/ruhe/17_hinten.png",
+        "frames/ruhe/18_hinten.png",
+        "frames/ruhe/19_hinten.png",
+        "frames/ruhe/20_hinten.png",
+        "frames/ruhe/21_hinten.png",
+        "frames/ruhe/22_hinten.png",
+        "frames/ruhe/23_hinten.png",
+        "frames/ruhe/24_hinten.png",
+        "frames/ruhe/25_hinten.png",
+        "frames/ruhe/26_hinten.png",
+        "frames/ruhe/27_hinten.png",
+        "frames/ruhe/28_hinten.png",
+        "frames/ruhe/29_hinten.png",
+        "frames/ruhe/30_hinten.png",
+        "frames/ruhe/31_hinten.png",
+        "frames/ruhe/32_hinten.png",
+        "frames/ruhe/33_hinten.png",
+        "frames/ruhe/34_hinten.png",
+        "frames/ruhe/35_hinten.png",
+        "frames/ruhe/36_hinten.png",
+        "frames/ruhe/37_hinten.png",
+        "frames/ruhe/38_hinten.png",
+        "frames/ruhe/39_hinten.png",
+        "frames/ruhe/40_hinten.png",
+        "frames/ruhe/41_hinten.png",
+        "frames/ruhe/42_hinten.png",
+        "frames/ruhe/43_hinten.png",
+        "frames/ruhe/44_hinten.png",
+        "frames/ruhe/45_hinten.png",
+        "frames/ruhe/46_hinten.png",
+        "frames/ruhe/47_hinten.png",
+        "frames/ruhe/48_hinten.png",
+        "frames/ruhe/49_hinten.png",
+        "frames/ruhe/50_hinten.png",
+        "frames/ruhe/51_hinten.png",
+        "frames/ruhe/52_hinten.png",
+        "frames/ruhe/53_hinten.png",
+        "frames/ruhe/54_hinten.png",
+        "frames/ruhe/55_hinten.png",
+        "frames/ruhe/56_hinten.png",
+        "frames/ruhe/57_hinten.png",
+        "frames/ruhe/58_hinten.png",
+        "frames/ruhe/59_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.5,
+            -42.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -40.2,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "hocken": {
+      "fps": 4,
+      "schleife": true,
+      "bilder": [
+        "frames/hocken/00.png"
+      ],
+      "koepfe": [
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "hocken:0"
+      ],
+      "hinten": [
+        "frames/hocken/00_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "absprung": {
+      "fps": 4,
+      "schleife": true,
+      "bilder": [
+        "frames/absprung/00.png"
+      ],
+      "koepfe": [
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "absprung:0"
+      ],
+      "hinten": [
+        "frames/absprung/00_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "flug": {
+      "fps": 4,
+      "schleife": true,
+      "bilder": [
+        "frames/flug/00.png"
+      ],
+      "koepfe": [
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "flug:0"
+      ],
+      "hinten": [
+        "frames/flug/00_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "landen": {
+      "fps": 4,
+      "schleife": true,
+      "bilder": [
+        "frames/landen/00.png"
+      ],
+      "koepfe": [
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "landen:0"
+      ],
+      "hinten": [
+        "frames/landen/00_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "anschauen": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/anschauen/00.png"
+      ],
+      "koepfe": [
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "anschauen:0"
+      ],
+      "hinten": [
+        "frames/anschauen/00_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "sprechen": {
+      "fps": 8,
+      "schleife": true,
+      "bilder": [
+        "frames/sprechen/00.png",
+        "frames/sprechen/01.png",
+        "frames/sprechen/02.png",
+        "frames/sprechen/03.png"
+      ],
+      "koepfe": [
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "sprechen_1:0",
+        "sprechen_2:0",
+        "sprechen_3:0",
+        "sprechen_2:0"
+      ],
+      "hinten": [
+        "frames/sprechen/00_hinten.png",
+        "frames/sprechen/01_hinten.png",
+        "frames/sprechen/02_hinten.png",
+        "frames/sprechen/03_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "freuen": {
+      "fps": 4,
+      "schleife": true,
+      "bilder": [
+        "frames/freuen/00.png"
+      ],
+      "koepfe": [
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "freuen:0"
+      ],
+      "hinten": [
+        "frames/freuen/00_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "erschrecken": {
+      "fps": 16,
+      "schleife": false,
+      "bilder": [
+        "frames/erschrecken/00.png",
+        "frames/erschrecken/01.png",
+        "frames/erschrecken/02.png",
+        "frames/erschrecken/03.png",
+        "frames/erschrecken/04.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          52.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          56.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          52.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "erschrecken_1:0",
+        "erschrecken_2:0",
+        "erschrecken_1:0",
+        "erschrecken_2:0",
+        "erschrecken_3:0"
+      ],
+      "hinten": [
+        "frames/erschrecken/00_hinten.png",
+        "frames/erschrecken/01_hinten.png",
+        "frames/erschrecken/02_hinten.png",
+        "frames/erschrecken/03_hinten.png",
+        "frames/erschrecken/04_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -0.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -4.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -0.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -4.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "schlafen": {
+      "fps": 1,
+      "schleife": true,
+      "bilder": [
+        "frames/schlafen/00.png"
+      ],
+      "koepfe": [
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "schlafen:0"
+      ],
+      "hinten": [
+        "frames/schlafen/00_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "gezogen": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/gezogen/00.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          51.9,
+          75.5,
+          19.5
+        ]
+      ],
+      "posen": [
+        "gezogen:0"
+      ],
+      "hinten": [
+        "frames/gezogen/00_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -12.0,
+            -15.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "fallen": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/fallen/00.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          51.9,
+          75.5,
+          19.5
+        ]
+      ],
+      "posen": [
+        "fallen:0"
+      ],
+      "hinten": [
+        "frames/fallen/00_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -12.0,
+            -15.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    },
+    "drehen": {
+      "fps": 6,
+      "schleife": true,
+      "bilder": [
+        "frames/drehen/00.png",
+        "frames/drehen/01.png",
+        "frames/drehen/02.png",
+        "frames/drehen/03.png",
+        "frames/drehen/04.png"
+      ],
+      "koepfe": [
+        [
+          56.8,
+          59.4,
+          85.5,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          53.0,
+          59.4,
+          87.0,
+          31.0
+        ],
+        [
+          54.8,
+          59.4,
+          86.5,
+          31.0
+        ],
+        [
+          56.8,
+          59.4,
+          85.5,
+          31.0
+        ]
+      ],
+      "posen": [
+        "drehen_1:0",
+        "drehen_2:0",
+        "drehen_3:0",
+        "drehen_4:0",
+        "drehen_5:0"
+      ],
+      "hinten": [
+        "frames/drehen/00_hinten.png",
+        "frames/drehen/01_hinten.png",
+        "frames/drehen/02_hinten.png",
+        "frames/drehen/03_hinten.png",
+        "frames/drehen/04_hinten.png"
+      ],
+      "zubehoer": {
+        "kiesel": [
+          [
+            -0.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -4.0,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -2.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ],
+          [
+            -0.2,
+            -41.0,
+            48.0,
+            0.0,
+            0,
+            0,
+            100.0
+          ]
+        ]
+      }
+    }
+  },
+  "toene": {
+    "absprung": {
+      "dateien": [
+        "toene/absprung_1.wav"
+      ],
+      "tonhoehe": 0.06,
+      "wiederholen": [
+        1,
+        1
+      ]
+    },
+    "landen": {
+      "dateien": [
+        "toene/landen_1.wav"
+      ],
+      "tonhoehe": 0.08,
+      "wiederholen": [
+        1,
+        1
+      ]
+    },
+    "sprechen": {
+      "dateien": [
+        "toene/sprechen_1.wav"
+      ],
+      "tonhoehe": 0.15,
+      "wiederholen": [
+        1,
+        3
+      ]
+    },
+    "erschrecken": {
+      "dateien": [
+        "toene/erschrecken_1.wav"
+      ],
+      "tonhoehe": 0.04,
+      "wiederholen": [
+        1,
+        1
+      ]
+    }
+  },
+  "outfits": {},
+  "outfit": null,
+  "zubehoer": {
+    "kiesel": {
+      "bild": "zubehoer/kiesel.png",
+      "immer": true,
+      "gruppe": "innen",
+      "sitz": "innen",
+      "varianten": {
+        "froh": {
+          "bild": "zubehoer/kiesel@froh.png",
+          "x": 0.0,
+          "y": 0.0
+        },
+        "erschreckt": {
+          "bild": "zubehoer/kiesel@erschreckt.png",
+          "x": 0.0,
+          "y": -10.0
+        },
+        "muede": {
+          "bild": "zubehoer/kiesel@muede.png",
+          "x": -15.0,
+          "y": 29.0
+        },
+        "neugierig": {
+          "bild": "zubehoer/kiesel@neugierig.png",
+          "x": 4.0,
+          "y": 0.0
+        }
+      }
+    }
+  },
+  "partikel": {
+    "landen": {
+      "farbe": "#8EC9E8",
+      "deckkraft": 0.6,
+      "anzahl": [
+        5,
+        8
+      ],
+      "groesse_px": [
+        3,
+        5
+      ],
+      "reichweite_px": 18,
+      "dauer_ms": 340,
+      "form": "tropfen"
+    }
+  },
+  "koerper_deckkraft": 1.0
+}
