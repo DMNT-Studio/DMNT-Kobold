@@ -5,7 +5,7 @@ den Quellordner kopiert (altes nach _alt/), Ebenen (z. B. ein Schiff über dem W
 werden dabei entfernt, weil sie zum alten Bild gehörten.
 
 Töne: je Moment des Sockels (landen, absprung, sprechen …) eine oder mehrere Dateien
-(.wav, .ogg), Tonhöhen-Streuung und Wiederholungen. Eingebaute, synthetisierte Töne aus dem
+(.wav, .ogg, .mp3, .flac, .m4a), Tonhöhen-Streuung und Wiederholungen. Eingebaute, synthetisierte Töne aus dem
 Bauplan werden angezeigt und lassen sich durch Dateien ersetzen. „Anhören“ spielt die Datei
 direkt (ohne Bau). Jede Änderung speichert den Bauplan; der Editor baut dann wie gewohnt neu.
 """
@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QDoubleSpinBox, QFileDialog, QFrame, QGridLayout,
 from dmnt_kobold import katalog, stil
 
 BILDER = "Bilder (*.png *.jpg *.jpeg *.webp *.svg)"
-TOENE = "Töne (*.wav *.ogg)"
+TOENE = "Töne (*.wav *.ogg *.mp3 *.flac *.m4a)"
 GRAU = "#8A938E"
 AVATARE = Path(__file__).resolve().parents[1] / "src" / "dmnt_kobold" / "avatare"
 

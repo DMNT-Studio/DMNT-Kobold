@@ -615,7 +615,7 @@ PARTIKEL_STANDARD = {"farbe": "#FFFFFF", "deckkraft": 0.6, "anzahl": [6, 10], "g
                      "reichweite_px": 22, "dauer_ms": 380, "form": "quadrat"}
 PARTIKEL_RAND = 28              # so viel Platz bekommt das Fenster für Partikel
 TON_ABSTAND_S = 0.09            # Abstand zwischen Wiederholungen
-TON_ENDUNGEN = (".wav", ".ogg")
+TON_ENDUNGEN = (".wav", ".ogg", ".mp3", ".flac", ".m4a")   # alles außer .wav wandelt der Bau in WAV
 
 
 _UMLAUTE = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss", "Ä": "ae", "Ö": "oe", "Ü": "ue"})
@@ -811,6 +811,6 @@ def als_markdown() -> str:
           "| `koerper_deckkraft` | Deckkraft des Körpers über dem Innenleben (0,05–1) |",
           "| `partikel.<moment>` | `farbe`, `deckkraft`, `anzahl` [von, bis], `groesse_px` [von, bis], "
           f"`reichweite_px` (bis {PARTIKEL_RAND}), `dauer_ms`, `form` ({' / '.join(PARTIKEL_FORMEN)}) |",
-          "| `toene.<moment>` | `dateien` (.wav/.ogg), `tonhoehe` (Streuung ±), `wiederholen` [von, bis] |",
+          "| `toene.<moment>` | `dateien` (.wav/.ogg/.mp3/.flac/.m4a), `tonhoehe` (Streuung ±), `wiederholen` [von, bis] |",
           "| Zubehör-Sitz `innen` | Gegenstand im Körper, Varianten je Stimmung (`tnt@froh`), Aktion `innen` |"]
     return "\n".join(z) + "\n"
