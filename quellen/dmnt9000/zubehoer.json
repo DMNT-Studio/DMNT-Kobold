@@ -12,7 +12,53 @@
     "sitz": "auf_kopf",
     "gruppe": "hut",
     "immer": false,
-    "posen": {}
+    "posen": {
+      "daumen:0": {
+        "aus": false,
+        "breite": 42.2,
+        "hinten": false,
+        "hoehe": 96.2,
+        "winkel": 15.0,
+        "x": 3.6,
+        "y": -129.3
+      },
+      "daumen:1": {
+        "aus": false,
+        "breite": 43.2,
+        "hinten": false,
+        "hoehe": 96.2,
+        "winkel": 15.0,
+        "x": 3.3,
+        "y": -134.1
+      },
+      "daumen:2": {
+        "aus": false,
+        "breite": 41.5,
+        "hinten": false,
+        "hoehe": 100.0,
+        "winkel": 15.0,
+        "x": 2.7,
+        "y": -129.2
+      },
+      "seite:0": {
+        "aus": false,
+        "breite": 36.0,
+        "hinten": false,
+        "hoehe": 108.2,
+        "winkel": 12.0,
+        "x": -11.6,
+        "y": -137.7
+      },
+      "missfallen:0": {
+        "aus": false,
+        "breite": 41.6,
+        "hinten": false,
+        "hoehe": 100.0,
+        "winkel": 9.0,
+        "x": -10.7,
+        "y": -129.6
+      }
+    }
   },
   "monokel": {
     "datei": "zubehoer/monokel.png",
@@ -46,11 +92,104 @@
       },
       "seite:0": {
         "aus": false,
-        "breite": 29.7,
+        "breite": 26.4,
         "hinten": false,
+        "hoehe": 126.6,
         "winkel": 0.0,
         "x": -1.3,
-        "y": -99.0
+        "y": -98.0
+      },
+      "missfallen:0": {
+        "aus": false,
+        "breite": 28.6,
+        "hinten": false,
+        "hoehe": 112.5,
+        "winkel": 0.0,
+        "x": -1.0,
+        "y": -89.0
+      },
+      "gehen4:0": {
+        "aus": false,
+        "breite": 29.4,
+        "hinten": false,
+        "hoehe": 96.2,
+        "winkel": 0.0,
+        "x": 0.0,
+        "y": -84.6
+      },
+      "gehen4:1": {
+        "aus": false,
+        "breite": 28.3,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": 0.0,
+        "y": -84.1
+      },
+      "gehen4:2": {
+        "aus": false,
+        "breite": 28.3,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": -0.2,
+        "y": -83.7
+      },
+      "gehen4:3": {
+        "aus": false,
+        "breite": 27.2,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": -0.3,
+        "y": -78.4
+      },
+      "sprung:0": {
+        "aus": false,
+        "breite": 33.4,
+        "hinten": false,
+        "hoehe": 101.7,
+        "winkel": -19.0,
+        "x": 1.5,
+        "y": -76.6
+      },
+      "fallen:0": {
+        "aus": false,
+        "breite": 32.1,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": -0.4,
+        "y": -79.0
+      },
+      "front:0": {
+        "x": 1.2,
+        "y": -85.9,
+        "breite": 36.1,
+        "winkel": -9.0,
+        "hinten": false,
+        "aus": false,
+        "hoehe": 100.0
+      },
+      "gehen:0": {
+        "aus": false,
+        "breite": 33.4,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": 0.0,
+        "y": -93.3
+      },
+      "gehen:1": {
+        "aus": false,
+        "breite": 32.1,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": 0.6,
+        "y": -94.1
+      },
+      "gehen:2": {
+        "aus": false,
+        "breite": 32.2,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": -0.2,
+        "y": -93.3
       }
     }
   },
@@ -61,10 +200,133 @@
     "immer": false,
     "posen": {
       "sprung:0": {
-        "aus": true
+        "x": 43.8,
+        "y": -21.5,
+        "breite": 9.2,
+        "winkel": 0.0,
+        "hinten": true,
+        "aus": true,
+        "hoehe": 100.0
       },
       "fallen:0": {
         "aus": true
+      },
+      "gehen:2": {
+        "aus": false,
+        "breite": 12.8,
+        "hinten": true,
+        "hoehe": 88.9,
+        "winkel": -6.0,
+        "x": 35.3,
+        "y": -32.1
+      },
+      "daumen:0": {
+        "x": 32.6,
+        "y": -32.4,
+        "breite": 13.9,
+        "winkel": 0.0,
+        "hinten": true,
+        "aus": true,
+        "hoehe": 100.0
+      },
+      "daumen:1": {
+        "x": 29.7,
+        "y": -33.7,
+        "breite": 14.5,
+        "winkel": 0.0,
+        "hinten": true,
+        "aus": true,
+        "hoehe": 100.0
+      },
+      "daumen:2": {
+        "x": 35.3,
+        "y": -33.3,
+        "breite": 14.3,
+        "winkel": 0.0,
+        "hinten": true,
+        "aus": true,
+        "hoehe": 100.0
+      },
+      "seite:0": {
+        "aus": false,
+        "breite": 13.9,
+        "hinten": true,
+        "hoehe": 100.0,
+        "winkel": 66.0,
+        "x": -17.9,
+        "y": -38.4
+      },
+      "missfallen:0": {
+        "x": 39.5,
+        "y": -33.9,
+        "breite": 14.6,
+        "winkel": 0.0,
+        "hinten": true,
+        "aus": true,
+        "hoehe": 100.0
+      },
+      "gehen4:0": {
+        "aus": false,
+        "breite": 11.5,
+        "hinten": true,
+        "hoehe": 82.2,
+        "winkel": 0.0,
+        "x": 25.4,
+        "y": -32.2
+      },
+      "gehen4:1": {
+        "aus": false,
+        "breite": 11.9,
+        "hinten": true,
+        "hoehe": 79.0,
+        "winkel": 0.0,
+        "x": 26.4,
+        "y": -32.1
+      },
+      "gehen4:2": {
+        "aus": false,
+        "breite": 11.5,
+        "hinten": true,
+        "hoehe": 85.5,
+        "winkel": 15.0,
+        "x": 23.0,
+        "y": -29.1
+      },
+      "gehen4:3": {
+        "aus": false,
+        "breite": 11.0,
+        "hinten": true,
+        "hoehe": 88.9,
+        "winkel": 6.0,
+        "x": 21.1,
+        "y": -26.4
+      },
+      "front:0": {
+        "x": 38.1,
+        "y": -22.1,
+        "breite": 9.5,
+        "winkel": 0.0,
+        "hinten": true,
+        "aus": true,
+        "hoehe": 100.0
+      },
+      "gehen:0": {
+        "aus": false,
+        "breite": 13.0,
+        "hinten": true,
+        "hoehe": 85.5,
+        "winkel": 12.0,
+        "x": 26.6,
+        "y": -31.8
+      },
+      "gehen:1": {
+        "aus": false,
+        "breite": 12.4,
+        "hinten": true,
+        "hoehe": 79.0,
+        "winkel": 3.0,
+        "x": 28.9,
+        "y": -36.9
       }
     }
   }
