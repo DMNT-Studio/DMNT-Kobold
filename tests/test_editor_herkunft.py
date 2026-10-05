@@ -40,12 +40,13 @@ def test_herkunft_setzen_und_entfernen(tmp_path):
 
 def test_toene_hinzufuegen_einstellen_entfernen(tmp_path):
     pr = _projekt(tmp_path)
-    ton = pr.ordner / "toene" / "plopp.ogg"
-    neu = tmp_path / "plopp.ogg"
+    ton = pr.ordner / "toene" / "kling.ogg"
+    neu = tmp_path / "kling.ogg"
     shutil.copy(ton, neu)
+    vorher = list(pr.bauplan["toene"]["landen"]["dateien"])
     rel = ton_hinzufuegen(pr, "landen", neu)
-    assert rel == "toene/plopp_2.ogg"                                          # gleicher Name → nicht überschrieben
-    assert Projekt(pr.ordner).bauplan["toene"]["landen"]["dateien"] == ["toene/platsch.ogg", rel]
+    assert rel == "toene/kling_2.ogg"                                          # gleicher Name → nicht überschrieben
+    assert Projekt(pr.ordner).bauplan["toene"]["landen"]["dateien"] == vorher + [rel]
     ton_einstellen(pr, "landen", tonhoehe=0.9, wiederholen=(3, 2))
     t = pr.bauplan["toene"]["landen"]
     assert t["tonhoehe"] == 0.5 and t["wiederholen"] == [2, 3]
@@ -87,4 +88,4 @@ def test_reiter_baut_auf(tmp_path, qapp):
     tab.aufbauen()
     from PySide6.QtWidgets import QLabel
     namen = {w.text() for w in tab.bereich.widget().findChildren(QLabel)}
-    assert {"Herkunft", "Töne des Körpers", "landen", "sprechen", "plopp.ogg"} <= namen
+    assert {"Herkunft", "Töne des Körpers", "landen", "sprechen", "glocke_1.ogg", "platsch_3.ogg"} <= namen

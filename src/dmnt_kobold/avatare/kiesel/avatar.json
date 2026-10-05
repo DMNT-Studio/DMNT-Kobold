@@ -1737,17 +1737,8 @@
   "toene": {
     "absprung": {
       "dateien": [
-        "toene/absprung_1.wav"
-      ],
-      "tonhoehe": 0.06,
-      "wiederholen": [
-        1,
-        1
-      ]
-    },
-    "landen": {
-      "dateien": [
-        "toene/landen_1.wav"
+        "toene/absprung_1.wav",
+        "toene/absprung_2.wav"
       ],
       "tonhoehe": 0.08,
       "wiederholen": [
@@ -1755,11 +1746,25 @@
         1
       ]
     },
+    "landen": {
+      "dateien": [
+        "toene/landen_1.wav",
+        "toene/landen_2.wav",
+        "toene/landen_3.wav"
+      ],
+      "tonhoehe": 0.07,
+      "wiederholen": [
+        1,
+        1
+      ]
+    },
     "sprechen": {
       "dateien": [
-        "toene/sprechen_1.wav"
+        "toene/sprechen_1.wav",
+        "toene/sprechen_2.wav",
+        "toene/sprechen_3.wav"
       ],
-      "tonhoehe": 0.15,
+      "tonhoehe": 0.03,
       "wiederholen": [
         1,
         3

@@ -83,9 +83,35 @@ def test_nur_vektorgrafik_und_eigene_toene():
     bilder = [p for p in QUELLE.rglob("*") if p.is_file() and p.suffix.lower() in (".png", ".jpg", ".jpeg", ".gif")]
     assert bilder == []                                         # alles SVG, keine Pixelgrafik
     assert sorted(p.name for p in (QUELLE / "toene").glob("*.ogg")) == \
-        ["blubb.ogg", "kling.ogg", "platsch.ogg", "plopp.ogg"]
+        ["glocke_1.ogg", "glocke_2.ogg", "glocke_3.ogg", "kling.ogg", "platsch_1.ogg", "platsch_2.ogg",
+         "platsch_3.ogg", "plitsch_1.ogg", "plitsch_2.ogg"]
     assert "MIT" in (QUELLE / "LIZENZ.txt").read_text(encoding="utf-8")
     assert not (QUELLE / "persoenlichkeit.py").exists()        # ohne Code
+
+
+def test_toene_pfuetze_und_glocke():
+    """Pfütze: Platscher mit nachfallenden Tröpfchen, Stimme: dumpfes Glöckchen."""
+    import sys
+
+    import numpy as np
+    from scipy import signal
+
+    sys.path.insert(0, str(QUELLE.parents[1] / "werkzeuge"))
+    import toene_kiesel as tk
+
+    t = tk.alle_toene()
+    for name, s in t.items():
+        assert 0 < np.abs(s).max() <= 0.65, name                    # nie übersteuert
+    # Glocke: Energie unter 3 kHz (unter Wasser gedämpft), Grundton im Glöckchen-Bereich
+    for i, grund in enumerate((1568, 1760, 2093), 1):
+        f, p = signal.periodogram(t[f"glocke_{i}"], tk.RATE)
+        assert p[f > 3000].sum() < 0.1 * p.sum()
+        assert abs(f[p.argmax()] - grund) < 60
+    # Platscher: Nachklang (Tröpfchen) nach dem Aufschlag noch hörbar, aber leiser
+    s = t["platsch_1"]
+    aufschlag = np.abs(s[: int(0.04 * tk.RATE)]).max()
+    nach = np.abs(s[int(0.08 * tk.RATE):]).max()
+    assert 0.05 * aufschlag < nach < aufschlag
 
 
 # --- Rig ---------------------------------------------------------------------------------------

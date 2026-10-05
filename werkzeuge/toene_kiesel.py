@@ -1,12 +1,20 @@
 """Kiesels Töne synthetisieren → quellen/kiesel/toene/*.ogg (eigene Klänge, MIT).
 
-Aufruf:  python werkzeuge/toene_kiesel.py
+Aufruf:  python werkzeuge/toene_kiesel.py [--hoerprobe]
 
-- plopp    Hüpfen: Sinus 520 → 260 Hz, 90 ms, leise
-- platsch  Landen: Rauschen durch einen Bandpass um 1,2 kHz, Hüllkurve 60 ms (feucht, kurz)
-- blubb    Sprechen: Sinus 700 → 900 Hz, 70 ms (der Sockel spielt 1–3 mit Tonhöhen-Streuung)
-- kling    Erschrecken: Sinus 2,1 kHz mit Obertönen, 120 ms Ausklang (Kiesel stößt an die Wand)
+Pfütze statt Gummiball, Stimme wie ein Glöckchen unter Wasser:
 
+- plitsch_1..2   Absprung: kurzes Schmatzen beim Herausziehen aus der Pfütze (gedämpftes
+                 Rauschen, weich rein) und ein kleiner aufsteigender Tropfen
+- platsch_1..3   Landen: Pfützen-Platscher – heller Rauschstoß, der schnell dumpfer wird,
+                 darunter ein tiefer „Plumps“, danach 3–5 nachfallende Tröpfchen
+                 (Wassertropfen steigen in der Tonhöhe). Drei Fassungen, der Sockel wählt zufällig.
+- glocke_1..3    Sprechen: Glöckchen mit unharmonischen Obertönen, weich angeschlagen,
+                 dumpf gefiltert und leicht wabernd (wie unter Wasser), dazu ein winziges
+                 Bläschen. Drei Tonhöhen, der Sockel spielt 1–3 hintereinander.
+- kling          Erschrecken: helles Kling (Kiesel stößt an die Wand), unverändert
+
+--hoerprobe schreibt zusätzlich build/kiesel_hoerprobe.wav (alles hintereinander).
 Die Töne werden als WAV gerechnet und mit ffmpeg (libvorbis) zu OGG. Beim Bau macht
 avatar_bauen.py daraus wieder WAV für den Sockel.
 Benötigt: numpy, scipy, ffmpeg (nur zum Erzeugen).
@@ -44,25 +52,81 @@ def _huelle(n: int, an_s: float = 0.004, form: float = 4.0) -> np.ndarray:
     return an * np.exp(-form * np.arange(n) / n)
 
 
-def plopp() -> np.ndarray:
-    s = _gleiten(520, 260, 0.09)
-    return 0.45 * s * _huelle(len(s), 0.003, 3.5)
+def _tropfen(f0: float, dauer_s: float = 0.035) -> np.ndarray:
+    """Wassertropfen: kurze Resonanz, deren Tonhöhe steigt (Luftblase schrumpft)."""
+    s = _gleiten(f0, f0 * 1.9, dauer_s)
+    return s * _huelle(len(s), 0.0015, 6.0)
+
+
+def _mischen(ziel: np.ndarray, teil: np.ndarray, start_s: float, pegel: float) -> None:
+    i = int(start_s * RATE)
+    j = min(len(ziel), i + len(teil))
+    if i < j:
+        ziel[i:j] += pegel * teil[: j - i]
+
+
+def _tiefpass_gleitend(s: np.ndarray, f0: float, f1: float, stuecke: int = 24) -> np.ndarray:
+    """Rauschen, das über die Dauer dumpfer wird (Grenzfrequenz f0 → f1, stückweise)."""
+    aus = np.zeros_like(s)
+    zi = None
+    for k, teil in enumerate(np.array_split(np.arange(len(s)), stuecke)):
+        fc = f0 * (f1 / f0) ** (k / max(1, stuecke - 1))
+        b, a = signal.butter(2, fc, btype="lowpass", fs=RATE)
+        if zi is None:
+            zi = signal.lfilter_zi(b, a) * 0
+        aus[teil], zi = signal.lfilter(b, a, s[teil], zi=zi)
+    return aus
+
+
+def _normal(s: np.ndarray, spitze: float) -> np.ndarray:
+    m = np.abs(s).max()
+    return s / m * spitze if m else s
 
 
 def platsch(rng: np.random.Generator) -> np.ndarray:
-    n = int(RATE * 0.06)
-    rauschen = rng.uniform(-1, 1, n)
-    b, a = signal.butter(2, [800, 1700], btype="bandpass", fs=RATE)
-    s = signal.lfilter(b, a, rauschen)
-    s /= np.abs(s).max() or 1
-    tropf = _gleiten(900, 500, 0.06) * 0.25                 # etwas „Wasser“ darunter
-    return 0.6 * (s + tropf) * _huelle(n, 0.002, 5.0)
+    """Pfützen-Platscher, ca. 260 ms."""
+    n = int(RATE * 0.26)
+    s = np.zeros(n)
+    stoss_n = int(RATE * 0.11)                         # Aufschlag: hell, wird in 90 ms dumpf
+    stoss = _tiefpass_gleitend(rng.uniform(-1, 1, stoss_n), 5200, 650)
+    stoss = _normal(stoss, 1.0) * _huelle(stoss_n, 0.0015, 5.5)
+    _mischen(s, stoss, 0.0, 0.75)
+    plumps = _gleiten(rng.uniform(210, 260), 95, 0.07)  # Wasser wird verdrängt
+    _mischen(s, plumps * _huelle(len(plumps), 0.002, 4.5), 0.0, 0.45)
+    for _ in range(rng.integers(3, 6)):                 # nachfallende Tröpfchen
+        _mischen(s, _tropfen(rng.uniform(700, 1500), rng.uniform(0.025, 0.045)),
+                 rng.uniform(0.045, 0.2), rng.uniform(0.12, 0.3))
+    return _normal(s, 0.62)
 
 
-def blubb() -> np.ndarray:
-    s = _gleiten(700, 900, 0.07)
-    s = s + 0.18 * _gleiten(1400, 1800, 0.07)
-    return 0.4 * s * _huelle(len(s), 0.006, 2.6)
+def plitsch(rng: np.random.Generator) -> np.ndarray:
+    """Absprung: Schmatzen beim Herausziehen + ein kleiner Tropfen, ca. 120 ms."""
+    n = int(RATE * 0.12)
+    s = np.zeros(n)
+    schmatz_n = int(RATE * 0.06)
+    b, a = signal.butter(2, [350, 1400], btype="bandpass", fs=RATE)
+    schmatz = signal.lfilter(b, a, rng.uniform(-1, 1, schmatz_n))
+    an = np.minimum(1.0, np.arange(schmatz_n) / (RATE * 0.012))       # weich rein (Saugen)
+    schmatz = _normal(schmatz, 1.0) * an * np.exp(-3.5 * np.arange(schmatz_n) / schmatz_n)
+    _mischen(s, schmatz, 0.0, 0.35)
+    _mischen(s, _tropfen(rng.uniform(900, 1250), 0.04), 0.035, 0.3)
+    return _normal(s, 0.38)
+
+
+def glocke(grund: float, rng: np.random.Generator) -> np.ndarray:
+    """Glöckchen unter Wasser, ca. 190 ms."""
+    t = _zeit(0.19)
+    wabern = 1 + 0.012 * np.sin(2 * np.pi * 7.5 * t + rng.uniform(0, 6.3))   # Tonhöhe wabert leicht
+    s = np.zeros_like(t)
+    for faktor, pegel, abkling in ((1.0, 1.0, 0.07), (2.76, 0.35, 0.035), (5.4, 0.12, 0.018)):
+        phase = 2 * np.pi * np.cumsum(grund * faktor * wabern) / RATE
+        s += pegel * np.sin(phase) * np.exp(-t / abkling)
+    s *= np.minimum(1.0, t / 0.006)                                      # weicher Anschlag
+    s *= 1 - 0.18 * (0.5 + 0.5 * np.sin(2 * np.pi * 11 * t))            # Wasser bewegt den Klang
+    b, a = signal.butter(2, 2600, btype="lowpass", fs=RATE)             # dumpf wie unter Wasser
+    s = signal.lfilter(b, a, s)
+    _mischen(s, _tropfen(grund * 0.55, 0.03), 0.012, 0.18)              # winziges Bläschen
+    return _normal(s, 0.3)                       # etwas leiser als das Platschen (klingt dichter)
 
 
 def kling() -> np.ndarray:
@@ -70,6 +134,16 @@ def kling() -> np.ndarray:
     s = sum(g * np.sin(2 * np.pi * 2100 * k * t) for k, g in ((1, 1.0), (2.76, 0.42), (5.4, 0.18)))
     huelle = np.minimum(1.0, t / 0.002) * np.exp(-t / 0.035)    # ≈ 120 ms hörbarer Ausklang
     return 0.32 * s / 1.6 * huelle
+
+
+def alle_toene(seed: int = 7) -> dict[str, np.ndarray]:
+    rng = np.random.default_rng(seed)
+    toene = {f"plitsch_{i}": plitsch(rng) for i in (1, 2)}
+    toene |= {f"platsch_{i}": platsch(rng) for i in (1, 2, 3)}
+    for i, grund in enumerate((1568.0, 1760.0, 2093.0), 1):            # G6, A6, C7
+        toene[f"glocke_{i}"] = glocke(grund, rng)
+    toene["kling"] = kling()
+    return toene
 
 
 def wav_schreiben(pfad: Path, s: np.ndarray) -> None:
@@ -93,15 +167,24 @@ def als_ogg(wav: Path, ogg: Path) -> None:
 
 
 def main() -> None:
-    rng = np.random.default_rng(5)
     ZIEL.mkdir(parents=True, exist_ok=True)
-    toene = {"plopp": plopp(), "platsch": platsch(rng), "blubb": blubb(), "kling": kling()}
+    toene = alle_toene()
     with tempfile.TemporaryDirectory() as tmp:
         for name, s in toene.items():
             wav = Path(tmp) / f"{name}.wav"
             wav_schreiben(wav, s)
             als_ogg(wav, ZIEL / f"{name}.ogg")
             print(f"  {name}.ogg ({len(s) / RATE * 1000:.0f} ms)")
+    if "--hoerprobe" in sys.argv:
+        stille = np.zeros(int(RATE * 0.35))
+        folge = []
+        for name in ("plitsch_1", "platsch_1", "plitsch_2", "platsch_2", "platsch_3",
+                     "glocke_1", "glocke_2", "glocke_3", "glocke_2", "glocke_1"):
+            folge += [toene[name], stille]
+        pfad = WURZEL / "build" / "kiesel_hoerprobe.wav"
+        pfad.parent.mkdir(exist_ok=True)
+        wav_schreiben(pfad, np.concatenate(folge))
+        print(f"  Hörprobe: {pfad}")
 
 
 if __name__ == "__main__":

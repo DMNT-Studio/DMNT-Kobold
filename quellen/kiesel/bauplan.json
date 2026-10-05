@@ -41,21 +41,26 @@
   "toene": {
     "absprung": {
       "dateien": [
-        "toene/plopp.ogg"
-      ],
-      "tonhoehe": 0.06
-    },
-    "landen": {
-      "dateien": [
-        "toene/platsch.ogg"
+        "toene/plitsch_1.ogg",
+        "toene/plitsch_2.ogg"
       ],
       "tonhoehe": 0.08
     },
+    "landen": {
+      "dateien": [
+        "toene/platsch_1.ogg",
+        "toene/platsch_2.ogg",
+        "toene/platsch_3.ogg"
+      ],
+      "tonhoehe": 0.07
+    },
     "sprechen": {
       "dateien": [
-        "toene/blubb.ogg"
+        "toene/glocke_1.ogg",
+        "toene/glocke_2.ogg",
+        "toene/glocke_3.ogg"
       ],
-      "tonhoehe": 0.15,
+      "tonhoehe": 0.03,
       "wiederholen": [
         1,
         3
