@@ -1489,6 +1489,10 @@ class Editor(QMainWindow):
         ordner = QAction("Quellordner öffnen", self)
         ordner.triggered.connect(lambda: oeffnen(self.projekt.ordner))
         leiste.addAction(ordner)
+        veroeffentlichen = QAction("Veröffentlichen …", self)
+        veroeffentlichen.setToolTip("Änderungen nach GitHub hochladen und als neue Version herausgeben")
+        veroeffentlichen.triggered.connect(self.veroeffentlichen)
+        leiste.addAction(veroeffentlichen)
         leiste.addSeparator()
         self.auto = QCheckBox("automatisch bauen")
         self.auto.setChecked(True)
@@ -1599,6 +1603,17 @@ class Editor(QMainWindow):
         self._nach_bau_aufbauen = self._nach_bau_aufbauen or neu_aufbauen
         if self.auto.isChecked():
             self._bau_timer.start(BAU_PAUSE_MS)
+
+    def veroeffentlichen(self) -> None:
+        """Offene Änderungen speichern, dann den Veröffentlichen-Dialog zeigen."""
+        from editor_veroeffentlichen import VeroeffentlichenDialog  # noqa: PLC0415
+
+        if self.verhalten._timer.isActive():        # noqa: SLF001 – gleich speichern, nicht erst gleich
+            self.verhalten.speichern_jetzt()
+        if self._prozess is not None or self._bau_timer.isActive():
+            self.meldung("Erst fertig bauen lassen, dann veröffentlichen.")
+            return
+        VeroeffentlichenDialog(self).exec()
 
     def bauen(self) -> None:
         if self._prozess is not None:
