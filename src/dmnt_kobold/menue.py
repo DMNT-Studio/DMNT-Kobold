@@ -1,4 +1,4 @@
-"""Rechtsklick-Menü und die gemeinsamen Schalter (auch vom Tray genutzt)."""
+"""Rechtsklick-Menü (nur sein Verhalten) und die gemeinsamen Schalter (auch vom Tray genutzt)."""
 from __future__ import annotations
 
 from PySide6.QtCore import QObject, Qt, Signal
@@ -103,56 +103,33 @@ class _BeendenEintrag(QWidgetAction):
         return label
 
 
-def baue_menue(schalter: Schalter, beim_beenden, parent: QWidget | None = None,
-               beim_einrichten=None, eintraege=None) -> QMenu:
-    """``eintraege()`` liefert die Menüeinträge der Tricks [(Text, Funktion)] –
-    sie werden bei jedem Öffnen frisch eingesetzt."""
+def menue_rahmen(parent: QWidget | None = None) -> QMenu:
+    """Leeres Menü im Kobold-Stil (rahmenlos, runde Ecken)."""
     menue = QMenu(parent)
     menue.setWindowFlags(menue.windowFlags() | Qt.WindowType.FramelessWindowHint
                          | Qt.WindowType.NoDropShadowWindowHint)
     menue.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
     menue.setStyleSheet(stylesheet())
     menue.setToolTipsVisible(True)
+    return menue
 
-    einrichten = QAction("Einrichten", menue)
-    einrichten.setEnabled(beim_einrichten is not None)
-    if beim_einrichten is not None:
-        einrichten.triggered.connect(beim_einrichten)
-    menue.addAction(einrichten)
 
-    trenner_tricks = menue.addSeparator()
-    tricks: list[QAction] = []
+def schalter_eintrag(menue: QMenu, text: str, wert: bool, setzen, geaendert) -> QAction:
+    """Umschaltbarer Eintrag mit Häkchen, der dem Schalter folgt."""
+    a = QAction(text, menue, checkable=True)
+    a.setChecked(wert)
+    a.toggled.connect(setzen)
+    geaendert.connect(a.setChecked)
+    menue.addAction(a)
+    return a
 
-    ns = QAction("Nicht stören", menue, checkable=True)
-    ns.setChecked(schalter.nicht_stoeren)
-    ns.toggled.connect(schalter.setze_nicht_stoeren)
-    schalter.nicht_stoeren_geaendert.connect(ns.setChecked)
-    menue.addAction(ns)
 
-    mb = QAction("Auf diesem Monitor bleiben", menue, checkable=True)
-    mb.setChecked(schalter.monitor_bleiben)
-    mb.toggled.connect(schalter.setze_monitor_bleiben)
-    schalter.monitor_bleiben_geaendert.connect(mb.setChecked)
-    menue.addAction(mb)
-
-    menue.addSeparator()
-    menue.addAction(_BeendenEintrag(menue, beim_beenden))
-
-    def tricks_einsetzen() -> None:
-        for a in tricks:
-            menue.removeAction(a)
-            a.deleteLater()
-        tricks.clear()
-        liste = eintraege() if eintraege else []
-        for text, funktion in liste:
-            a = QAction(text, menue)
-            a.triggered.connect(lambda _=False, f=funktion: f())
-            menue.insertAction(ns, a)
-            tricks.append(a)
-        if liste:
-            trenner = menue.insertSeparator(ns)
-            tricks.append(trenner)
-        trenner_tricks.setVisible(bool(liste))
-
-    menue.aboutToShow.connect(tricks_einsetzen)
+def baue_menue(schalter: Schalter, parent: QWidget | None = None) -> QMenu:
+    """Rechtsklick am Avatar: nur sein Verhalten (Konzept #28). Einrichten, Tricks
+    und Beenden betreffen das Programm und liegen im Tray."""
+    menue = menue_rahmen(parent)
+    schalter_eintrag(menue, "Nicht stören", schalter.nicht_stoeren, schalter.setze_nicht_stoeren,
+                     schalter.nicht_stoeren_geaendert)
+    schalter_eintrag(menue, "Auf diesem Monitor bleiben", schalter.monitor_bleiben,
+                     schalter.setze_monitor_bleiben, schalter.monitor_bleiben_geaendert)
     return menue

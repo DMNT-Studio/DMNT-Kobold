@@ -11,7 +11,13 @@ Hüpfer (``bewegung.art = huepfen``) laufen nie: Jede Bewegung ist eine Kette au
 hocken → absprung → flug (echte Parabel) → landen → Pause. ``freuen_huepfend`` sind
 drei Hüpfer auf der Stelle mit einer vollen Drehung. Partikel (Spritzer) und
 Körper-Töne kommen zu ihren Momenten; ein Innenleben wackelt mit einer Feder nach.
+Die Spritzer fliegen in einem eigenen, komplett durchklickbaren Fenster
+(``PartikelFenster``) – die Maske des Avatars bleibt auf seiner Körperform.
 Ohne Bewegung, Partikel und Wackeln fällt der Takt auf 100 ms (CPU in Ruhe).
+
+Bedienung (Konzept #28): Linksklick gehört dem Avatar (``maus.klick`` an seine Regeln;
+reagiert keine, macht der Sockel einen kleinen Hüpfer). Rechtsklick zeigt nur sein
+Verhalten (Nicht stören, Auf diesem Monitor bleiben). Einrichten und Beenden liegen im Tray.
 """
 from __future__ import annotations
 
@@ -23,7 +29,7 @@ import time
 from collections import deque
 
 from PySide6.QtCore import QElapsedTimer, QPoint, QPointF, QRect, QRectF, Qt, QTimer
-from PySide6.QtGui import QColor, QCursor, QPainter, QRegion
+from PySide6.QtGui import QColor, QCursor, QPainter
 from PySide6.QtWidgets import QWidget
 
 from . import katalog, win32
@@ -63,6 +69,8 @@ INNEN_VERZOEGERUNG_S = 0.06   # Innenleben folgt dem Körper so viel später …
 INNEN_FEDER = 900.0           # … mit einer leichten Feder
 INNEN_DAEMPFUNG = 16.0
 INNEN_MAX_PX = 6.0
+
+PARTIKEL_RAND = 64           # so weit dürfen Spritzer über das Avatar-Fenster hinaus
 
 MASKE_AKTIV = os.environ.get("DMNT_KOBOLD_OHNE_MASKE") != "1"
 
@@ -122,9 +130,61 @@ def ausdruck(animation: str, t: float, blinzelt: bool) -> tuple[float, float, st
     return sx, sy, augen, mund, zzz
 
 
+class PartikelFenster(QWidget):
+    """Zeichnet die Spritzer. Komplett durchklickbar (``WindowTransparentForInput`` →
+    ``WS_EX_TRANSPARENT``) und nur sichtbar, solange Spritzer fliegen."""
+
+    def __init__(self) -> None:
+        super().__init__(None)
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.WindowStaysOnTopHint
+            | Qt.WindowType.Tool
+            | Qt.WindowType.WindowDoesNotAcceptFocus
+            | Qt.WindowType.NoDropShadowWindowHint
+            | Qt.WindowType.WindowTransparentForInput
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setWindowTitle("DMNT-Kobold Spritzer")
+        self.tropfen: list[tuple[QRectF, QColor, str]] = []
+
+    def zeigen(self, bereich: QRect, tropfen: list[tuple[QRectF, QColor, str]]) -> None:
+        """``bereich`` global, ``tropfen`` in Koordinaten relativ zu ``bereich``."""
+        self.tropfen = tropfen
+        if self.geometry() != bereich:
+            self.setGeometry(bereich)
+        if not self.isVisible():
+            self.show()
+            win32.ganz_nach_vorne(int(self.winId()))
+        self.update()
+
+    def verstecken(self) -> None:
+        self.tropfen = []
+        if self.isVisible():
+            self.hide()
+
+    def paintEvent(self, _event) -> None:  # noqa: N802 (Qt-API)
+        p = QPainter(self)
+        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        p.fillRect(self.rect(), Qt.GlobalColor.transparent)
+        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        p.setPen(Qt.PenStyle.NoPen)
+        for r, farbe, form in self.tropfen:
+            p.setBrush(farbe)
+            if form == "tropfen":
+                p.drawEllipse(r)
+            else:
+                p.drawRect(r)
+        p.end()
+
+
 class AvatarFenster(QWidget):
     def __init__(self, bus: EventBus, motor: Verhaltensmotor, schalter: Schalter,
-                 toene: Toene, beim_beenden, darsteller: Darsteller, lauftempo: float = LAUFTEMPO,
+                 toene: Toene, darsteller: Darsteller, lauftempo: float = LAUFTEMPO,
                  zieltempo: float = ZIELTEMPO, werte: katalog.Werte | None = None) -> None:
         super().__init__(None)
         self.setWindowFlags(
@@ -160,17 +220,12 @@ class AvatarFenster(QWidget):
         self.blase.weggeklickt.connect(self.motor.sprechblase_geschlossen)
         self._blase_id: int | None = None
 
-        # Einrichten: von außen gesetzt (app.py)
-        self.beim_einrichten = None          # Klick auf den Avatar / Menü → Einrichten
-        self.klick_oeffnet_einrichten = True  # aus beim Entwickler-Start (--avatar-pfad)
-        self.menue_eintraege = lambda: []    # Einträge der Tricks fürs Rechtsklick-Menü
+        # Einrichten: öffnet app.py über das Tray; solange es offen ist, führt es den Avatar
         self.einrichten_aktiv = False
         self._fuehrung: dict | None = None   # Schweben/Springen statt Physik
         self._festgehalten = False
 
-        self.menue = baue_menue(schalter, beim_beenden, self,
-                                beim_einrichten=lambda: self.beim_einrichten and self.beim_einrichten(),
-                                eintraege=lambda: self.menue_eintraege())
+        self.menue = baue_menue(schalter, self)    # nur sein Verhalten (#28)
         self.menue.aboutToHide.connect(self._menue_zu)
         self._menue_offen = False
         schalter.nicht_stoeren_geaendert.connect(self._nicht_stoeren)
@@ -203,7 +258,8 @@ class AvatarFenster(QWidget):
         self._freude: dict | None = None     # {"wid", "rest", "phi"} – freuen_huepfend
         self._drehung: float | None = None
         self._partikel: list[dict] = []
-        self._partikel_maske = False
+        self.partikel_fenster = PartikelFenster()
+        self._antippen = False               # Rückfall-Hüpfer nach einem Klick ohne Regel
         self._innen_variante: str | None = None
         self._innen_pos: list[float] | None = None
         self._innen_v = [0.0, 0.0]
@@ -362,7 +418,7 @@ class AvatarFenster(QWidget):
 
     # --- Hüpfen ----------------------------------------------------------------
     def _will_huepfen(self, a: Ausgabe) -> bool:
-        if self._freude is not None and self._freude["rest"] > 0:
+        if self._antippen or (self._freude is not None and self._freude["rest"] > 0):
             return True
         if a.ziel is not None:
             ziel_x = self._ziel_x(a.ziel)
@@ -374,6 +430,9 @@ class AvatarFenster(QWidget):
         k = self.koerper
         if self._freude is not None:
             return 0.0 if self._freude["rest"] > 0 else None
+        if self._antippen:                     # Klick ohne Regel: ein Hüpfer auf der Stelle
+            self._antippen = False
+            return 0.0
         weite = float(self.werte["sprungweite_px"])
         if a.ziel is not None:
             ziel_x = self._ziel_x(a.ziel)
@@ -399,7 +458,7 @@ class AvatarFenster(QWidget):
             self._freude = None
 
         if k.zustand == GEZOGEN:
-            self._phase, self._freude = "", None
+            self._phase, self._freude, self._antippen = "", None, False
             return []
         if self._gedrueckt and self._phase in ("", "hocken", "pause"):   # Maus drückt: stillhalten
             self._phase = ""
@@ -486,6 +545,7 @@ class AvatarFenster(QWidget):
 
     def _partikel_schritt(self, dt: float) -> None:
         if not self._partikel:
+            self.partikel_fenster.verstecken()
             return
         for t in self._partikel:
             t["t"] += dt
@@ -495,11 +555,20 @@ class AvatarFenster(QWidget):
             if t["y"] >= t["boden"]:            # auf dem Boden liegen bleiben
                 t["y"], t["vy"], t["vx"] = t["boden"], 0.0, t["vx"] * 0.6
         self._partikel = [t for t in self._partikel if t["t"] < t["dauer"]]
-        self.update()
+        if not self._partikel:
+            self.partikel_fenster.verstecken()
+            return
+        bereich = self.partikel_bereich()
+        self.partikel_fenster.zeigen(bereich, self._partikel_in(bereich.left(), bereich.top()))
 
-    def _partikel_im_fenster(self) -> list[tuple[QRectF, QColor, str]]:
-        ox = self.koerper.x - self.fuss.x()
-        oy = self.koerper.y - self.fuss.y()
+    def partikel_bereich(self) -> QRect:
+        """Globaler Bereich des Spritzer-Fensters: Avatar-Fenster plus Rand."""
+        x = round(self.koerper.x - self.fuss.x())
+        y = round(self.koerper.y - self.fuss.y())
+        return QRect(x - PARTIKEL_RAND, y - PARTIKEL_RAND, self.width() + 2 * PARTIKEL_RAND,
+                     self.height() + 2 * PARTIKEL_RAND)
+
+    def _partikel_in(self, ox: float, oy: float) -> list[tuple[QRectF, QColor, str]]:
         ergebnis = []
         for t in self._partikel:
             g = t["g"]
@@ -702,22 +771,16 @@ class AvatarFenster(QWidget):
         )
         schluessel = self.darsteller.masken_schluessel(z)
         darst = (schluessel, z.augen, z.mund, z.blick, round(z.sx, 3), round(z.sy, 3), z.innen_versatz)
-        if erzwingen or darst != self._letzte_darstellung or self._partikel or self._partikel_maske:
+        if erzwingen or darst != self._letzte_darstellung:
             self._letzte_darstellung = darst
             self._zustand = z
-            if MASKE_AKTIV and (erzwingen or schluessel != self._letzte_maske or self._partikel
-                                or self._partikel_maske):
+            if MASKE_AKTIV and (erzwingen or schluessel != self._letzte_maske):
                 self._letzte_maske = schluessel
                 maske = self._masken.get(schluessel)
                 if maske is None:
                     if len(self._masken) > MASKEN_CACHE:
                         self._masken.clear()
                     maske = self._masken[schluessel] = self.darsteller.maske(z)
-                if self._partikel:     # Qt zeichnet nur in der Maske: kurz um die Spritzer erweitern
-                    maske = QRegion(maske)
-                    for r, _f, _form in self._partikel_im_fenster():
-                        maske = maske.united(QRegion(r.adjusted(-1, -1, 1, 1).toAlignedRect()))
-                self._partikel_maske = bool(self._partikel)
                 self.setMask(maske)
             self.update()
 
@@ -727,15 +790,6 @@ class AvatarFenster(QWidget):
         p.fillRect(self.rect(), Qt.GlobalColor.transparent)
         p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
         self.darsteller.zeichnen(p, self._zustand)
-        if self._partikel:
-            p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-            p.setPen(Qt.PenStyle.NoPen)
-            for r, farbe, form in self._partikel_im_fenster():
-                p.setBrush(farbe)
-                if form == "tropfen":
-                    p.drawEllipse(r)
-                else:
-                    p.drawRect(r)
         p.end()
 
     # --- Maus ----------------------------------------------------------------
@@ -780,13 +834,21 @@ class AvatarFenster(QWidget):
             k.loslassen(vx, vy)
             self.bus.senden("avatar.losgelassen", vx=round(vx), vy=round(vy))
         else:
-            self.bus.senden("maus.klick")
-            if self.beim_einrichten is not None and self.klick_oeffnet_einrichten:
-                self.beim_einrichten()
-            elif not self.huepft:              # Hüpfer: was ein Klick bewirkt, regeln die Regeln
-                k.huepfen()
-                self.toene.spielen("huepfen")
+            self.klicken()
         self._uhr.restart()
+        self._takt.setInterval(TAKT_SCHNELL_MS)
+
+    def klicken(self) -> None:
+        """Linksklick gehört dem Avatar und öffnet nie das Einrichten (#28). ``maus.klick``
+        geht an seine Regeln; Läufer machen dazu wie seit M1 einen kleinen Hüpfer.
+        Hüpfer hüpfen nur, wenn keine Regel reagiert hat (Rückfall im Sockel)."""
+        vorher = self.motor.naechste_id
+        self.bus.senden("maus.klick")
+        if not self.huepft:
+            self.koerper.huepfen()
+            self.toene.spielen("huepfen")
+        elif self.motor.naechste_id == vorher:     # niemand hat sich etwas gewünscht
+            self._antippen = True
         self._takt.setInterval(TAKT_SCHNELL_MS)
 
     def _wurfgeschwindigkeit(self) -> tuple[float, float]:

@@ -111,6 +111,11 @@ class Verhaltensmotor:
     def wuensche(self) -> list[Wunsch]:
         return list(self._wuensche)
 
+    @property
+    def naechste_id(self) -> int:
+        """Steigt mit jedem Wunsch – so sieht man, ob auf ein Ereignis jemand reagiert hat."""
+        return self._naechste_id
+
     def wunsch(self, wunsch: Wunsch | None = None, **kw) -> int:
         w = wunsch or Wunsch(**kw)
         w.knoepfe = tuple(w.knoepfe)[:2]

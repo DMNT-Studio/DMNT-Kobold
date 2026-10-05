@@ -3,7 +3,8 @@
 Entwickler-Start: ``python -m dmnt_kobold --avatar-pfad <gebauter Avatar-Ordner>``
 startet einen Avatar außerhalb des Pakets (z. B. die Prüf-Figur). Er wird nicht als
 Avatar gespeichert, hat eigene Daten (build/kobold_entwickler, läuft also neben dem
-normalen Kobold), und ein Klick öffnet nicht das Einrichten (das geht per Rechtsklick).
+normalen Kobold), fragt nicht nach Autostart und zeigt keinen Tray-Hinweis. Einrichten
+und Beenden gehen wie immer über das Tray-Icon (Konzept #28).
 """
 from __future__ import annotations
 
@@ -86,6 +87,7 @@ def main() -> int:
     from .eigenleben import Eigenleben
     from .katalog import Werte
     from .einrichten import Dienste, Einrichten
+    from .erster_start import ErsterStart
     from .hotkeys import Hotkeys
     from .menue import Schalter
     from .modulverwaltung import Modulverwaltung
@@ -133,9 +135,8 @@ def main() -> int:
         log.info("Beenden über Menü")
         app.quit()
 
-    fenster = AvatarFenster(bus, motor, schalter, toene, beenden, darsteller, lauftempo, werte["zieltempo"],
+    fenster = AvatarFenster(bus, motor, schalter, toene, darsteller, lauftempo, werte["zieltempo"],
                             werte=werte)
-    fenster.klick_oeffnet_einrichten = avatar_pfad is None
     for teil in (avatar.zubehoer_immer if avatar else []):     # z. B. ein Hut, den er immer trägt
         motor.zubehoer_setzen(teil, True, "avatar")
     if schalter.nicht_stoeren:
@@ -169,7 +170,6 @@ def main() -> int:
         return QPoint(int(x), int(y - darsteller.hoehe - 16))
     verwaltung.karten_punkt = karten_punkt
     verwaltung.alle_starten()
-    fenster.menue_eintraege = verwaltung.menue_eintraege
     sekunde = QTimer(app)
     sekunde.timeout.connect(verwaltung.takt)
     sekunde.start(1000)
@@ -245,10 +245,8 @@ def main() -> int:
         buehne.zu_beginnt.connect(zurueck)
         buehne.geschlossen.connect(zu)
 
-    fenster.beim_einrichten = einrichten_oeffnen
-
     tray = baue_tray(schalter, fenster.zurueckholen, beenden, icon=icon,
-                     beim_einrichten=einrichten_oeffnen, name=name())
+                     beim_einrichten=einrichten_oeffnen, name=name(), eintraege=verwaltung.menue_eintraege)
     if tray is None:
         log.warning("Kein Infobereich verfügbar – Tray-Icon fehlt")
 
@@ -276,26 +274,10 @@ def main() -> int:
     sicherung_timer.timeout.connect(sicherung_pruefen)
     sicherung_timer.start(SICHERUNG_PRUEFEN_MS)
 
-    # --- Autostart beim ersten Start abfragen ---------------------------------------
-    def autostart_fragen() -> None:
-        if einstellungen.get("autostart_gefragt"):
-            return
-
-        def antwort(knopf: str) -> None:
-            einstellungen["autostart_gefragt"] = True
-            if knopf == "Ja":
-                autostart.setzen(True)
-
-        motor.wunsch(animation="sprechen", text="Soll ich jedes Mal mit Windows starten?",
-                     knoepfe=("Ja", "Nein"), prioritaet=60, dauer_s=None, aufheben=True,
-                     quelle="autostart", beim_knopf=antwort)
-
-    def autostart_zu(e) -> None:
-        if e.daten.get("quelle") == "autostart":
-            einstellungen["autostart_gefragt"] = True
-    bus.abonnieren("sprechblase.zu", autostart_zu)
-    if avatar_pfad is None:                  # Entwickler-Start: echten Autostart nie anfassen
-        QTimer.singleShot(AUTOSTART_FRAGE_NACH_MS, autostart_fragen)
+    # --- Erster Start: Autostart-Frage, danach einmalig der Tray-Hinweis -------------
+    erster_start = ErsterStart(bus, motor, einstellungen, autostart.setzen, QTimer.singleShot,
+                               entwickler=avatar_pfad is not None)
+    erster_start.starten(AUTOSTART_FRAGE_NACH_MS)
 
     # --- Monitore -------------------------------------------------------------------
     # Änderungen gebündelt und verzögert auswerten: Windows meldet beim Abstecken

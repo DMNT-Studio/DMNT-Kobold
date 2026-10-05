@@ -13,7 +13,7 @@ Für Modulautoren stehen bereit:
   zubehoer(name, an)  Zubehör an/aus (z. B. "kopfhoerer")
   self.speicher       dict, das sich bei jeder Änderung sofort sicher speichert
   hotkey(kombi, f)    globales Tastenkürzel, z. B. "Strg+Alt+E" (ohne Tastatur-Hook)
-  menue_eintraege()   Einträge fürs Rechtsklick-Menü: [(Text, Funktion), ...]
+  menue_eintraege()   Einträge fürs Tray-Menü: [(Text, Funktion), ...]
   beenden()           wird beim Abschalten aufgerufen
 """
 from __future__ import annotations

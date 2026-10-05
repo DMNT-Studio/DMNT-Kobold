@@ -346,7 +346,7 @@ def fenster(qapp, probe_gebaut, monkeypatch, tmp_path):
     d, a = avatar_laden(ordner=probe_gebaut)
     bus = EventBus()
     m = Verhaltensmotor(bus, Eigenleben(random.Random(3), werte=a.werte))
-    f = overlay.AvatarFenster(bus, m, Schalter(), Toene(tmp_path / "t", 0.0), lambda: None, d, werte=a.werte)
+    f = overlay.AvatarFenster(bus, m, Schalter(), Toene(tmp_path / "t", 0.0), d, werte=a.werte)
     f._uhr = _Uhr()
     for teil in a.zubehoer_immer:
         m.zubehoer_setzen(teil, True, "avatar")
@@ -395,7 +395,7 @@ def test_landung_macht_spritzer_die_wieder_verschwinden(fenster):
     assert gesehen
     el.zustand, el.rest = "ruhe", 30.0
     _ticks(f, 1.0)
-    assert f._partikel == [] and not f._partikel_maske
+    assert f._partikel == [] and not f.partikel_fenster.isVisible()
 
 
 def test_freuen_huepfend_drei_hupfer_mit_drehung(fenster):

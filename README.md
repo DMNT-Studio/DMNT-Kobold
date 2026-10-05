@@ -21,10 +21,16 @@ Tests: `pytest`
 
 ## Bedienung
 
+Grundsatz: Am Kobold gibt es nur, was ihn selbst betrifft. Alles, was das Programm betrifft, liegt im Tray.
+
+- **Klick:** gehört dem Kobold – er reagiert nach seinem Wesen (Regel `maus.klick`), ohne passende
+  Regel mit einem kleinen Hüpfer. Ein Klick öffnet nie das Einrichten.
 - **Ziehen:** Kobold mit links packen und bewegen. Loslassen in Bewegung = werfen.
-- **Klick:** kleiner Hüpfer.
-- **Rechtsklick:** Menü (Nicht stören, Auf diesem Monitor bleiben, Beenden).
-- **Tray-Icon:** Notausgang – „Kobold zurückholen" setzt ihn auf den Hauptmonitor (auch per Doppelklick).
+- **Rechtsklick:** nur sein Verhalten – Nicht stören, Auf diesem Monitor bleiben (mit Häkchen).
+- **Tray-Icon** (unten rechts in der Taskleiste): Einrichten, Tricks (z. B. „Erinnern …“),
+  Kobold zurückholen (auch per Doppelklick), Nicht stören, Beenden. Windows 11 versteckt neue
+  Symbole im Überlaufmenü (Pfeil ^) – zum Anpinnen das Symbol auf die Taskleiste ziehen.
+  Beim ersten Start sagt der Kobold einmal, wo das Symbol ist.
 
 ## Was er bemerkt (M2)
 
@@ -75,15 +81,15 @@ Aussehen steht im Bauplan, Temperament in den Werten – nichts doppelt.
 - Prüf-Figur (nur Entwickler): `python tests/daten/huepf_probe/zeichnen.py`,
   `python werkzeuge/avatar_bauen.py tests/daten/huepf_probe --ziel build/huepf_probe`,
   `python -m dmnt_kobold --avatar-pfad build/huepf_probe` (eigene Daten, läuft neben dem
-  normalen Kobold; Klick öffnet hier nicht das Einrichten).
+  normalen Kobold; Einrichten und Beenden über sein Tray-Icon).
 
 ## Grenzen
 
 - **Exklusives Vollbild:** Über Spielen im exklusiven Vollbild kann Windows kein Overlay
   zeigen. Im Fenster- oder Borderless-Modus ist der Kobold sichtbar.
 - Daten: alles liegt in `Dokumente\DMNT-Kobold\` (daten, module, sicherungen, logs, cache). Jede Änderung wird sofort atomar geschrieben, täglich entsteht eine ZIP-Sicherung (7 Stück). Es werden keine Eingaben protokolliert.
-- Tricks: „Erinnern“ (Strg+Alt+E oder Rechtsklick) und „Pausen anmahnen“. Fremde Tricks laufen erst nach Zustimmung; die Zustimmung gilt für eine Prüfsumme und wird bei Änderungen erneut abgefragt.
-- Einrichten: Klick auf den Kobold – Tricks, Lautstärke, Programme (Eingaben ignorieren), System (Autostart, Daten sichern/laden).
+- Tricks: „Erinnern“ (Strg+Alt+E oder Tray-Symbol) und „Pausen anmahnen“. Fremde Tricks laufen erst nach Zustimmung; die Zustimmung gilt für eine Prüfsumme und wird bei Änderungen erneut abgefragt.
+- Einrichten: Tray-Symbol → Einrichten – Tricks, Lautstärke, Programme (Eingaben ignorieren), System (Autostart, Daten sichern/laden).
 - Fehlersuche Durchklicken: Umgebungsvariable `DMNT_KOBOLD_OHNE_MASKE=1` schaltet die
   Fenstermaske ab.
 

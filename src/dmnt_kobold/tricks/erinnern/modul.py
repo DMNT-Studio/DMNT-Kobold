@@ -1,4 +1,4 @@
-"""Trick „Erinnern“: Erinnerungen per Strg+Alt+E oder Rechtsklick → Erinnern.
+"""Trick „Erinnern“: Erinnerungen per Strg+Alt+E oder Tray-Symbol → Erinnern.
 
 Jede Erinnerung wird sofort atomar gespeichert. Nach einem Absturz oder
 harten Beenden erscheint sie trotzdem pünktlich; was in der Zwischenzeit
@@ -23,7 +23,7 @@ KUERZEL = "Strg+Alt+E"
 
 class Erinnern(Modul):
     anzeigename = "Erinnern"
-    beschreibung = f"Erinnert dich pünktlich an Dinge. Neue Erinnerung: {KUERZEL} oder Rechtsklick."
+    beschreibung = f"Erinnert dich pünktlich an Dinge. Neue Erinnerung: {KUERZEL} oder über das Tray-Symbol."
 
     def __init__(self, bus, motor, umgebung=None) -> None:
         super().__init__(bus, motor, umgebung)
