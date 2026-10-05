@@ -80,9 +80,14 @@ def test_alle_regeln_validieren_gegen_den_katalog():
 
 
 def test_nur_vektorgrafik_und_eigene_toene():
-    bilder = [p for p in QUELLE.rglob("*") if p.is_file() and p.suffix.lower() in (".png", ".jpg", ".jpeg", ".gif")]
+    import subprocess
+
+    # nur was im Repo liegt – lokale Bilder (z. B. ein eigener Hintergrund) zählen nicht
+    im_repo = subprocess.run(["git", "ls-files", "quellen/kiesel"], cwd=QUELLE.parents[1], capture_output=True,
+                             text=True).stdout.split()
+    bilder = [p for p in im_repo if Path(p).suffix.lower() in (".png", ".jpg", ".jpeg", ".gif")]
     assert bilder == []                                         # alles SVG, keine Pixelgrafik
-    assert sorted(p.name for p in (QUELLE / "toene").glob("*.ogg")) == \
+    assert sorted(Path(p).name for p in im_repo if p.endswith(".ogg")) == \
         ["glocke_1.ogg", "glocke_2.ogg", "glocke_3.ogg", "kling.ogg", "platsch_1.ogg", "platsch_2.ogg",
          "platsch_3.ogg", "plitsch_1.ogg", "plitsch_2.ogg"]
     assert "MIT" in (QUELLE / "LIZENZ.txt").read_text(encoding="utf-8")

@@ -142,7 +142,7 @@ class RegelPersoenlichkeit(Modul):
                     self.zurueckziehen(unter=ziel)
                     self._ruhig.discard(ziel)
             elif art == "zubehoer" and a.get("name"):
-                self.zubehoer(a["name"], bool(a.get("an", True)))
+                self.zubehoer(katalog.kennung(a["name"]) or a["name"], bool(a.get("an", True)))
             elif art == "ruhig":
                 self._ruhig.add(rid)
             elif art == "bleiben":

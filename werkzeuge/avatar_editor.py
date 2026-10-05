@@ -39,7 +39,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplicati
 
 WURZEL = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WURZEL / "src"))
-from dmnt_kobold import stil  # noqa: E402
+from dmnt_kobold import katalog, stil  # noqa: E402
 from dmnt_kobold.regeln import standard_verhalten  # noqa: E402
 from editor_herkunft import HerkunftToeneTab  # noqa: E402
 from editor_verhalten import VerhaltenTab  # noqa: E402
@@ -328,7 +328,7 @@ class Projekt:
     def hinzufuegen(self, datei: Path, name: str) -> str:
         from PIL import Image
 
-        name = "".join(c for c in name.lower() if c.isalnum() or c == "_") or "bild"
+        name = katalog.kennung(name) or "bild"
         while name in self.bauplan["quellen"]:
             name += "_2"
         Image.open(datei).save(self.ordner / f"{name}.png")
@@ -1144,7 +1144,7 @@ class ZubehoerTab(QWidget):
         if not t:
             return
         name, ok = QInputDialog.getText(self, "Neue Variante", f"Stimmung (z. B. froh, erschreckt) – wird zu {t}@…:")
-        name = "".join(c for c in name.strip().lower().lstrip("@") if c.isalnum() or c == "_")
+        name = katalog.kennung(name.strip().lstrip("@"))
         if not ok or not name:
             return
         datei, _ = QFileDialog.getOpenFileName(self, f"Bild für {t}@{name}", str(Path.home() / "Downloads"),
@@ -1347,7 +1347,7 @@ class ZubehoerTab(QWidget):
 
     def _outfit_neu(self) -> None:
         name, ok = QInputDialog.getText(self, "Neues Outfit", "Name (z. B. gentleman, pirat, winter):")
-        name = "".join(c for c in name.strip().lower() if c.isalnum() or c in "_-")
+        name = katalog.kennung(name)
         if not ok or not name:
             return
         o = self.editor.projekt.outfits
@@ -1385,7 +1385,7 @@ class ZubehoerTab(QWidget):
             return
         name, ok = QInputDialog.getText(self, "Name", "Name (z. B. cowboyhut, brille, krone):",
                                         text=Path(datei).stem[:20].lower())
-        name = "".join(c for c in name.lower() if c.isalnum() or c == "_")
+        name = katalog.kennung(name)
         if not ok or not name:
             return
         pr = self.editor.projekt

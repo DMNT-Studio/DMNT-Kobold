@@ -618,6 +618,16 @@ TON_ABSTAND_S = 0.09            # Abstand zwischen Wiederholungen
 TON_ENDUNGEN = (".wav", ".ogg")
 
 
+_UMLAUTE = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss", "Ä": "ae", "Ö": "oe", "Ü": "ue"})
+
+
+def kennung(text: str) -> str:
+    """Technischer Name aus einem Wort: klein, Umlaute ausgeschrieben, nur a–z, 0–9 und _.
+    „Kopfhörer“ → „kopfhoerer“ – so passt ein selbst gebautes Zubehör zu Regeln und Platzhaltern."""
+    t = text.strip().translate(_UMLAUTE).lower().replace(" ", "_").replace("-", "_")
+    return "".join(c for c in t if c in "abcdefghijklmnopqrstuvwxyz0123456789_")
+
+
 def momente() -> list[str]:
     """Momente, zu denen Partikel und Körper-Töne kommen: die Kern-Animationen."""
     return list(KERN_ANIMATIONEN)

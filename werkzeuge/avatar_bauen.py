@@ -402,6 +402,24 @@ class BauFehler(SystemExit):
     """Bau abgebrochen – Meldung ist für Menschen (deutsch, mit Regel-id und Feld)."""
 
 
+def zubehoer_laden(quelle: Path) -> dict:
+    """zubehoer.json lesen. Namen und Plätze werden zur Kennung („Kopfhörer“ → „kopfhoerer“),
+    damit selbst gebautes Zubehör zu den Regeln (Aktion „zubehoer“) und Platzhaltern passt."""
+    datei = quelle / "zubehoer.json"
+    if not datei.exists():
+        return {}
+    roh = json.loads(datei.read_text(encoding="utf-8"))
+    plan = {}
+    for name, z in roh.items():
+        k = katalog.kennung(name) or name
+        if k != name:
+            print(f"  Hinweis: Zubehör „{name}“ heißt technisch „{k}“")
+        if isinstance(z, dict) and z.get("gruppe"):
+            z = dict(z, gruppe=katalog.kennung(z["gruppe"]) or z["gruppe"])
+        plan[k] = z
+    return plan
+
+
 def innen_varianten(zplan: dict) -> set[str]:
     """Varianten des Innenlebens aus zubehoer.json (z. B. {"froh", "erschreckt"})."""
     return {v for z in zplan.values() if z.get("sitz") == "innen" for v in z.get("varianten", {})}
@@ -525,8 +543,7 @@ def bauen(quelle: Path, ziel: Path | None = None) -> Path:
     ziel = ziel or WURZEL / "src" / "dmnt_kobold" / "avatare" / plan["id"]
     s = plan.get("skalierung", 2)
     rahmen = plan.get("ausrichtung") == "rahmen"
-    zplan_vorab = json.loads((quelle / "zubehoer.json").read_text(encoding="utf-8")) \
-        if (quelle / "zubehoer.json").exists() else {}
+    zplan_vorab = zubehoer_laden(quelle)
     koerper_pruefen(quelle, plan)                      # vor allem anderen: nichts kaputt bauen
     verhalten = verhalten_pruefen(quelle, plan, zplan_vorab)
     if rahmen:
@@ -627,13 +644,12 @@ def _bauen_rest(quelle, plan, ziel, s, rahmen, verhalten, skaliert, anker, ohne_
             m["hand"] = ((h[0] + dx - ax) / s, (h[1] + dy - ay) / s)
         kopf_rel[f"{name}:{i}"] = m
 
-    zubehoer_plan = json.loads((quelle / "zubehoer.json").read_text(encoding="utf-8")) \
-        if (quelle / "zubehoer.json").exists() else {}
+    zubehoer_plan = zubehoer_laden(quelle)
     zubehoer_info = zubehoer_vorbereiten(quelle, zubehoer_plan, ziel)
     # Outfits: Zubehör, das gemeinsam an- und ausgezogen wird (outfits.json)
     outfits = json.loads((quelle / "outfits.json").read_text(encoding="utf-8")) \
         if (quelle / "outfits.json").exists() else {"aktiv": None, "outfits": {}}
-    im_outfit = set(outfits.get("outfits", {}).get(outfits.get("aktiv") or "", []))
+    im_outfit = {katalog.kennung(t) or t for t in outfits.get("outfits", {}).get(outfits.get("aktiv") or "", [])}
 
     # 4) Animationen
     animationen = {}

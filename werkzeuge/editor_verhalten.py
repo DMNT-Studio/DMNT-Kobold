@@ -928,7 +928,7 @@ class VerhaltenTab(QWidget):
         anims = sorted({n.split("~")[0] for n in self.animationen() if "@" not in n} | {"ruhe"})
         return {"animation": anims,
                 "ton": sorted(set(pr.bauplan.get("toene", {})) | set(KLAENGE)),
-                "zubehoer": sorted(set(pr.zubehoer) | {"kopfhoerer"}),
+                "zubehoer": sorted({katalog.kennung(z) or z for z in pr.zubehoer} | {"kopfhoerer"}),
                 "innen": pr.innen_varianten(),
                 "regel": [r.get("id", "") for r in self.verhalten.get("regeln", [])]}
 
