@@ -78,3 +78,24 @@ def test_trick_ausschalten_ueber_kachel(tmp_path, qapp):
     b.kategorie_umschalten("tricks")
     b._trick_schalten("pausen", False)
     assert d.verwaltung.tricks["pausen"].instanz is None
+
+
+def test_adoptieren_kachel_hat_volle_hoehe(tmp_path, qapp):
+    """Nach dem Inhaltswechsel (System → Adoptieren) wird die Kachel nicht zur flachen Pille."""
+    b, d = buehne(tmp_path, qapp)
+    d.avatare = lambda: [("dmnt9000", "DMNT 9000", None), ("kiesel", "Kiesel", None), ("sulfi", "Sulfi", None)]
+    d.aktueller_avatar = "kiesel"
+    b.show()
+    b._t0 -= 2.0
+    b._tick()
+    b.kategorie_umschalten("system")
+    qapp.processEvents()
+    b._adoptieren_zeigen()
+    k = b.kacheln["rechts"]
+    assert k.height() >= k.sizeHint().height() > 200          # sofort, ohne Ereignisschleife
+    texte = [w.text() for w in k.findChildren(type(b.fertig_knopf)) if w.isVisible()]
+    assert texte.count("Adoptieren") == 2 and "Wohnt hier" in texte and "Zurück" in texte
+    assert not any(w.text() == "System" for w in k.findChildren(type(k.findChild(type(b.schild.label))))
+                   if w.isVisible())                         # alter Inhalt ist sofort weg
+    qapp.processEvents()
+    assert k.height() >= k.sizeHint().height()

@@ -176,12 +176,7 @@ class Kachel(QWidget):
         self.lay.setSpacing(10)
 
     def leeren(self) -> None:
-        while self.lay.count():
-            item = self.lay.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-            elif item.layout():
-                _layout_leeren(item.layout())
+        _layout_leeren(self.lay)
 
     def paintEvent(self, _e) -> None:  # noqa: N802
         p = QPainter(self)
@@ -191,12 +186,18 @@ class Kachel(QWidget):
 
 
 def _layout_leeren(lay) -> None:
+    """Inhalt sofort entfernen: verstecken und abhängen, damit nichts Altes bis zur nächsten
+    Runde der Ereignisschleife sichtbar bleibt oder in die Größe einfließt."""
     while lay.count():
         item = lay.takeAt(0)
-        if item.widget():
-            item.widget().deleteLater()
-        elif item.layout():
+        w = item.widget()
+        if w is not None:
+            w.hide()
+            w.setParent(None)
+            w.deleteLater()
+        elif item.layout() is not None:
             _layout_leeren(item.layout())
+            item.layout().deleteLater()
 
 
 def _label(text: str, art: str = "", wrap: bool = True) -> QLabel:
@@ -512,9 +513,13 @@ class Einrichten(QWidget):
     def _kacheln_platzieren(self) -> None:
         for seite, kachel in self.kacheln.items():
             lay = kachel.layout()
+            lay.invalidate()
             lay.activate()
-            h = (lay.totalHeightForWidth(kachel.width()) if lay.hasHeightForWidth()
-                 else kachel.sizeHint().height())
+            # Höhe für die feste Breite (umbrechende Texte), aber nie kleiner als der Inhalt
+            # verlangt – sonst wird die Kachel nach einem Inhaltswechsel zur flachen Pille.
+            h = kachel.sizeHint().height()
+            if lay.hasHeightForWidth():
+                h = max(h, lay.totalHeightForWidth(kachel.width()))
             kachel.resize(kachel.width(), h)
             if seite == "links":
                 rechts = min(k.x() for k in self.kategorien.values() if k in self._seite("links")) - 8
@@ -556,7 +561,18 @@ class Einrichten(QWidget):
         titel = next(t for s, t, *_ in KATEGORIEN if s == schluessel)
         kachel.lay.addWidget(_label(titel, "titel"))
         getattr(self, f"_kachel_{schluessel}")(kachel.lay)
+        self._kachel_gewechselt(kachel)
+
+    def _kachel_gewechselt(self, kachel: Kachel) -> None:
+        """Nach neuem Inhalt Größe anpassen. Neue Kinder einer sichtbaren Kachel zeigt Qt erst
+        in der nächsten Runde der Ereignisschleife – vorher zählen sie nicht zur Höhe. Darum
+        jetzt sichtbar machen (außer bewusst versteckte) und danach noch einmal messen."""
+        if kachel.isVisible():
+            for w in kachel.findChildren(QWidget):
+                if not w.isVisible() and not w.testAttribute(Qt.WidgetAttribute.WA_WState_ExplicitShowHide):
+                    w.show()
         kachel.adjustSize()
+        self._kacheln_platzieren()
         QTimer.singleShot(0, self._kacheln_platzieren)
 
     def _neu_bauen(self, schluessel: str) -> None:
@@ -633,8 +649,7 @@ class Einrichten(QWidget):
         nein = QPushButton("Abbrechen")
         nein.clicked.connect(lambda: self._neu_bauen("tricks"))
         kachel.lay.addLayout(_zeile(nein, ja, stretch_index=-1))
-        kachel.adjustSize()
-        self._kacheln_platzieren()
+        self._kachel_gewechselt(kachel)
 
     def _trick_beibringen(self) -> None:
         ordner = QFileDialog.getExistingDirectory(self, "Ordner mit dem Trick (modul.py) wählen")
@@ -797,8 +812,7 @@ class Einrichten(QWidget):
         nein = QPushButton("Abbrechen")
         nein.clicked.connect(lambda: self._neu_bauen("system"))
         kachel.lay.addLayout(_zeile(nein, ja, stretch_index=-1))
-        kachel.adjustSize()
-        self._kacheln_platzieren()
+        self._kachel_gewechselt(kachel)
 
     def _daten_laden(self, datei: Path) -> None:
         try:
@@ -822,13 +836,13 @@ class Einrichten(QWidget):
             bild.setFixedWidth(64)
             knopf = QPushButton("Wohnt hier" if aid == self.d.aktueller_avatar else "Adoptieren")
             knopf.setEnabled(aid != self.d.aktueller_avatar)
+            knopf.setFixedWidth(118)                 # alle Knöpfe gleich breit, bündig
             knopf.clicked.connect(lambda _=False, a=aid: self._adoptieren(a))
             kachel.lay.addLayout(_zeile(bild, _label(name, wrap=False), knopf, stretch_index=1))
         zurueck = QPushButton("Zurück")
         zurueck.clicked.connect(lambda: self._neu_bauen("system"))
         kachel.lay.addWidget(zurueck)
-        kachel.adjustSize()
-        self._kacheln_platzieren()
+        self._kachel_gewechselt(kachel)
 
     def _adoptieren(self, aid: str) -> None:
         self.d.einstellungen["avatar"] = aid
