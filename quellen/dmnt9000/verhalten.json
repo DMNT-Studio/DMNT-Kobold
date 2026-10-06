@@ -1,7 +1,10 @@
 {
   "beschreibung": "DMNT 9000 – Bord-KI eines Mining-Schiffs aus dem Asteroidenfeld. Ruhig, höflich, technisch, trockener Humor. Daumen hoch bei Freude, runter, wenn ihm etwas nicht passt. Bei Star Citizen dreht er dem Desktop den Rücken zu und schaut still mit.",
   "werte": {
-    "laufgeschwindigkeit": 55
+    "laufgeschwindigkeit": 55,
+    "audio_schwelle": 0.202,
+    "abends_ab": 18,
+    "nachts_ab": 21
   },
   "regeln": [
     {

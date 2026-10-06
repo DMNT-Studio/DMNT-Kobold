@@ -392,6 +392,26 @@
         {
           "aktion": "effekt",
           "name": "noten"
+        },
+        {
+          "aktion": "zubehoer",
+          "name": "kopfhoerer"
+        }
+      ],
+      "prioritaet": 32,
+      "dauer_s": 4,
+      "chance": 0.5
+    },
+    {
+      "id": "musik_aus",
+      "wenn": {
+        "ereignis": "audio.still"
+      },
+      "dann": [
+        {
+          "aktion": "zubehoer",
+          "name": "kopfhoerer",
+          "an": false
         }
       ],
       "prioritaet": 32,
