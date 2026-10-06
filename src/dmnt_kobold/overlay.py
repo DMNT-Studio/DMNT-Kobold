@@ -384,6 +384,8 @@ class AvatarFenster(QWidget):
             self._variante = random.choice(self.darsteller.varianten(animation))
             if animation not in ("landen", "laufen"):       # landen kommt mit der Landung
                 self._moment(animation, ton=animation != "sprechen")
+            elif animation == "laufen":                     # Loslaufen: Moment "bewegen" (z. B. Pfeifen)
+                self._moment("bewegen")
         else:
             self._animation_t += dt * (self._renn_faktor() if animation == "laufen" and a.rennen else 1.0)
 

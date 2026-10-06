@@ -17,6 +17,7 @@ import math
 import random
 import struct
 import sys
+import time
 import wave
 from dataclasses import dataclass
 from pathlib import Path
@@ -129,12 +130,15 @@ class KoerperTon:
     dateien: list[Path]
     tonhoehe: float = 0.0
     wiederholen: tuple[int, int] = (1, 1)
+    chance: float = 1.0          # Wahrscheinlichkeit je Moment (z. B. Pfeifen nur manchmal)
+    abstand_s: float = 0.0       # Mindestabstand zwischen zwei Ausloesungen
 
     @classmethod
     def aus_json(cls, ordner: Path, d: dict) -> "KoerperTon":
         w = d.get("wiederholen") or [1, 1]
         return cls([ordner / x for x in d.get("dateien", []) if (ordner / x).is_file()],
-                   float(d.get("tonhoehe", 0.0)), (int(w[0]), int(w[1])))
+                   float(d.get("tonhoehe", 0.0)), (int(w[0]), int(w[1])),
+                   float(d.get("chance", 1.0)), float(d.get("abstand_s", 0.0)))
 
 
 TONHOEHE_STUFE = 0.01      # gerundet, damit der Cache klein bleibt
@@ -156,6 +160,8 @@ class Toene:
         self._dateien: dict[str, Path] = {}
         self._quellen: dict[Path, tuple[array.array, int, str]] = {}
         self._platz = 0
+        self._zuletzt: dict[str, float] = {}
+        self.uhr = time.monotonic
         self.lautstaerke_setzen(lautstaerke)
 
     def avatar_setzen(self, avatar_toene: dict[str, Path] | None,
@@ -236,8 +242,21 @@ class Toene:
 
     def moment(self, name: str) -> None:
         """Moment des Körpers: spielt nur, wenn der Avatar dafür einen Körper-Ton hat."""
-        if name in self.koerper_toene:
+        if self.darf(name):
             self.spielen(name)
+
+    def darf(self, name: str) -> bool:
+        """Kommt der Koerper-Ton jetzt? Beachtet ``chance`` und ``abstand_s``."""
+        t = self.koerper_toene.get(name)
+        if t is None:
+            return False
+        jetzt = self.uhr()
+        if t.abstand_s and jetzt - self._zuletzt.get(name, -1e9) < t.abstand_s:
+            return False
+        if t.chance < 1.0 and self.rng.random() >= t.chance:
+            return False
+        self._zuletzt[name] = jetzt
+        return True
 
     def spielen(self, name: str, hoeher: float = 0.0) -> None:
         if self.stumm or self.lautstaerke <= 0 or sys.platform != "win32":

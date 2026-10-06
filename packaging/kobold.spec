@@ -3,7 +3,7 @@
 #
 # Mitgepackt werden nur Dateien, die in Git stehen (git ls-files). So kommen lokale
 # Avatare wie Sulfi (Minecraft-Figur, nur lokal) oder halbfertige Arbeit nie in ein
-# Release. Sulfi ist zusätzlich hart ausgeschlossen.
+# Release. Sulfi und Flugzeug mit eigenem Körperbild sind zusätzlich hart ausgeschlossen.
 import subprocess
 from pathlib import Path
 
@@ -11,7 +11,7 @@ from PyInstaller.utils.hooks import collect_submodules
 
 WURZEL = Path(SPECPATH).parent
 PAKET = WURZEL / "src" / "dmnt_kobold"
-AUSGESCHLOSSEN = ("avatare/sulfi/",)
+AUSGESCHLOSSEN = ("avatare/sulfi/", "avatare/flugzeug_lokal/")
 
 
 def paketdateien():

@@ -11,3 +11,7 @@ quellen/*/_alt/
 quellen/sulfi/
 src/dmnt_kobold/avatare/sulfi/
 vorlagen/sulfi/
+
+# Flugzeug mit eigenem Koerperbild (fremde Grafik) - bleibt lokal, wird nie committet oder gepackt
+quellen/flugzeug_lokal/
+src/dmnt_kobold/avatare/flugzeug_lokal/

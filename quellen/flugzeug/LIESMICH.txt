@@ -1,0 +1,20 @@
+Flugzeug - freundlicher Helfer ohne Gesicht
+=============================================
+
+Eigener Avatar (MIT, Stefan Rohrbach), komplett als Vektorgrafik und "ohne Code":
+alles, was er tut, steht in verhalten.json. Blaue Arme und Beine, weisse Haende. Die Arme
+sind vorne auf den Koerper aufgesetzt, die Beine kommen hinten unten heraus. Er schlendert
+wackelnd ueber die Taskleiste, ueber ihm schweben Noten, und beim Loslaufen pfeift er
+manchmal (hoechstens alle 25 s) ein kurzes Liedchen.
+
+Erzeugt mit:  python werkzeuge/flugzeug_zeichnen.py
+  schreibt teile/, herkunft.svg und toene/ neu. bauplan.json und verhalten.json nur,
+  wenn es sie noch nicht gibt - Aenderungen aus dem Avatar-Editor bleiben erhalten.
+Bauen:        python werkzeuge/avatar_bauen.py quellen/flugzeug
+
+Eigenes Koerperbild (bleibt lokal, nie im Repo)
+  1. Bild als quellen/flugzeug_lokal/koerper.png (transparent, Nase nach rechts) ablegen.
+  2. python werkzeuge/flugzeug_zeichnen.py
+  3. Passen Schultern/Huefte nicht: quellen/flugzeug_lokal/andock.json anpassen, Schritt 2.
+  4. python werkzeuge/avatar_bauen.py quellen/flugzeug_lokal
+  Der Ordner flugzeug_lokal ist in .gitignore und wird nie gepackt.

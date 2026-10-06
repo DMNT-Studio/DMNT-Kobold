@@ -763,6 +763,9 @@ def _bauen_rest(quelle, plan, ziel, s, rahmen, verhalten, skaliert, anker, ohne_
             if dateien:
                 toene[name] = {"dateien": dateien, "tonhoehe": t.get("tonhoehe", 0.0),
                                "wiederholen": t.get("wiederholen", [1, 1])}
+                for extra in ("chance", "abstand_s"):          # z. B. Pfeifen beim Loslaufen
+                    if extra in t:
+                        toene[name][extra] = t[extra]
                 print(f"  Ton {name}: {len(dateien)} Datei(en)")
 
     # 8b) Effekte über dem Kopf: Zuordnung + eigene Bildfolgen

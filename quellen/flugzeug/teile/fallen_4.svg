@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 110 120" width="110" height="120">
+    <!-- hinten: Bein und Arm der abgewandten Seite -->
+    <polyline points="36,75.84 41.72,90.78 34,104.8" fill="none" stroke="#1F5E9E" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="36,75.84 41.72,90.78 34,104.8" fill="none" stroke="#2768AD" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <ellipse cx="36.6" cy="106.3" rx="7.5" ry="3.6" fill="#2768AD" stroke="#1F5E9E" stroke-width="1.6" transform="rotate(30 36.6 106.3)"/>
+    <polyline points="54.4,46.72 51.62,35.05 42.4,42.72" fill="none" stroke="#1F5E9E" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="54.4,46.72 51.62,35.05 42.4,42.72" fill="none" stroke="#2768AD" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="42.4" cy="42.72" r="5" fill="#FFFFFF" stroke="#1F5E9E" stroke-width="1.6"/>
+    <!-- Körper -->
+    <g transform="translate(0 -8) rotate(0 42.4 85.4)">
+    <polygon points="94.4,62 19.2,40.16 28.8,62" fill="none" stroke="#FFFFFF" stroke-width="6.6" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.9"/>
+    <polygon points="94.4,62 28.8,62 40,85.4" fill="none" stroke="#FFFFFF" stroke-width="6.6" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.9"/>
+    <polygon points="94.4,62 19.2,40.16 28.8,62" fill="none" stroke="#1D2320" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="1"/>
+    <polygon points="94.4,62 28.8,62 40,85.4" fill="none" stroke="#1D2320" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="1"/>
+    </g>
+    <!-- vorne: Bein, dann der aufgesetzte Arm -->
+    <polyline points="42.4,77.4 51.08,90.84 45.4,105.8" fill="none" stroke="#1F5E9E" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="42.4,77.4 51.08,90.84 45.4,105.8" fill="none" stroke="#2F7FD0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <ellipse cx="48.12" cy="107.07" rx="7.5" ry="3.6" fill="#2F7FD0" stroke="#1F5E9E" stroke-width="1.6" transform="rotate(25 48.12 107.07)"/>
+    <polyline points="62.4,48.8 73.98,51.96 78.4,40.8" fill="none" stroke="#1F5E9E" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="62.4,48.8 73.98,51.96 78.4,40.8" fill="none" stroke="#2F7FD0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="78.4" cy="40.8" r="5" fill="#FFFFFF" stroke="#1F5E9E" stroke-width="1.6"/>
+</svg>

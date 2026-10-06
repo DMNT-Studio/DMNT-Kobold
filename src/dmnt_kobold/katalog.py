@@ -772,6 +772,10 @@ def koerper_pruefen(plan: dict, ordner=None) -> tuple[list[str], list[str]]:
                 _bereich(fehler, o, v, 0, 0.5)
             elif k == "wiederholen":
                 _paar(fehler, o, v, 1, 5, ganz=True)
+            elif k == "chance":
+                _bereich(fehler, o, v, 0, 1)
+            elif k == "abstand_s":
+                _bereich(fehler, o, v, 0, 3600)
             else:
                 fehler.append(f"{ort}: unbekannter Eintrag „{k}“")
     return fehler, warnungen

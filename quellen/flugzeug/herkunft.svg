@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9CC9EA"/>
+      <stop offset="0.55" stop-color="#CFE5F2"/>
+      <stop offset="1" stop-color="#FBE6C8"/>
+    </linearGradient>
+    <radialGradient id="sonne" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFF6DD" stop-opacity="1"/>
+      <stop offset="0.35" stop-color="#FFE9B8" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#FFE9B8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wiese" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#A9C98F"/>
+      <stop offset="1" stop-color="#7FAF6A"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#himmel)"/>
+  <circle cx="292" cy="196" r="92" fill="url(#sonne)"/>
+  <circle cx="292" cy="196" r="20" fill="#FFF4D6"/>
+  <ellipse cx="96" cy="88" rx="44" ry="11" fill="#FFFFFF" fill-opacity="0.7"/>
+  <ellipse cx="126" cy="80" rx="28" ry="10" fill="#FFFFFF" fill-opacity="0.7"/>
+  <ellipse cx="300" cy="120" rx="36" ry="8" fill="#FFFFFF" fill-opacity="0.55"/>
+  <path d="M0,262 C70,236 140,248 205,240 C270,232 330,226 400,246 L400,400 L0,400 Z" fill="#B9D3A1"/>
+  <path d="M0,282 C90,262 170,268 250,260 C320,254 360,256 400,262 L400,400 L0,400 Z" fill="url(#wiese)"/>
+  <polygon points="192,252 208,252 290,400 110,400" fill="#9EA39F"/>
+  <polygon points="192,252 208,252 290,400 110,400" fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="2"/>
+  <polygon points="199.4,252 200.6,252 200.81,254.17 199.19,254.17" fill="#FFFFFF" fill-opacity="0.85"/>
+  <polygon points="198.97,258.58 201.03,258.58 201.24,264.58 198.76,264.58" fill="#FFFFFF" fill-opacity="0.85"/>
+  <polygon points="198.54,271.94 201.46,271.94 201.67,280.5 198.33,280.5" fill="#FFFFFF" fill-opacity="0.85"/>
+  <polygon points="198.11,290.15 201.89,290.15 202.1,300.82 197.9,300.82" fill="#FFFFFF" fill-opacity="0.85"/>
+  <polygon points="197.69,312.45 202.31,312.45 202.53,324.99 197.47,324.99" fill="#FFFFFF" fill-opacity="0.85"/>
+  <polygon points="197.26,338.39 202.74,338.39 202.96,352.62 197.04,352.62" fill="#FFFFFF" fill-opacity="0.85"/>
+  <polygon points="196.83,367.65 203.17,367.65 203.39,383.45 196.61,383.45" fill="#FFFFFF" fill-opacity="0.85"/>
+  <line x1="318" y1="300" x2="318" y2="254" stroke="#6A6E6B" stroke-width="2.4" stroke-linecap="round"/>
+  <polygon points="318,256 346,260 344,268 318,266" fill="#E8894A"/>
+  <polygon points="328,257.4 336,258.6 335,267.2 328,266.6" fill="#FFFFFF" fill-opacity="0.85"/>
+</svg>
