@@ -2037,15 +2037,137 @@
           ]
         ]
       }
+    },
+    "musik": {
+      "fps": 2,
+      "schleife": true,
+      "bilder": [
+        "frames/musik/00.png"
+      ],
+      "koepfe": [
+        [
+          49.8,
+          30.8,
+          68.5,
+          8.5
+        ]
+      ],
+      "posen": [
+        "seite:0"
+      ],
+      "zubehoer": {
+        "kopfhoerer": [
+          [
+            -11.7,
+            -103.3,
+            71.0,
+            0.0,
+            0,
+            0,
+            108.2
+          ]
+        ],
+        "zylinder": [
+          [
+            -11.6,
+            -137.7,
+            36.0,
+            12.0,
+            0,
+            0,
+            108.2
+          ]
+        ],
+        "monokel": [
+          [
+            -1.3,
+            -98.0,
+            26.4,
+            0.0,
+            0,
+            0,
+            126.6
+          ]
+        ],
+        "spazierstock": [
+          [
+            -17.9,
+            -38.4,
+            13.9,
+            66.0,
+            1,
+            0,
+            100.0
+          ]
+        ]
+      }
     }
   },
   "toene": {
-    "sprechen": "toene/sprechen.wav",
-    "erschrecken": "toene/erschrecken.wav",
-    "freuen": "toene/freuen.wav",
-    "aufwachen": "toene/aufwachen.wav",
-    "landen": "toene/landen.wav",
-    "huepfen": "toene/huepfen.wav"
+    "sprechen": {
+      "dateien": [
+        "toene/sprechen_1.wav",
+        "toene/sprechen_2.wav",
+        "toene/sprechen_3.wav",
+        "toene/sprechen_4.wav"
+      ],
+      "tonhoehe": 0.04,
+      "wiederholen": [
+        1,
+        1
+      ]
+    },
+    "landen": {
+      "dateien": [
+        "toene/landen_1.wav",
+        "toene/landen_2.wav"
+      ],
+      "tonhoehe": 0.03,
+      "wiederholen": [
+        1,
+        1
+      ]
+    },
+    "freude": {
+      "dateien": [
+        "toene/freude_1.wav"
+      ],
+      "tonhoehe": 0.02,
+      "wiederholen": [
+        1,
+        1
+      ]
+    },
+    "alarm": {
+      "dateien": [
+        "toene/alarm_1.wav"
+      ],
+      "tonhoehe": 0.03,
+      "wiederholen": [
+        1,
+        1
+      ]
+    },
+    "aufwachen": {
+      "dateien": [
+        "toene/aufwachen_1.wav"
+      ],
+      "tonhoehe": 0.0,
+      "wiederholen": [
+        1,
+        1
+      ]
+    },
+    "huepfen": {
+      "dateien": [
+        "toene/huepfen_1.wav"
+      ],
+      "tonhoehe": 0.05,
+      "wiederholen": [
+        1,
+        1
+      ]
+    }
   },
   "outfits": {
     "gentleman": [
@@ -2075,6 +2197,14 @@
       "bild": "zubehoer/spazierstock.png",
       "immer": false,
       "gruppe": "hand"
+    }
+  },
+  "effekte": {
+    "zuordnung": {
+      "musik": "noten",
+      "unzufrieden": "dampf",
+      "landen": "sterne",
+      "sprechen": "fragezeichen"
     }
   }
 }

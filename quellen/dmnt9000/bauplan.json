@@ -321,6 +321,16 @@
           "puls"
         ]
       ]
+    },
+    "musik": {
+      "fps": 2,
+      "bilder": [
+        [
+          "seite",
+          0,
+          "puls"
+        ]
+      ]
     }
   },
   "portraet": {
@@ -341,99 +351,51 @@
   },
   "toene": {
     "sprechen": {
-      "welle": "rechteck",
-      "segmente": [
-        [
-          1320,
-          1320,
-          0.04
-        ],
-        [
-          0,
-          0,
-          0.02
-        ],
-        [
-          1760,
-          1760,
-          0.04
-        ],
-        [
-          0,
-          0,
-          0.02
-        ],
-        [
-          1480,
-          1480,
-          0.05
-        ]
-      ]
-    },
-    "erschrecken": {
-      "welle": "rechteck",
-      "segmente": [
-        [
-          980,
-          980,
-          0.08
-        ],
-        [
-          660,
-          660,
-          0.12
-        ]
-      ]
-    },
-    "freuen": {
-      "welle": "rechteck",
-      "segmente": [
-        [
-          880,
-          880,
-          0.05
-        ],
-        [
-          1175,
-          1175,
-          0.05
-        ],
-        [
-          1568,
-          1568,
-          0.09
-        ]
-      ]
-    },
-    "aufwachen": {
-      "welle": "dreieck",
-      "segmente": [
-        [
-          180,
-          1200,
-          0.28
-        ]
-      ]
+      "dateien": [
+        "toene/sprechen_1.ogg",
+        "toene/sprechen_2.ogg",
+        "toene/sprechen_3.ogg",
+        "toene/sprechen_4.ogg"
+      ],
+      "tonhoehe": 0.04
     },
     "landen": {
-      "welle": "sinus",
-      "segmente": [
-        [
-          170,
-          80,
-          0.09
-        ]
+      "dateien": [
+        "toene/landen_1.ogg",
+        "toene/landen_2.ogg"
+      ],
+      "tonhoehe": 0.03
+    },
+    "freude": {
+      "dateien": [
+        "toene/freude.ogg"
+      ],
+      "tonhoehe": 0.02
+    },
+    "alarm": {
+      "dateien": [
+        "toene/alarm.ogg"
+      ],
+      "tonhoehe": 0.03
+    },
+    "aufwachen": {
+      "dateien": [
+        "toene/aufwachen.ogg"
       ]
     },
     "huepfen": {
-      "welle": "dreieck",
-      "segmente": [
-        [
-          600,
-          1100,
-          0.07
-        ]
-      ]
+      "dateien": [
+        "toene/huepfen.ogg"
+      ],
+      "tonhoehe": 0.05
+    }
+  },
+  "effekte": {
+    "zuordnung": {
+      "musik": "noten",
+      "unzufrieden": "dampf",
+      "landen": "sterne",
+      "sprechen": "fragezeichen"
     }
   }
 }

@@ -22,7 +22,7 @@ def test_dmnt9000_laedt_mit_allen_animationen(qapp):
                  "erschrecken", "sitzen", "schlafen", "zuschauen"):
         assert name in avatar.animationen, name
     assert avatar.herkunft.exists() and avatar.portraet.exists()
-    assert set(avatar.toene) >= {"sprechen", "freuen", "erschrecken"}
+    assert set(avatar.koerper_toene) >= {"sprechen", "landen", "freude", "alarm", "aufwachen", "huepfen"}
     assert 90 < darsteller.hoehe < 140
 
 

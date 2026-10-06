@@ -53,7 +53,7 @@
         },
         {
           "aktion": "ton",
-          "name": "erschrecken"
+          "name": "alarm"
         }
       ],
       "prioritaet": 45,
@@ -73,7 +73,7 @@
         },
         {
           "aktion": "ton",
-          "name": "erschrecken"
+          "name": "alarm"
         }
       ],
       "prioritaet": 45,
@@ -128,7 +128,7 @@
         },
         {
           "aktion": "ton",
-          "name": "erschrecken"
+          "name": "alarm"
         }
       ],
       "prioritaet": 40,
@@ -295,7 +295,7 @@
         },
         {
           "aktion": "ton",
-          "name": "freuen"
+          "name": "freude"
         }
       ],
       "prioritaet": 50,
@@ -326,7 +326,7 @@
         },
         {
           "aktion": "ton",
-          "name": "freuen"
+          "name": "freude"
         }
       ],
       "prioritaet": 50,
@@ -439,7 +439,7 @@
       "dann": [
         {
           "aktion": "animation",
-          "name": "freuen"
+          "name": "musik"
         }
       ],
       "prioritaet": 32,

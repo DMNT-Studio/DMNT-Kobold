@@ -61,7 +61,7 @@ def test_toene_hinzufuegen_einstellen_entfernen(tmp_path):
 
 def test_synthetischer_ton_wird_durch_datei_ersetzt(tmp_path):
     pr = _projekt(tmp_path, "dmnt9000")
-    assert "segmente" in pr.bauplan["toene"]["sprechen"]
+    pr.bauplan.setdefault("toene", {})["sprechen"] = {"welle": "rechteck", "segmente": [[880, 900, 0.045]]}
     neu = tmp_path / "pieps.wav"
     from dmnt_kobold.toene import schreibe_wav, synthese
     schreibe_wav(neu, synthese([(880, 880, 0.05)], 0.5))

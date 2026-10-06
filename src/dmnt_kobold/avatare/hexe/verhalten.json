@@ -10,7 +10,17 @@
     "sitzen_min_s": 8,
     "sitzen_max_s": 40,
     "einschlafen_nach_min": 4,
-    "abends_ab": 19
+    "abends_ab": 19,
+    "nachhuepfen": 0.033,
+    "sprunghoehe_px": 90.828,
+    "sprungweite_px": 71.1,
+    "chance_rennen": 0.101,
+    "rennen_min_s": 3,
+    "rennen_max_s": 9.104,
+    "renntempo": 600.4,
+    "rennen_haken_s": 0.8,
+    "rennen_sprung_chance": 0.35,
+    "rennen_sprunghoehe_px": 60
   },
   "regeln": [
     {
@@ -131,6 +141,10 @@
             "Pfoten weg vom Zeiger!"
           ],
           "trotz_ruhe": true
+        },
+        {
+          "aktion": "effekt",
+          "name": "sterne"
         }
       ],
       "prioritaet": 45,
@@ -147,6 +161,10 @@
         {
           "aktion": "animation",
           "name": "erschrecken"
+        },
+        {
+          "aktion": "effekt",
+          "name": "sterne"
         }
       ],
       "prioritaet": 45,
@@ -370,6 +388,10 @@
         {
           "aktion": "animation",
           "name": "sitzen"
+        },
+        {
+          "aktion": "effekt",
+          "name": "noten"
         }
       ],
       "prioritaet": 32,

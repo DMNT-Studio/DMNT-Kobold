@@ -146,7 +146,7 @@ def test_hupfer_ueber_tiefere_kante_endet_im_fallen():
     ({"partikel": {"landen": {"form": "stern"}}}, "partikel.landen.form"),
     ({"partikel": {"landen": {"reichweite_px": 99}}}, "partikel.landen.reichweite_px"),
     ({"partikel": {"landen": {"anzahl": [9, 3]}}}, "größer als „bis“"),
-    ({"toene": {"schmatzen": {"dateien": ["a.wav"]}}}, "kein Moment"),
+    ({"toene": {"Schmatzen!": {"dateien": ["a.wav"]}}}, "Ton-Namen"),
     ({"toene": {"landen": {"dateien": ["a.aiff"]}}}, ".wav, .ogg, .mp3"),
     ({"toene": {"landen": {"dateien": ["a.wav"], "tonhoehe": 2}}}, "toene.landen.tonhoehe"),
     ({"koerper_deckkraft": 0}, "koerper_deckkraft"),

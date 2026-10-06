@@ -825,10 +825,26 @@
           "normal"
         ]
       ]
+    },
+    "musik": {
+      "fps": 2,
+      "bilder": [
+        [
+          "stehen_a",
+          0,
+          "normal"
+        ]
+      ]
     }
   },
   "herkunft": {
     "hintergrund": "herkunft.svg",
     "groesse": 768
+  },
+  "effekte": {
+    "zuordnung": {
+      "erschrecken": "ausrufezeichen",
+      "freuen": "herzchen"
+    }
   }
 }

@@ -750,9 +750,10 @@ def koerper_pruefen(plan: dict, ordner=None) -> tuple[list[str], list[str]]:
             continue
         if "segmente" in t:                         # synthetisierter Ton (frei benannt, für die Aktion „ton“)
             continue
-        if name not in bekannt:
-            fehler.append(f"{ort}: „{name}“ ist kein Moment des Sockels (erlaubt: {', '.join(momente())}). "
-                          "Töne aus Dateien kommen automatisch zu ihrem Moment.")
+        # Moment-Name (Kern-Animation) → kommt automatisch zu seinem Moment.
+        # Freier Name (z. B. „alarm“, „aufwachen“) → nur über die Aktion „ton“ bzw. den Sockel.
+        if not re.fullmatch(r"[a-z0-9_]+", name):
+            fehler.append(f"{ort}: „{name}“ – Ton-Namen bitte nur aus a–z, 0–9 und _")
             continue
         if "dateien" not in t:
             fehler.append(f"{ort}: „dateien“ fehlt")

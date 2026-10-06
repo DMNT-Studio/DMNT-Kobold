@@ -478,5 +478,273 @@
         "aus": false
       }
     }
+  },
+  "kopfhoerer": {
+    "datei": "zubehoer/kopfhoerer.png",
+    "sitz": "ueber_kopf",
+    "gruppe": "kopfhoerer",
+    "immer": false,
+    "posen": {
+      "stehen_a:0": {
+        "aus": false,
+        "breite": 68.7,
+        "hinten": false,
+        "winkel": 0.0,
+        "x": 49.4,
+        "y": -102.3
+      },
+      "stehen_b:0": {
+        "x": 49.4,
+        "y": -102.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "stehen_c:0": {
+        "x": 49.4,
+        "y": -102.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "stehen_zu:0": {
+        "x": 49.4,
+        "y": -102.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_1:0": {
+        "x": 49.4,
+        "y": -101.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_2:0": {
+        "x": 49.4,
+        "y": -102.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_3:0": {
+        "x": 49.4,
+        "y": -103.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_4:0": {
+        "x": 49.4,
+        "y": -102.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_5:0": {
+        "x": 49.4,
+        "y": -101.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_6:0": {
+        "x": 49.4,
+        "y": -102.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_7:0": {
+        "x": 49.4,
+        "y": -103.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "gehen_8:0": {
+        "x": 49.4,
+        "y": -102.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "sitzen:0": {
+        "aus": false,
+        "breite": 63.8,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 33.3,
+        "y": -113.7
+      },
+      "sitzen_halb:0": {
+        "aus": false,
+        "breite": 63.8,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 33.3,
+        "y": -108.9
+      },
+      "sitzen_zu:0": {
+        "aus": false,
+        "breite": 69.0,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 32.9,
+        "y": -109.3
+      },
+      "schlafen_a:0": {
+        "aus": false,
+        "breite": 62.6,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 33.1,
+        "y": -45.5
+      },
+      "schlafen_b:0": {
+        "aus": false,
+        "breite": 67.7,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 34.1,
+        "y": -49.1
+      },
+      "strecken:0": {
+        "aus": false,
+        "breite": 65.8,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 49.6,
+        "y": -103.9
+      },
+      "strecken_halb:0": {
+        "aus": false,
+        "breite": 65.8,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 49.6,
+        "y": -101.5
+      },
+      "landen:0": {
+        "aus": false,
+        "breite": 67.4,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 53.1,
+        "y": -86.7
+      },
+      "anschauen:0": {
+        "x": 49.4,
+        "y": -102.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "sprechen_auf:0": {
+        "x": 49.4,
+        "y": -102.3,
+        "breite": 68.7,
+        "winkel": 0.0,
+        "hoehe": 100,
+        "hinten": false,
+        "aus": false
+      },
+      "buckel_1:0": {
+        "aus": false,
+        "breite": 62.6,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 52.5,
+        "y": -79.0
+      },
+      "buckel_2:0": {
+        "aus": false,
+        "breite": 62.6,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 48.5,
+        "y": -79.7
+      },
+      "buckel:0": {
+        "aus": false,
+        "breite": 62.6,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 50.5,
+        "y": -79.3
+      },
+      "freuen_a:0": {
+        "aus": false,
+        "breite": 63.0,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 48.7,
+        "y": -96.8
+      },
+      "freuen_b:0": {
+        "aus": false,
+        "breite": 63.0,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 49.7,
+        "y": -95.6
+      },
+      "putzen_1:0": {
+        "aus": false,
+        "breite": 61.8,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 34.2,
+        "y": -100.9
+      },
+      "putzen_2:0": {
+        "aus": false,
+        "breite": 61.8,
+        "hinten": false,
+        "hoehe": 100,
+        "winkel": 0.0,
+        "x": 34.6,
+        "y": -100.1
+      }
+    }
   }
 }
