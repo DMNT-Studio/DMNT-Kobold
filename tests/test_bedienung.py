@@ -3,6 +3,8 @@ Verhalten, Einrichten und Beenden im Tray, Tray-Hinweis beim ersten Start,
 Spritzer durchklickbar."""
 import random
 
+import pytest
+
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QAction
 from PySide6.QtTest import QTest
@@ -123,23 +125,76 @@ def test_klick_regel_in_abklingzeit_faellt_auf_hupfer_zurueck(fenster):
     assert f._antippen
 
 
-def test_klick_auf_laeufer_kleiner_hupfer(qapp, tmp_path, monkeypatch):
+@pytest.fixture
+def laeufer(qapp, tmp_path, monkeypatch):
+    """Ein gleitender Avatar (Hexe) ohne Regeln, Körper steht."""
     from dmnt_kobold import overlay, win32
     from dmnt_kobold.avatar import avatar_laden
-    from dmnt_kobold.physik import FAELLT
     from dmnt_kobold.toene import Toene
 
     monkeypatch.setattr(win32, "ganz_nach_vorne", lambda *_: None)
-    d, a = avatar_laden("dmnt9000")
+    d, a = avatar_laden("hexe")
     bus = EventBus()
     m = Verhaltensmotor(bus, Eigenleben(random.Random(1), werte=a.werte))
     f = overlay.AvatarFenster(bus, m, Schalter(), Toene(tmp_path / "t", 0.0), d, werte=a.werte)
-    try:
-        f.koerper.zustand = "steht"
+    assert not f.huepft
+    f.koerper.zustand = "steht"
+    f.verhalten = a.verhalten
+    yield f
+    f.close()
+
+
+def _hupft(f) -> bool:
+    from dmnt_kobold.physik import FAELLT
+    return f.koerper.zustand == FAELLT and f.koerper.vy < 0
+
+
+def test_klick_auf_laeufer_ohne_regel_kleiner_hupfer(laeufer):
+    laeufer.klicken()
+    assert _hupft(laeufer)
+
+
+def test_klick_auf_laeufer_mit_regel_kein_hupfer(laeufer):
+    f = laeufer
+    RegelPersoenlichkeit(f.bus, f.motor, {"regeln": [
+        {"id": "klick", "wenn": {"ereignis": "maus.klick"}, "dann": [{"aktion": "animation", "name": "freuen"}],
+         "prioritaet": 35, "dauer_s": 2.5}]})
+    f.klicken()
+    assert not _hupft(f) and f.koerper.zustand == "steht"
+    assert f.motor.aktiver_wunsch is not None and f.motor.aktiver_wunsch.animation == "freuen"
+
+
+def test_klick_auf_laeufer_regel_in_abklingzeit_kleiner_hupfer(laeufer):
+    f = laeufer
+    RegelPersoenlichkeit(f.bus, f.motor, {"regeln": [
+        {"id": "klick", "wenn": {"ereignis": "maus.klick"}, "dann": [{"aktion": "animation", "name": "freuen"}],
+         "prioritaet": 35, "dauer_s": 0.5, "abklingzeit_s": 60}]})
+    f.klicken()
+    assert not _hupft(f)
+    f.klicken()                                                 # Regel schweigt → Rückfall
+    assert _hupft(f)
+
+
+def test_klick_auf_laeufer_chance_verfehlt_kleiner_hupfer(laeufer):
+    f = laeufer
+    RegelPersoenlichkeit(f.bus, f.motor, {"regeln": [
+        {"id": "klick", "wenn": {"ereignis": "maus.klick"}, "dann": [{"aktion": "animation", "name": "freuen"}],
+         "prioritaet": 35, "chance": 0.0}]})
+    f.klicken()
+    assert _hupft(f)
+
+
+def test_klick_auf_hexe_freut_sich_ohne_hupfer(laeufer):
+    """Abnahme: Hexe mit ihrem echten Verhalten – freuen oder sitzen mit Spruch, kein Hüpfer."""
+    f = laeufer
+    RegelPersoenlichkeit(f.bus, f.motor, f.verhalten, rng=random.Random(7), name="hexe")
+    for _ in range(5):
+        f.motor.zurueckziehen_quelle("hexe:klick_freude")
+        f.motor.zurueckziehen_quelle("hexe:klick_launisch")
         f.klicken()
-        assert f.koerper.zustand == FAELLT and f.koerper.vy < 0
-    finally:
-        f.close()
+        assert not _hupft(f) and f.koerper.zustand == "steht"
+        w = f.motor.aktiver_wunsch
+        assert w is not None and w.animation in ("freuen", "sitzen") and w.text
 
 
 # --- Spritzer durchklickbar ------------------------------------------------------------------

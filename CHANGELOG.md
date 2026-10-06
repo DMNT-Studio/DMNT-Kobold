@@ -2,6 +2,12 @@
 
 Alle Versionen von DMNT-Kobold. Neueste oben.
 
+## [0.7.1] – 2026-10-06
+
+- Klick auf den Kobold: Reagiert eine Regel (etwa die Hexe freut sich oder setzt sich mit einem
+  Spruch hin), hüpft er nicht mehr zusätzlich. Der kleine Hüpfer kommt nur noch, wenn keine Regel
+  antwortet – für gehende und hüpfende Kobolde gleich.
+
 ## [0.7.0] – 2026-10-05
 
 Erste öffentliche Version.

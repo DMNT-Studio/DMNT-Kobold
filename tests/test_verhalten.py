@@ -414,9 +414,11 @@ def test_migration_gleiche_wuensche_wie_vorher(art):
     if art == "dmnt9000":
         alt = _ablauf(lambda b, m: alt_reaktionen.Persoenlichkeit(b, m, random.Random(5)))
         # Seit den Roboter-Tönen heißen DMNTs Ton-Aktionen „alarm“/„freude“ statt „erschrecken“/„freuen“
-        # (eigene Namen, damit sie nicht automatisch zu jeder Freuen-Animation kommen). Sonst gleich.
+        # (eigene Namen, damit sie nicht automatisch zu jeder Freuen-Animation kommen). Bei Musik spielt
+        # er seit dem Editor-Stand die eigene Animation „musik“ statt „freuen“. Sonst gleich.
         regeln = json.loads(json.dumps(DMNT).replace('"name": "alarm"', '"name": "erschrecken"')
-                            .replace('"name": "freude"', '"name": "freuen"'))
+                            .replace('"name": "freude"', '"name": "freuen"')
+                            .replace('"name": "musik"', '"name": "freuen"'))
         neu = _ablauf(lambda b, m: RegelPersoenlichkeit(b, m, regeln, random.Random(5), name="dmnt9000"))
     else:
         alt = _ablauf(lambda b, m: alt_reaktionen.Reaktionen(b, m, random.Random(5)))

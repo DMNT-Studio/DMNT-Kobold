@@ -16,7 +16,7 @@ Die Spritzer fliegen in einem eigenen, komplett durchklickbaren Fenster
 Ohne Bewegung, Partikel und Wackeln fällt der Takt auf 100 ms (CPU in Ruhe).
 
 Bedienung (Konzept #28): Linksklick gehört dem Avatar (``maus.klick`` an seine Regeln;
-reagiert keine, macht der Sockel einen kleinen Hüpfer). Rechtsklick zeigt nur sein
+reagiert keine, macht er als Rückfall einen kleinen Hüpfer). Rechtsklick zeigt nur sein
 Verhalten (Nicht stören, Auf diesem Monitor bleiben). Einrichten und Beenden liegen im Tray.
 """
 from __future__ import annotations
@@ -1023,14 +1023,17 @@ class AvatarFenster(QWidget):
 
     def klicken(self) -> None:
         """Linksklick gehört dem Avatar und öffnet nie das Einrichten (#28). ``maus.klick``
-        geht an seine Regeln; Läufer machen dazu wie seit M1 einen kleinen Hüpfer.
-        Hüpfer hüpfen nur, wenn keine Regel reagiert hat (Rückfall im Sockel)."""
+        geht an seine Regeln. Nur wenn keine Regel einen Wunsch erzeugt (keine passt,
+        Abklingzeit, Chance verfehlt), macht der Avatar als Rückfall einen kleinen Hüpfer –
+        Läufer wie seit M1 über die Physik, Hüpfer im Sockel."""
         vorher = self.motor.naechste_id
         self.bus.senden("maus.klick")
-        if not self.huepft:
+        if self.motor.naechste_id != vorher:       # eine Regel hat reagiert
+            pass
+        elif not self.huepft:
             self.koerper.huepfen()
             self.toene.spielen("huepfen")
-        elif self.motor.naechste_id == vorher:     # niemand hat sich etwas gewünscht
+        else:
             self._antippen = True
         self._takt.setInterval(TAKT_SCHNELL_MS)
 
