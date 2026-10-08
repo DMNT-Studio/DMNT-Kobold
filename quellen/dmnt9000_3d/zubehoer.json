@@ -1,0 +1,31 @@
+{
+  "kopfhoerer": {
+    "datei": "../zubehoer/kopfhoerer.png",
+    "hintergrund": "weiss",
+    "sitz": "ueber_kopf",
+    "gruppe": "ohren",
+    "immer": false,
+    "posen": {}
+  },
+  "zylinder": {
+    "datei": "zubehoer/zylinder.png",
+    "sitz": "auf_kopf",
+    "gruppe": "hut",
+    "immer": false,
+    "posen": {}
+  },
+  "monokel": {
+    "datei": "zubehoer/monokel.png",
+    "sitz": "am_auge",
+    "gruppe": "auge",
+    "immer": false,
+    "posen": {}
+  },
+  "spazierstock": {
+    "datei": "zubehoer/spazierstock.png",
+    "sitz": "in_hand",
+    "gruppe": "hand",
+    "immer": false,
+    "posen": {}
+  }
+}

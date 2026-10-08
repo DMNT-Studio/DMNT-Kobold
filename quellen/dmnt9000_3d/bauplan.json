@@ -1,0 +1,1173 @@
+{
+  "id": "dmnt9000_3d",
+  "name": "DMNT 9000 3D",
+  "skalierung": 2,
+  "hoehe": 124,
+  "blickrichtung": 1,
+  "bewegung": {
+    "art": "gehen"
+  },
+  "quellen": {
+    "stehen": {
+      "datei": "stehen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "gehen": {
+      "datei": "gehen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "rennen": {
+      "datei": "rennen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "tragen": {
+      "datei": "tragen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "minen": {
+      "datei": "minen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "freuen": {
+      "datei": "freuen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "unzufrieden": {
+      "datei": "unzufrieden.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "sitzen": {
+      "datei": "sitzen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "schlafen": {
+      "datei": "schlafen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "fallen": {
+      "datei": "fallen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "gezogen": {
+      "datei": "gezogen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "springen": {
+      "datei": "springen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "schweben": {
+      "datei": "schweben.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "anschauen": {
+      "datei": "anschauen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "sprechen": {
+      "datei": "sprechen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "sprechen_vorne": {
+      "datei": "sprechen_vorne.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "erschrecken": {
+      "datei": "erschrecken.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "zuschauen": {
+      "datei": "zuschauen.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    },
+    "musik": {
+      "datei": "musik.png",
+      "bilder": 8,
+      "raster": true,
+      "massstab": "fest",
+      "fusspunkt": [
+        190.5,
+        340
+      ]
+    }
+  },
+  "referenz": [
+    "stehen",
+    0
+  ],
+  "animationen": {
+    "ruhe": {
+      "fps": 5,
+      "bilder": [
+        [
+          "stehen",
+          0,
+          "normal"
+        ],
+        [
+          "stehen",
+          1,
+          "normal"
+        ],
+        [
+          "stehen",
+          2,
+          "puls"
+        ],
+        [
+          "stehen",
+          3,
+          "hell"
+        ],
+        [
+          "stehen",
+          4,
+          "puls"
+        ],
+        [
+          "stehen",
+          5,
+          "normal"
+        ],
+        [
+          "stehen",
+          6,
+          "normal"
+        ],
+        [
+          "stehen",
+          7,
+          "normal"
+        ]
+      ]
+    },
+    "ruhe~2": {
+      "fps": 10,
+      "bilder": [
+        [
+          "minen",
+          0,
+          "hell"
+        ],
+        [
+          "minen",
+          1,
+          "grell"
+        ],
+        [
+          "minen",
+          2,
+          "hell"
+        ],
+        [
+          "minen",
+          3,
+          "grell"
+        ],
+        [
+          "minen",
+          4,
+          "hell"
+        ],
+        [
+          "minen",
+          5,
+          "grell"
+        ],
+        [
+          "minen",
+          6,
+          "hell"
+        ],
+        [
+          "minen",
+          7,
+          "grell"
+        ]
+      ]
+    },
+    "bewegen": {
+      "fps": 10,
+      "bilder": [
+        [
+          "gehen",
+          0,
+          "normal"
+        ],
+        [
+          "gehen",
+          1,
+          "normal"
+        ],
+        [
+          "gehen",
+          2,
+          "normal"
+        ],
+        [
+          "gehen",
+          3,
+          "normal"
+        ],
+        [
+          "gehen",
+          4,
+          "normal"
+        ],
+        [
+          "gehen",
+          5,
+          "normal"
+        ],
+        [
+          "gehen",
+          6,
+          "normal"
+        ],
+        [
+          "gehen",
+          7,
+          "normal"
+        ]
+      ]
+    },
+    "bewegen~2": {
+      "fps": 9,
+      "bilder": [
+        [
+          "tragen",
+          0,
+          "normal"
+        ],
+        [
+          "tragen",
+          1,
+          "normal"
+        ],
+        [
+          "tragen",
+          2,
+          "normal"
+        ],
+        [
+          "tragen",
+          3,
+          "normal"
+        ],
+        [
+          "tragen",
+          4,
+          "normal"
+        ],
+        [
+          "tragen",
+          5,
+          "normal"
+        ],
+        [
+          "tragen",
+          6,
+          "normal"
+        ],
+        [
+          "tragen",
+          7,
+          "normal"
+        ]
+      ]
+    },
+    "bewegen~3": {
+      "fps": 10,
+      "bilder": [
+        [
+          "gehen",
+          0,
+          "normal"
+        ],
+        [
+          "gehen",
+          1,
+          "normal"
+        ],
+        [
+          "gehen",
+          2,
+          "normal"
+        ],
+        [
+          "gehen",
+          3,
+          "normal"
+        ],
+        [
+          "gehen",
+          4,
+          "normal"
+        ],
+        [
+          "gehen",
+          5,
+          "normal"
+        ],
+        [
+          "gehen",
+          6,
+          "normal"
+        ],
+        [
+          "gehen",
+          7,
+          "normal"
+        ]
+      ]
+    },
+    "rennen": {
+      "fps": 16,
+      "bilder": [
+        [
+          "rennen",
+          0,
+          "hell"
+        ],
+        [
+          "rennen",
+          1,
+          "hell"
+        ],
+        [
+          "rennen",
+          2,
+          "hell"
+        ],
+        [
+          "rennen",
+          3,
+          "hell"
+        ],
+        [
+          "rennen",
+          4,
+          "hell"
+        ],
+        [
+          "rennen",
+          5,
+          "hell"
+        ],
+        [
+          "rennen",
+          6,
+          "hell"
+        ],
+        [
+          "rennen",
+          7,
+          "hell"
+        ]
+      ]
+    },
+    "anschauen": {
+      "fps": 8,
+      "bilder": [
+        [
+          "anschauen",
+          0,
+          "hell"
+        ],
+        [
+          "anschauen",
+          1,
+          "hell"
+        ],
+        [
+          "anschauen",
+          2,
+          "grell"
+        ],
+        [
+          "anschauen",
+          3,
+          "hell"
+        ],
+        [
+          "anschauen",
+          4,
+          "hell"
+        ],
+        [
+          "anschauen",
+          5,
+          "hell"
+        ],
+        [
+          "anschauen",
+          6,
+          "grell"
+        ],
+        [
+          "anschauen",
+          7,
+          "hell"
+        ]
+      ]
+    },
+    "sprechen": {
+      "fps": 8,
+      "bilder": [
+        [
+          "sprechen",
+          0,
+          "hell"
+        ],
+        [
+          "sprechen",
+          1,
+          "normal"
+        ],
+        [
+          "sprechen",
+          2,
+          "grell"
+        ],
+        [
+          "sprechen",
+          3,
+          "puls"
+        ],
+        [
+          "sprechen",
+          4,
+          "hell"
+        ],
+        [
+          "sprechen",
+          5,
+          "normal"
+        ],
+        [
+          "sprechen",
+          6,
+          "grell"
+        ],
+        [
+          "sprechen",
+          7,
+          "puls"
+        ]
+      ]
+    },
+    "sprechen~2": {
+      "fps": 8,
+      "bilder": [
+        [
+          "sprechen_vorne",
+          0,
+          "hell"
+        ],
+        [
+          "sprechen_vorne",
+          1,
+          "normal"
+        ],
+        [
+          "sprechen_vorne",
+          2,
+          "grell"
+        ],
+        [
+          "sprechen_vorne",
+          3,
+          "puls"
+        ],
+        [
+          "sprechen_vorne",
+          4,
+          "hell"
+        ],
+        [
+          "sprechen_vorne",
+          5,
+          "normal"
+        ],
+        [
+          "sprechen_vorne",
+          6,
+          "grell"
+        ],
+        [
+          "sprechen_vorne",
+          7,
+          "puls"
+        ]
+      ]
+    },
+    "erschrecken": {
+      "fps": 12,
+      "bilder": [
+        [
+          "erschrecken",
+          0,
+          "grell"
+        ],
+        [
+          "erschrecken",
+          1,
+          "hell"
+        ],
+        [
+          "erschrecken",
+          2,
+          "grell"
+        ],
+        [
+          "erschrecken",
+          3,
+          "hell"
+        ],
+        [
+          "erschrecken",
+          4,
+          "grell"
+        ],
+        [
+          "erschrecken",
+          5,
+          "hell"
+        ],
+        [
+          "erschrecken",
+          6,
+          "grell"
+        ],
+        [
+          "erschrecken",
+          7,
+          "hell"
+        ]
+      ]
+    },
+    "freuen": {
+      "fps": 10,
+      "bilder": [
+        [
+          "freuen",
+          0,
+          "hell"
+        ],
+        [
+          "freuen",
+          1,
+          "grell"
+        ],
+        [
+          "freuen",
+          2,
+          "hell"
+        ],
+        [
+          "freuen",
+          3,
+          "grell"
+        ],
+        [
+          "freuen",
+          4,
+          "hell"
+        ],
+        [
+          "freuen",
+          5,
+          "grell"
+        ],
+        [
+          "freuen",
+          6,
+          "hell"
+        ],
+        [
+          "freuen",
+          7,
+          "grell"
+        ]
+      ]
+    },
+    "unzufrieden": {
+      "fps": 6,
+      "bilder": [
+        [
+          "unzufrieden",
+          0,
+          "dunkel"
+        ],
+        [
+          "unzufrieden",
+          1,
+          "normal"
+        ],
+        [
+          "unzufrieden",
+          2,
+          "dunkel"
+        ],
+        [
+          "unzufrieden",
+          3,
+          "normal"
+        ],
+        [
+          "unzufrieden",
+          4,
+          "dunkel"
+        ],
+        [
+          "unzufrieden",
+          5,
+          "normal"
+        ],
+        [
+          "unzufrieden",
+          6,
+          "dunkel"
+        ],
+        [
+          "unzufrieden",
+          7,
+          "normal"
+        ]
+      ]
+    },
+    "sitzen": {
+      "fps": 4,
+      "bilder": [
+        [
+          "sitzen",
+          0,
+          "dunkel"
+        ],
+        [
+          "sitzen",
+          1,
+          "dunkel"
+        ],
+        [
+          "sitzen",
+          2,
+          "normal"
+        ],
+        [
+          "sitzen",
+          3,
+          "normal"
+        ],
+        [
+          "sitzen",
+          4,
+          "dunkel"
+        ],
+        [
+          "sitzen",
+          5,
+          "dunkel"
+        ],
+        [
+          "sitzen",
+          6,
+          "normal"
+        ],
+        [
+          "sitzen",
+          7,
+          "normal"
+        ]
+      ]
+    },
+    "schlafen": {
+      "fps": 2.5,
+      "bilder": [
+        [
+          "schlafen",
+          0,
+          "aus"
+        ],
+        [
+          "schlafen",
+          1,
+          "aus"
+        ],
+        [
+          "schlafen",
+          2,
+          "aus"
+        ],
+        [
+          "schlafen",
+          3,
+          "dunkel"
+        ],
+        [
+          "schlafen",
+          4,
+          "dunkel"
+        ],
+        [
+          "schlafen",
+          5,
+          "aus"
+        ],
+        [
+          "schlafen",
+          6,
+          "aus"
+        ],
+        [
+          "schlafen",
+          7,
+          "aus"
+        ]
+      ]
+    },
+    "gezogen": {
+      "fps": 9,
+      "bilder": [
+        [
+          "gezogen",
+          0,
+          "grell"
+        ],
+        [
+          "gezogen",
+          1,
+          "hell"
+        ],
+        [
+          "gezogen",
+          2,
+          "grell"
+        ],
+        [
+          "gezogen",
+          3,
+          "hell"
+        ],
+        [
+          "gezogen",
+          4,
+          "grell"
+        ],
+        [
+          "gezogen",
+          5,
+          "hell"
+        ],
+        [
+          "gezogen",
+          6,
+          "grell"
+        ],
+        [
+          "gezogen",
+          7,
+          "hell"
+        ]
+      ]
+    },
+    "fallen": {
+      "fps": 10,
+      "bilder": [
+        [
+          "fallen",
+          0,
+          "grell"
+        ],
+        [
+          "fallen",
+          1,
+          "hell"
+        ],
+        [
+          "fallen",
+          2,
+          "grell"
+        ],
+        [
+          "fallen",
+          3,
+          "hell"
+        ],
+        [
+          "fallen",
+          4,
+          "grell"
+        ],
+        [
+          "fallen",
+          5,
+          "hell"
+        ],
+        [
+          "fallen",
+          6,
+          "grell"
+        ],
+        [
+          "fallen",
+          7,
+          "hell"
+        ]
+      ]
+    },
+    "zuschauen": {
+      "fps": 4,
+      "bilder": [
+        [
+          "zuschauen",
+          0,
+          "normal"
+        ],
+        [
+          "zuschauen",
+          1,
+          "normal"
+        ],
+        [
+          "zuschauen",
+          2,
+          "puls"
+        ],
+        [
+          "zuschauen",
+          3,
+          "puls"
+        ],
+        [
+          "zuschauen",
+          4,
+          "normal"
+        ],
+        [
+          "zuschauen",
+          5,
+          "normal"
+        ],
+        [
+          "zuschauen",
+          6,
+          "puls"
+        ],
+        [
+          "zuschauen",
+          7,
+          "puls"
+        ]
+      ]
+    },
+    "springen": {
+      "fps": 8,
+      "bilder": [
+        [
+          "springen",
+          0,
+          "hell"
+        ],
+        [
+          "springen",
+          1,
+          "grell"
+        ],
+        [
+          "springen",
+          2,
+          "hell"
+        ],
+        [
+          "springen",
+          3,
+          "grell"
+        ],
+        [
+          "springen",
+          4,
+          "hell"
+        ],
+        [
+          "springen",
+          5,
+          "grell"
+        ],
+        [
+          "springen",
+          6,
+          "hell"
+        ],
+        [
+          "springen",
+          7,
+          "grell"
+        ]
+      ]
+    },
+    "schweben": {
+      "fps": 5,
+      "bilder": [
+        [
+          "schweben",
+          0,
+          "hell"
+        ],
+        [
+          "schweben",
+          1,
+          "puls"
+        ],
+        [
+          "schweben",
+          2,
+          "hell"
+        ],
+        [
+          "schweben",
+          3,
+          "puls"
+        ],
+        [
+          "schweben",
+          4,
+          "hell"
+        ],
+        [
+          "schweben",
+          5,
+          "puls"
+        ],
+        [
+          "schweben",
+          6,
+          "hell"
+        ],
+        [
+          "schweben",
+          7,
+          "puls"
+        ]
+      ]
+    },
+    "musik": {
+      "fps": 8,
+      "bilder": [
+        [
+          "musik",
+          0,
+          "puls"
+        ],
+        [
+          "musik",
+          1,
+          "hell"
+        ],
+        [
+          "musik",
+          2,
+          "puls"
+        ],
+        [
+          "musik",
+          3,
+          "hell"
+        ],
+        [
+          "musik",
+          4,
+          "puls"
+        ],
+        [
+          "musik",
+          5,
+          "hell"
+        ],
+        [
+          "musik",
+          6,
+          "puls"
+        ],
+        [
+          "musik",
+          7,
+          "hell"
+        ]
+      ]
+    }
+  },
+  "portraet": {
+    "datei": "portraet.png",
+    "hoehe": 360
+  },
+  "herkunft": {
+    "hintergrund": "herkunft_asteroiden.jpg",
+    "groesse": 768,
+    "ebenen": [
+      {
+        "datei": "herkunft_schiff.png",
+        "x": 0.52,
+        "y": 0.47,
+        "breite": 1.05
+      }
+    ]
+  },
+  "toene": {
+    "sprechen": {
+      "dateien": [
+        "toene/sprechen_1.ogg",
+        "toene/sprechen_2.ogg",
+        "toene/sprechen_3.ogg",
+        "toene/sprechen_4.ogg"
+      ],
+      "tonhoehe": 0.04
+    },
+    "landen": {
+      "dateien": [
+        "toene/landen_1.ogg",
+        "toene/landen_2.ogg"
+      ],
+      "tonhoehe": 0.03
+    },
+    "freude": {
+      "dateien": [
+        "toene/freude.ogg"
+      ],
+      "tonhoehe": 0.02
+    },
+    "alarm": {
+      "dateien": [
+        "toene/alarm.ogg"
+      ],
+      "tonhoehe": 0.03
+    },
+    "aufwachen": {
+      "dateien": [
+        "toene/aufwachen.ogg"
+      ]
+    },
+    "huepfen": {
+      "dateien": [
+        "toene/huepfen.ogg"
+      ],
+      "tonhoehe": 0.05
+    }
+  },
+  "effekte": {
+    "zuordnung": {
+      "musik": "noten",
+      "unzufrieden": "dampf",
+      "landen": "sterne",
+      "sprechen": "fragezeichen"
+    }
+  }
+}

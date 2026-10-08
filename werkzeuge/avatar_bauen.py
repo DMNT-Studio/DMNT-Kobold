@@ -42,6 +42,13 @@ Das Programm selbst kennt nur fertige Frames. Dieses Werkzeug erledigt alles dav
   (Fehler brechen ab, bevor etwas gelöscht wird)
 - Töne aus Dateien übernehmen (.ogg wird zu .wav – mit soundfile oder ffmpeg)
 
+Gerenderte Figuren (z. B. DMNT 9000 aus dem 3D-Modell, werkzeuge/figur3d/):
+- ``"raster": true`` je Quelle: der Bogen besteht aus ``bilder`` gleich breiten Zellen
+  (keine Suche nach leeren Spalten - Stein und Strahl gehören zur Pose). ``"fusspunkt": [x, y]``
+  in Zellen-Pixeln ist der Anker (Boden unter der Figur), statt Augenmitte/Unterkante.
+- ``"massstab": "fest"``: alle Bilder bekommen denselben Faktor (Referenzpose auf ``hoehe``),
+  statt je Bild über die Augengröße - so wackelt eine 8-Bild-Bewegung nicht. Raster braucht "fest".
+
 Was gebaut wird, steht in ``bauplan.json`` im Quellordner.
 Benötigt (nur zum Bauen): Pillow, numpy, scipy.
 """
@@ -149,6 +156,26 @@ def zuschneiden(rgba: np.ndarray, rand: int = 2) -> np.ndarray:
     y0, y1 = max(ys.min() - rand, 0), min(ys.max() + rand + 1, rgba.shape[0])
     x0, x1 = max(xs.min() - rand, 0), min(xs.max() + rand + 1, rgba.shape[1])
     return rgba[y0:y1, x0:x1].copy()
+
+
+def raster_zerlegen(rgba: np.ndarray, anzahl: int, fusspunkt=None) -> list[tuple[np.ndarray, tuple[float, float]]]:
+    """Bogen aus ``anzahl`` gleich breiten Zellen → [(zugeschnittene Pose, Anker in deren Pixeln)].
+    ``fusspunkt`` (x, y) in Zellen-Pixeln, Standard: unten in der Mitte."""
+    h, w = rgba.shape[:2]
+    if anzahl < 1 or w % anzahl:
+        raise BauFehler(f"Raster: Breite {w} lässt sich nicht in {anzahl} gleiche Zellen teilen")
+    zb = w // anzahl
+    fx, fy = (float(fusspunkt[0]), float(fusspunkt[1])) if fusspunkt else (zb / 2, float(h))
+    ergebnis = []
+    for i in range(anzahl):
+        zelle = rgba[:, i * zb:(i + 1) * zb]
+        ys, xs = np.nonzero(zelle[..., 3] > 20)
+        if not len(xs):
+            raise BauFehler(f"Raster: Zelle {i + 1} von {anzahl} ist leer")
+        y0, x0 = max(int(ys.min()) - 2, 0), max(int(xs.min()) - 2, 0)
+        y1, x1 = min(int(ys.max()) + 3, h), min(int(xs.max()) + 3, zb)
+        ergebnis.append((zelle[y0:y1, x0:x1].copy(), (fx - x0, fy - y0)))
+    return ergebnis
 
 
 # --- SVG und Rig ---------------------------------------------------------------------
@@ -585,16 +612,19 @@ def bauen(quelle: Path, ziel: Path | None = None) -> Path:
         return kopf_ohne_auge(p) if name in ohne_auge else kopf_finden(p)
 
     # gemeinsame Leinwand: Anker = Fußpunkt
-    links = rechts = oben = 0.0
+    links = rechts = oben = unten = 0.0
     for (name, i), (cx, fy) in anker.items():
         p = skaliert[name][i]
         links, rechts = max(links, cx), max(rechts, p.shape[1] - cx)
         oben = max(oben, fy)
+        unten = max(unten, p.shape[0] - fy)          # nur bei Raster-Posen > 0
+    unten_px = int(np.ceil(unten))
+    unten_px += unten_px % s
     breite_px = int(np.ceil(2 * max(links, rechts))) + 4
-    hoehe_px = int(np.ceil(oben)) + 4
+    hoehe_px = int(np.ceil(oben)) + 4 + unten_px
     breite_px += breite_px % s
     hoehe_px += hoehe_px % s
-    ax, ay = breite_px / 2, hoehe_px - 2
+    ax, ay = breite_px / 2, hoehe_px - 2 - unten_px
     return _bauen_rest(quelle, plan, ziel, s, rahmen, verhalten, skaliert, anker, ohne_auge, rueckwand, kopf,
                        breite_px, hoehe_px, ax, ay)
 
@@ -603,9 +633,17 @@ def auge_posen(quelle: Path, plan: dict, s: int):
     """Posen mit rotem Auge laden, über die Augengröße skalieren → (Posen, Anker, ohne Auge, roh)."""
     # 1) Posen laden
     posen: dict[str, list[np.ndarray]] = {}
+    raster_anker: dict[str, list[tuple[float, float]]] = {}
     for name, q in plan["quellen"].items():
-        posen[name] = zerlegen(laden(quelle / q["datei"], q.get("hintergrund"), q.get("toleranz")),
-                               q.get("bilder", 1))
+        bild = laden(quelle / q["datei"], q.get("hintergrund"), q.get("toleranz"))
+        if q.get("raster"):
+            if q.get("massstab") != "fest":
+                raise BauFehler(f"Quelle „{name}“: „raster“ geht nur mit \"massstab\": \"fest\"")
+            teile = raster_zerlegen(bild, q.get("bilder", 1), q.get("fusspunkt"))
+            posen[name] = [p for p, _ in teile]
+            raster_anker[name] = [a for _, a in teile]
+        else:
+            posen[name] = zerlegen(bild, q.get("bilder", 1))
         print(f"  {name}: {len(posen[name])} Pose(n)")
 
     # 2) Maßstab: Referenzpose auf Zielhöhe, alle anderen über die Augengröße
@@ -617,6 +655,12 @@ def auge_posen(quelle: Path, plan: dict, s: int):
     skaliert: dict[str, list[np.ndarray]] = {}
     for name, liste in posen.items():
         if name in ohne_auge:
+            continue
+        if plan["quellen"][name].get("massstab") == "fest":
+            f = plan["hoehe"] * s / ref.shape[0] * plan["quellen"][name].get("faktor", 1.0)
+            skaliert[name] = [skalieren(p, f) for p in liste]
+            if name in raster_anker:
+                raster_anker[name] = [(ax * f, ay * f) for ax, ay in raster_anker[name]]
             continue
         skaliert[name] = []
         for p in liste:
@@ -641,6 +685,9 @@ def auge_posen(quelle: Path, plan: dict, s: int):
     anker = {}
     for name, liste in skaliert.items():
         for i, p in enumerate(liste):
+            if name in raster_anker:
+                anker[(name, i)] = raster_anker[name][i]
+                continue
             cx = auge_finden(p)[0] if name not in ohne_auge else kopf_ohne_auge(p)[0]
             anker[(name, i)] = (cx, p.shape[0])
     return skaliert, anker, ohne_auge, posen

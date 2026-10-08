@@ -1,0 +1,15 @@
+<!doctype html><html><body style="margin:0;background:transparent">
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as RIG from './rig.js';
+const {ANIM} = await import('./anims.js?v=' + Date.now());
+await RIG.laden();
+window.RIG = RIG; window.ANIM = ANIM;
+window.renderAnim = (name, mitId=true) => {
+  const a = ANIM[name]; const out = [];
+  const [w,h] = RIG.kamera(...a.kamera);
+  for (let i = 0; i < a.n; i++) { RIG.pose(a.pose(i, a.n)); out.push(RIG.rendern(mitId)); }
+  return {w, h, frames: out};
+};
+window.ready = true;
+</script></body></html>

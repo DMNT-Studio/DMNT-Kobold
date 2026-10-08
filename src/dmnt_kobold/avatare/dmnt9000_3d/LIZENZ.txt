@@ -1,0 +1,15 @@
+DMNT 9000 3D - Avatar fuer DMNT-Kobold
+
+Figur (3D-Modell modell/dmnt9000.glb, nicht im Repo):
+  Mit Meshy AI (meshy.ai) im Auftrag von Stefan Rohrbach erzeugt.
+  Namensnennung: "3D-Modell erstellt mit Meshy (meshy.ai)".
+  Hinweis: Modelle aus dem kostenlosen Meshy-Tarif stehen unter CC BY 4.0
+  (Nutzung auch kommerziell erlaubt, Meshy muss genannt werden).
+
+Gerenderte Bilder (*.png in diesem Ordner):
+  Aus dem Modell gerendert mit werkzeuge/figur3d (Rig, Posen, Box, Mining-Pistole,
+  Stein sind eigene Geometrie). Werkzeuge und Posen stehen unter der MIT-Lizenz
+  des Projekts; fuer die Figur selbst gilt zusaetzlich die Namensnennung oben.
+
+Herkunft (herkunft_asteroiden.jpg, herkunft_schiff.png), Toene, Zubehoer:
+  Wie beim DMNT 9000 - von Stefan Rohrbach erstellt, MIT-Lizenz des Projekts.
